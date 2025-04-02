@@ -1,0 +1,55 @@
+{
+  "name": "ophelios/zephyrus-framework",
+  "description": "Template project for Zephyrus foundation.",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "David Tucker",
+      "email": "david.tucker@ophelios.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": ">=8.4",
+    "ophelios/zephyrus": "0.9.0",
+    "symfony/var-dumper": "*",
+    "vlucas/phpdotenv": "^5.5",
+    "ext-json": "*",
+    "ext-fileinfo": "*",
+    "ext-zip": "*",
+    "ext-posix": "*",
+    "ext-curl": "*",
+    "ext-intl": "*",
+    "ext-ssh2": "*",
+    "ext-gd": "*",
+    "ext-libxml": "*",
+    "ext-dom": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "10.*",
+    "tracy/tracy": "^2.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "Models\\": "app/Models",
+      "Controllers\\": "app/Controllers"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit --stderr",
+    "latte-cache": "XDEBUG_MODE=off php bin/latte_cache",
+    "xdebug-enable": "bash bin/docker-xdebug.sh enable webserver",
+    "xdebug-disable": "bash bin/docker-xdebug.sh disable webserver"
+  },
+  "config": {
+    "allow-plugins": {
+      "nodejs-php-fallback/nodejs-php-fallback": true
+    }
+  }
+}

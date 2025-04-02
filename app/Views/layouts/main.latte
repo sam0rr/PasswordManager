@@ -1,0 +1,33 @@
+{varType string $project_name}
+{varType string $title}
+{varType string $nonce}
+
+{import ../components/flash.latte}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    {include components/favicon.latte}
+    {block meta}{/block}
+    <title>{$project_name . ' | ' . $title}</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <script src="/javascripts/vendor/pace-1.2.4/pace.min.js"></script>
+    <script src="/javascripts/vendor/tom-select-2.2.2/tom-select.complete.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        {include "zf-flash"}
+        {block content}{/block}
+    </div>
+    <script src="/javascripts/vendor/popper-2.11.6/popper.min.js"></script>
+    <script src="/javascripts/vendor/bootstrap-5.3.0/bootstrap.min.js"></script>
+    <script src="/javascripts/vendor/imask-7.0.0/imask.js"></script>
+    <script type="module" nonce={$nonce}>
+        import Application from "/javascripts/app.js";
+        let app = new Application({});
+        app.initialize();
+    </script>
+</body>
+</html>

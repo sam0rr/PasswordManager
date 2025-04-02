@@ -1,0 +1,57 @@
+application:
+  project: "Template"
+  env: "dev"
+  contact_email: "info@ophelios.com"
+  locales:
+    - fr_CA
+
+locale:
+  currency: "CAD"
+  timezone: "America/Montreal"
+  language: "fr_CA"
+  charset: "utf8"
+  format_date: "d LLLL yyyy"
+  format_time: "HH:mm"
+  format_datetime: "d LLLL yyyy, HH:mm"
+
+mailer:
+  transport: "smtp"
+  from_address: "info@ophelios.com"
+  from_name: "Zephyrus"
+  smtp:
+    enabled: true
+    host: "localhost"
+    port: 1025
+    encryption: "none"
+    username: ""
+    password: ""
+
+database:
+  hostname: !php/const DB_HOSTNAME
+  username: !php/const DB_USERNAME
+  password: !php/const DB_PASSWORD
+  database: !php/const DB_NAME
+  search_paths:
+    - public
+
+render:
+  engine: "latte"
+  cache_update: !php/const CACHE_UPDATE
+
+session:
+  storage: "database"
+  table: "public.session"
+  encrypted: false
+  lifetime: 1440
+
+security:
+  password:
+    pepper: !php/const PASSWORD_PEPPER
+  encryption:
+    key: !php/const ENCRYPTION_KEY
+  csrf:
+    enabled: true
+  ids:
+    enabled: true
+    impact_threshold: 50
+

@@ -1,0 +1,27 @@
+{varType \stdClass $flash}
+
+{define "zf-flash"}
+    {include "zf-flash-message", $flash->success, 'success'}
+    {include "zf-flash-message", $flash->error, 'danger'}
+    {include "zf-flash-message", $flash->warning, 'warning'}
+    {include "zf-flash-message", $flash->notice, 'notice'}
+    {include "zf-flash-message", $flash->info, 'info'}
+{/define}
+
+{define "zf-flash-message", $data, $theme}
+    {if $data}
+        <div class="alert alert-{$theme}">
+            {if is_array($data) && count($data) > 1}
+                <ul class="mb-0">
+                    {foreach $data as $message}
+                         {if !empty($message)}
+                             <li>{$message|noescape}</li>
+                         {/if}
+                    {/foreach}
+                </ul>
+            {else}
+                {((is_array($data)) ? $data[0] : $data)|noescape}
+            {/if}
+        </div>
+    {/if}
+{/define}

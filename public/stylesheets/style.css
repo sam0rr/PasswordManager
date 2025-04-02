@@ -1,0 +1,20 @@
+/* FRAMEWORK */
+@import "vendor/bootstrap-5.3.0/bootstrap.min.css";
+
+/* ADDITIONAL LIBRARIES */
+@import "vendor/pace-1.2.4/minimal.css";
+@import "vendor/tempus-dominus-6.4.4/tempus-dominus.min.css";
+@import "vendor/tom-select-2.2.2/tom-select.min.css";
+
+/* ICONOGRAPHY */
+@import "vendor/bootstrap-icons-1.11.1/bootstrap-icons.min.css";
+@import "vendor/fontawesome-6.2.1/css/all.min.css";
+@import "vendor/lineicons-3.0/icon-font/lineicons.css";
+
+/* FONTS */
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,500,700');
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700');
+@import url('https://fonts.googleapis.com/css2?family=El+Messiri&family=Montserrat&display=swap');
+
+/* COMPONENTS */
+@import "components/body.css";

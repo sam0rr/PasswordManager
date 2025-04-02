@@ -1,0 +1,11 @@
+{
+  "errors": {
+    "generic": "Une erreur est survenue lors de la soumission du formulaire. Veuillez corriger les champs erronés puis procéder de nouveau à la soumission.",
+    "unauthorized": "Vous n'êtes pas autorisé à accéder la ressource demandée. Pour plus d'informations, contactez un administrateur.",
+    "not_found": "La page que vous avez tentez d'accéder [<b>%s</b>] est inexistante 😩. Veuillez contacter un administrateur si vous croyez qu'il s'agit d'une erreur.",
+    "csrf_invalid": "La requête n'a pas été traitée correctement puisqu'un jeton de sécurité est invalide (possiblement expiré). Réessayez de nouveau et si le problème persiste, veuillez contacter un administrateur.",
+    "intrusion_detected": "Une tentative d'intrusion a été détectée 😥. Cet incident a été notifié aux administrateurs.",
+    "required": "Ne doit pas être vide.",
+    "money": "Doit être un format monétaire."
+  }
+}

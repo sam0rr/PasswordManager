@@ -1,0 +1,14 @@
+composer.phar
+.idea/
+/vendor/
+composer.lock
+
+/locale/cache
+/backups
+/storage
+/temp
+/cache
+/logs
+
+.env
+/xdebug
