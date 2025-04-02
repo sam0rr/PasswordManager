@@ -5,14 +5,14 @@
 ### Controllers
 
 - `UserController`: Gestion des inscriptions, authentifications, et des profils utilisateurs.
-- `AuthenticationController`: Gestion des méthodes MFA (activation, vérification).
+- `AuthController`: Gestion des méthodes MFA (activation, vérification).
 - `PasswordController`: Ajout, modification, suppression et récupération des mots de passe utilisateur.
 - `SharingController`: Gestion du partage des mots de passe entre utilisateurs.
 
 ### Services
 
 - `UserService`: Gestion des utilisateurs (création, mise à jour, vérification email).
-- `AuthenticationService`: Gestion de la logique d'authentification multi-facteurs et chiffrement des clés MFA.
+- `AuthService`: Gestion de la logique d'authentification multi-facteurs et chiffrement des clés MFA.
 - `EncryptionService`: Chiffrement et déchiffrement des données sensibles (mots de passe, clés MFA).
 - `PasswordService`: Gestion sécurisée des mots de passe (création, update, suppression).
 - `SharingService`: Logique du partage sécurisé des passwords.
@@ -20,21 +20,21 @@
 ### Validators
 
 - `UserValidator`: Validation des données utilisateur (email, mot de passe, informations personnelles).
-- `AuthenticationValidator`: Validation des méthodes MFA et des jetons.
+- `AuthValidator`: Validation des méthodes MFA et des jetons.
 - `PasswordValidator`: Validation des données de gestion des mots de passe.
 - `SharingValidator`: Validation des demandes de partage de mots de passe.
 
 ### Brokers
 
 - `UserBroker`: Interaction avec la table utilisateurs.
-- `AuthenticationBroker`: Interaction avec la table d'authentification MFA.
+- `AuthBroker`: Interaction avec la table d'authentification MFA.
 - `PasswordBroker`: Interaction avec la table des mots de passe.
 - `SharingBroker`: Interaction avec la table de partage sécurisé des mots de passe.
 
 ### Models
 
 - `UserModel`: Représentation des données utilisateur.
-- `AuthenticationModel`: Représentation des configurations MFA.
+- `AuthModel`: Représentation des configurations MFA.
 - `PasswordModel`: Représentation des informations des mots de passe enregistrés.
 - `SharingModel`: Représentation du partage de mots de passe entre utilisateurs.
 
