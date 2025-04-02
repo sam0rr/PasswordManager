@@ -1,6 +1,17 @@
 CREATE TYPE login_result AS ENUM ('success', 'fail');
-CREATE TYPE authentication_method AS ENUM ('email', 'sms', 'authenticator');
+CREATE TYPE auth_method AS ENUM ('email', 'sms', 'authenticator');
 CREATE TYPE share_status AS ENUM ('active', 'pending', 'fail');
+
+    --Func to update timestamp when update--
+CREATE OR REPLACE FUNCTION update_timestamp()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+    --TABLE--
 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,25 +33,17 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_account_users_email ON users (email);
-
-CREATE TRIGGER trigger_users_updated
-    BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
 CREATE TABLE auth_history (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     ip_address INET NOT NULL,
     user_agent TEXT NOT NULL,
-    login_timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    auth_timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     result login_result NOT NULL,
     location TEXT NOT NULL,
     failed_logins INTEGER NOT NULL DEFAULT 0,
-    account_lock_until TIMESTAMPTZ
+    account_lock_until TIMESTAMPTZ -- Max 10 attemps then 30s, 60s, etc.
 );
-
-CREATE INDEX idx_login_records_user_time ON auth_history (user_id, login_timestamp DESC);
 
 CREATE TABLE user_passwords (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -53,12 +56,6 @@ CREATE TABLE user_passwords (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_credentials_user_service ON user_passwords (user_id, description);
-
-CREATE TRIGGER trigger_credentials_updated
-    BEFORE UPDATE ON user_passwords
-    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
 CREATE TABLE email_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -68,12 +65,10 @@ CREATE TABLE email_tokens (
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_email_tokens_token ON email_tokens (token);
-
-CREATE TABLE user_authentication (
+CREATE TABLE user_auth (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    method authentication_method NOT NULL,
+    method auth_method NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT FALSE,
     otp_secret TEXT NOT NULL,
     last_verified TIMESTAMPTZ NOT NULL,
@@ -81,12 +76,6 @@ CREATE TABLE user_authentication (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, method)
 );
-
-CREATE INDEX idx_user_auth_methods_active ON user_authentication (user_id, is_active);
-
-CREATE TRIGGER trigger_auth_methods_updated
-    BEFORE UPDATE ON user_authentication
-    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 CREATE TABLE credential_sharing (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -99,19 +88,46 @@ CREATE TABLE credential_sharing (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+    --INDEX--
+
+--USERS
+CREATE INDEX idx_account_users_email ON users (email);
+
+--AUTH_HISTORY
+CREATE INDEX idx_login_records_user_time ON auth_history (user_id, auth_timestamp DESC);
+
+--USER_PASSWORDS
+CREATE INDEX idx_credentials_user_service ON user_passwords (user_id, description);
+
+--EMAIL_TOKENS
+CREATE INDEX idx_email_tokens_token ON email_tokens (token);
+
+--USER_AUTH
+CREATE INDEX idx_user_auth_methods_active ON user_auth (user_id, is_active);
+
+--CREDENTIAL_SHARING
 CREATE INDEX idx_sharing_owner ON credential_sharing (owner_id);
 CREATE INDEX idx_sharing_shared ON credential_sharing (shared_id);
 
+    --TRIGGER--
+
+--USERS
+CREATE TRIGGER trigger_users_updated
+    BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+--USER_PASSWORDS
+CREATE TRIGGER trigger_credentials_updated
+    BEFORE UPDATE ON user_passwords
+    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+--USER_AUTH
+CREATE TRIGGER trigger_auth_methods_updated
+    BEFORE UPDATE ON user_auth
+    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+--CREDENTIAL_SHARING
 CREATE TRIGGER trigger_sharing_updated
     BEFORE UPDATE ON credential_sharing
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
-
---Func to update timestamp when update
-CREATE OR REPLACE FUNCTION update_timestamp()
-    RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
