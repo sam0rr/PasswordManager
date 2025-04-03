@@ -3,10 +3,10 @@
 namespace Controllers\src;
 
 use Controllers\SecureController;
+use Models\src\Services\EncryptionService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
-use Zephyrus\Core\Session;
 use Models\src\Brokers\UserBroker;
 
 class AuthController extends SecureController
@@ -25,7 +25,7 @@ class AuthController extends SecureController
     #[Post('/logout')]
     public function logout(): Response
     {
-        Session::remove('user_context');
+        EncryptionService::destroySession();
 
         return $this->json([
             "message" => "Déconnexion réussie"

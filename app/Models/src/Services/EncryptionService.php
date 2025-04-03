@@ -66,4 +66,10 @@ class EncryptionService
     {
         return Cryptography::randomHex($length);
     }
+
+    public static function destroySession(): void
+    {
+        Session::destroy();
+    }
+
 }
