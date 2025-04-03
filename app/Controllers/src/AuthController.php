@@ -30,13 +30,23 @@ class AuthController extends Controller
     #[Post("/login")]
     public function login(): Response
     {
+        $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->userService->login($form);
+
+        $result = $this->userService->login($form, $isHtmx);
+
+        if ($isHtmx) {
+            return $this->render("fragments/loginForm", [
+                "form" => $result["form"],
+                "isHtmx" => true
+            ]);
+        }
 
         if (isset($result["errors"])) {
             return $this->render("auth/login", [
                 "form" => $result["form"],
-                "title" => "Connexion"
+                "title" => "Connexion",
+                "isHtmx" => false
             ]);
         }
 
@@ -62,7 +72,7 @@ class AuthController extends Controller
 
             if ($isHtmx) {
                 return $this->render("fragments/registerForm", [
-                    "form" => $result["form"]
+                    "form" => $result["form"],
                 ]);
             }
 

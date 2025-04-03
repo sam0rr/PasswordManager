@@ -5,16 +5,22 @@
         <i class="bi bi-{$icon} me-1"></i>{$label}
     </label>
 
+    {var $hasError = isset($form) && $form->hasError($name)}
+    {var $isValid = isset($form) && !$form->hasError($name) && $form->getValue($name)}
+
     <input type="{$type}"
            name="{$name}"
            id="{$name}"
-           class="form-control {if isset($form) && $form->hasError($name)}is-invalid{/if}"
+           class="form-control
+                  {if $hasError}is-invalid{/if}
+                  {if $isValid}is-valid{/if}"
            value="{if isset($form)}{$form->getValue($name) ?? ''}{/if}"
            required>
 
-    {if isset($form) && $form->hasError($name)}
+    {if $hasError}
         <div class="invalid-feedback">
             {=getErrorMessage($name, $form)}
         </div>
     {/if}
+
 </div>

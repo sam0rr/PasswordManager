@@ -47,10 +47,11 @@ class AuthService
         }
     }
 
-    public function login(Form $form): array
+    public function login(Form $form, $isHtmx): array
+
     {
         try {
-            AuthValidator::assertLogin($form);
+            AuthValidator::assertLogin($form, $isHtmx);
 
             $email = $form->getValue("email");
             $password = $form->getValue("password");
@@ -58,11 +59,18 @@ class AuthService
             $user = $this->userBroker->findByEmail($email);
             if (!$user || !Cryptography::verifyHashedPassword($password, $user->password_hash)) {
                 $form->addError("login", "Identifiants invalides.");
-                return $this->buildErrorResponse($form);
+                throw new FormException($form);
             }
 
             $userKey = $this->encryptionService->deriveUserKey($password, $user->salt);
             $user = $this->userBroker->findByEmail($email, $userKey);
+
+            if ($isHtmx) {
+                return [
+                    "form" => $form,
+                    "status" => 200
+                ];
+            }
 
             $this->encryptionService->storeUserContext($user->id, $userKey);
 

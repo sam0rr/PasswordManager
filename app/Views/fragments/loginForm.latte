@@ -1,0 +1,29 @@
+<div id="login-form-wrapper">
+    <form method="post"
+          action="/login"
+          hx-post="/login"
+          hx-trigger="change"
+          hx-target="#login-form-wrapper"
+          hx-swap="innerHTML"
+          hx-preserve="true"
+          novalidate>
+
+        {if $form->hasError('login') && $form->getValue('submit') == 'true' && !$isHtmx}
+            <div class="alert alert-danger alert-dismissible fade show mt-3 mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {=getErrorMessage('login', $form)}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        {/if}
+
+        {include '../components/formField.latte', name => 'email', label => 'Adresse courriel', icon => 'envelope', type => 'email'}
+        {include '../components/formField.latte', name => 'password', label => 'Mot de passe', icon => 'lock', type => 'password'}
+
+        <div class="d-grid gap-2 mt-4">
+            <input type="hidden" name="submit" value="true" />
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+            </button>
+        </div>
+    </form>
+</div>

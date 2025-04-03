@@ -52,17 +52,19 @@ class AuthValidator
         }
     }
 
-
-    public static function assertLogin(Form $form): void
+    public static function assertLogin(Form $form, bool $isHtmx): void
     {
-        $form->field("email", [
+        $emailField = $form->field("email", [
             Rule::required("L'adresse courriel est requise."),
             Rule::email("L'adresse courriel n'est pas valide.")
         ]);
+        self::optionalIf($emailField, $isHtmx);
 
-        $form->field("password", [
-            Rule::required("Le mot de passe est requis.")
+        $passwordField = $form->field("password", [
+            Rule::required("Le mot de passe est requis."),
+            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
         ]);
+        self::optionalIf($passwordField, $isHtmx);
 
         $form->verify();
 
