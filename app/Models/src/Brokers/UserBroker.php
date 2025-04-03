@@ -54,6 +54,12 @@ class UserBroker extends DatabaseBroker
         return User::build($result);
     }
 
+    public function findById(string $id): ?User
+    {
+        $result = $this->selectSingle("SELECT * FROM users WHERE id = ?", [$id]);
+        return User::build($result);
+    }
+
     public function emailExists(string $email): bool
     {
         $emailHash = $this->encryptionService->hash256($email);

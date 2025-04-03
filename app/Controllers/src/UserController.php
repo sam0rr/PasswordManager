@@ -8,6 +8,7 @@ use Zephyrus\Network\ContentType;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Post;
 
+
 class UserController extends Controller
 {
     private UserService $userService;
@@ -42,4 +43,5 @@ class UserController extends Controller
 
         return $this->json($result);
     }
+
 }

@@ -7,16 +7,16 @@ use Models\Core\Entity;
 class User extends Entity
 {
     public string $id;
-    public string $firstName;
-    public string $lastName;
+    public string $first_name;
+    public string $last_name;
     public string $email;
     public string $phone;
-    public string $imageUrl;
-    public string $emailHash;
-    public string $passwordHash;
+    public string $image_url;
+    public string $email_hash;
+    public string $password_hash;
     public string $salt;
     public int $mfa;
-    public string $mfaEnd;
-    public string $createdAt;
-    public string $updatedAt;
+    public string $mfa_end;
+    public string $created_at;
+    public string $updated_at;
 }

@@ -50,7 +50,7 @@ class UserService
             'salt' => $salt
         ]);
 
-        $this->encryptionService->storeUserKeyInSession($userKey);
+        $this->encryptionService->storeUserContext($user->id, $userKey);
 
         return [
             "message" => "Compte créé avec succès",
@@ -76,12 +76,12 @@ class UserService
         $email = $form->getValue("email");
 
         $user = $this->userBroker->findByEmail($email);
-        if (!$user || !Cryptography::verifyHashedPassword($clearPassword, $user->passwordHash)) {
+        if (!$user || !Cryptography::verifyHashedPassword($clearPassword, $user->password_hash)) {
             return ["errors" => ["Identifiants invalides."], "status" => 401];
         }
 
         $userKey = $this->encryptionService->deriveUserKey($clearPassword, $user->salt);
-        $this->encryptionService->storeUserKeyInSession($userKey);
+        $this->encryptionService->storeUserContext($user->id, $userKey);
 
         return [
             "message" => "Connexion réussie",

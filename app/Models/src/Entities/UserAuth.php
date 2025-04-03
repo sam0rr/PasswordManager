@@ -7,11 +7,11 @@ use Models\Core\Entity;
 class UserAuth extends Entity
 {
     public string $id;
-    public string $userId;
+    public string $user_id;
     public string $method;
-    public bool $isActive;
-    public string $otpSecret;
-    public string $lastVerified;
-    public string $createdAt;
-    public string $updatedAt;
+    public bool $is_active;
+    public string $otp_secret;
+    public string $last_verified;
+    public string $created_at;
+    public string $updated_at;
 }

@@ -50,7 +50,7 @@ security:
   encryption:
     key: !php/const ENCRYPTION_KEY
   csrf:
-    enabled: true
+    enabled: false
   ids:
     enabled: true
     impact_threshold: 50

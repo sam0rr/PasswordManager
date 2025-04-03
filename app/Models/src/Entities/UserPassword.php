@@ -7,11 +7,11 @@ use Models\Core\Entity;
 class UserPassword extends Entity
 {
     public string $id;
-    public string $userId;
+    public string $user_id;
     public string $description;
     public string $note;
-    public string $encryptedPassword;
-    public string $lastUse;
-    public string $createdAt;
-    public string $updatedAt;
+    public string $encrypted_password;
+    public string $last_use;
+    public string $created_at;
+    public string $updated_at;
 }

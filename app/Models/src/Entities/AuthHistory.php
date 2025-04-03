@@ -7,12 +7,12 @@ use Models\Core\Entity;
 class AuthHistory extends Entity
 {
     public int $id;
-    public string $userId;
-    public string $ipAddress;
-    public string $userAgent;
-    public string $authTimestamp;
+    public string $user_id;
+    public string $ip_address;
+    public string $user_agent;
+    public string $auth_timestamp;
     public string $result;
     public string $location;
-    public int $failedLogins;
-    public ?string $accountLockUntil;
+    public int $failed_logins;
+    public ?string $account_lock_until;
 }

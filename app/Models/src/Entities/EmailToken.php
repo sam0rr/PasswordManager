@@ -7,9 +7,9 @@ use Models\Core\Entity;
 class EmailToken extends Entity
 {
     public string $id;
-    public string $userId;
+    public string $user_id;
     public string $token;
-    public string $expiresAt;
-    public bool $isUsed;
-    public string $createdAt;
+    public string $expires_at;
+    public bool $is_used;
+    public string $created_at;
 }

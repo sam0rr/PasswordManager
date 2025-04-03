@@ -28,7 +28,7 @@ class UserValidator
 
         $form->field("phone", [
             Rule::required("Le numéro de téléphone est requis."),
-            Rule::regex("/^[0-9\-\+\s]+$/", "Numéro de téléphone invalide.")
+            Rule::phone("téléphone n'est pas valide.")
         ]);
 
         $form->field("password", [
