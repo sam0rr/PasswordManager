@@ -4,7 +4,7 @@ namespace Models\src\Entities;
 
 use Models\Core\Entity;
 
-class UserAuth extends Entity
+class UserVerify extends Entity
 {
     public string $id;
     public string $user_id;

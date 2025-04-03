@@ -2,33 +2,45 @@
 
 namespace Controllers\src;
 
-use Controllers\SecureController;
-use Models\src\Services\EncryptionService;
+use Controllers\Controller;
+use Models\src\Services\AuthService;
+use Zephyrus\Network\ContentType;
 use Zephyrus\Network\Response;
-use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
-use Models\src\Brokers\UserBroker;
 
-class AuthController extends SecureController
+class AuthController extends Controller
 {
-    #[Get('/me')]
-    public function me(): Response
-    {
-        $auth = $this->getAuth();
-        $user = new UserBroker()->findById($auth['user_id'], $auth['user_key']);
+    private AuthService $userService;
 
-        return $user
-            ? $this->json($user)
-            : $this->abortNotFound("Utilisateur introuvable.");
+    public function __construct()
+    {
+        $this->userService = new AuthService();
     }
 
-    #[Post('/logout')]
-    public function logout(): Response
+    #[Post("/register")]
+    public function register(): Response
     {
-        EncryptionService::destroySession();
+        $form = $this->buildForm();
+        $result = $this->userService->register($form);
 
-        return $this->json([
-            "message" => "Déconnexion réussie"
-        ]);
+        if (isset($result["errors"])) {
+            return $this->abortBadRequest(json_encode(["errors" => $result["errors"]]), ContentType::JSON);
+        }
+
+        return $this->json($result);
     }
+
+    #[Post("/login")]
+    public function login(): Response
+    {
+        $form = $this->buildForm();
+        $result = $this->userService->login($form);
+
+        if (isset($result["errors"])) {
+            return $this->abortUnauthorized(json_encode(["errors" => $result["errors"]]), ContentType::JSON);
+        }
+
+        return $this->json($result);
+    }
+
 }

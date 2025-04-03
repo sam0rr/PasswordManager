@@ -62,7 +62,7 @@ CREATE TABLE email_tokens (
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE user_auth (
+CREATE TABLE user_verify (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     method auth_method NOT NULL,
@@ -105,8 +105,8 @@ CREATE TRIGGER trigger_credentials_updated
     BEFORE UPDATE ON user_passwords
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
-CREATE TRIGGER trigger_auth_methods_updated
-    BEFORE UPDATE ON user_auth
+CREATE TRIGGER trigger_verify_methods_updated
+    BEFORE UPDATE ON user_verify
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER trigger_sharing_updated
