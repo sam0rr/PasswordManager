@@ -21,75 +21,120 @@ class UserService
 
     public function register(Form $form): array
     {
-        try {
-            UserValidator::assertRegister($form, $this->userBroker);
-        } catch (FormException $e) {
-            return ["errors" => array_values($e->getForm()->getErrorMessages()), "status" => 400];
+        if (!$this->validateRegisterForm($form)) {
+            return $this->buildErrorResponse($form);
         }
 
+        $password = $form->getValue("password");
         $salt = $this->encryptionService->generateSalt();
-        $clearPassword = $form->getValue("password");
-        $hashedPassword = Cryptography::hashPassword($clearPassword);
-        $userKey = $this->encryptionService->deriveUserKey($clearPassword, $salt);
+        $userKey = $this->encryptionService->deriveUserKey($password, $salt);
+        $hashedPassword = Cryptography::hashPassword($password);
 
-        $encryptedEmail = $this->encryptionService->encryptWithUserKey($form->getValue("email"), $userKey);
-        $encryptedPhone = $this->encryptionService->encryptWithUserKey($form->getValue("phone"), $userKey);
-        $encryptedFirstName = $this->encryptionService->encryptWithUserKey($form->getValue("first_name"), $userKey);
-        $encryptedLastName = $this->encryptionService->encryptWithUserKey($form->getValue("last_name"), $userKey);
-        $encryptedImage = $this->encryptionService->encryptWithUserKey($form->getValue("image_url") ?? "", $userKey);
-        $emailHash = $this->encryptionService->hash256($form->getValue("email"));
-
-        $user = $this->userBroker->createUser([
-            'first_name' => $encryptedFirstName,
-            'last_name' => $encryptedLastName,
-            'email' => $encryptedEmail,
-            'phone' => $encryptedPhone,
-            'image_url' => $encryptedImage,
-            'email_hash' => $emailHash,
-            'password_hash' => $hashedPassword,
-            'salt' => $salt
-        ]);
+        $encryptedData = $this->buildEncryptedUserData($form, $hashedPassword, $salt, $userKey);
+        $user = $this->userBroker->createUser($encryptedData);
 
         $this->encryptionService->storeUserContext($user->id, $userKey);
 
+        return $this->buildSuccessRegisterResponse($user, $form);
+    }
+
+    public function login(Form $form): array
+    {
+        if (!$this->validateLoginForm($form)) {
+            return $this->buildErrorResponse($form);
+        }
+
+        $email = $form->getValue("email");
+        $password = $form->getValue("password");
+
+        $user = $this->userBroker->findByEmail($email);
+        if (!$user || !Cryptography::verifyHashedPassword($password, $user->password_hash)) {
+            return $this->buildInvalidCredentialsResponse();
+        }
+
+        $userKey = $this->encryptionService->deriveUserKey($password, $user->salt);
+        $user = $this->userBroker->findByEmail($email, $userKey);
+
+        $this->encryptionService->storeUserContext($user->id, $userKey);
+
+        return $this->buildSuccessLoginResponse($user);
+    }
+
+    //HELPERS
+
+    private function validateRegisterForm(Form $form): bool
+    {
+        try {
+            UserValidator::assertRegister($form, $this->userBroker);
+            return true;
+        } catch (FormException) {
+            return false;
+        }
+    }
+
+    private function validateLoginForm(Form $form): bool
+    {
+        try {
+            UserValidator::assertLogin($form);
+            return true;
+        } catch (FormException) {
+            return false;
+        }
+    }
+
+    private function buildEncryptedUserData(Form $form, string $hashedPassword, string $salt, string $userKey): array
+    {
+        return [
+            'first_name'    => $this->encryptionService->encryptWithUserKey($form->getValue("first_name"), $userKey),
+            'last_name'     => $this->encryptionService->encryptWithUserKey($form->getValue("last_name"), $userKey),
+            'email'         => $this->encryptionService->encryptWithUserKey($form->getValue("email"), $userKey),
+            'phone'         => $this->encryptionService->encryptWithUserKey($form->getValue("phone"), $userKey),
+            'image_url'     => $this->encryptionService->encryptWithUserKey($form->getValue("image_url") ?? "", $userKey),
+            'email_hash'    => $this->encryptionService->hash256($form->getValue("email")),
+            'password_hash' => $hashedPassword,
+            'salt'          => $salt
+        ];
+    }
+
+    private function buildSuccessRegisterResponse($user, Form $form): array
+    {
         return [
             "message" => "Compte créé avec succès",
             "user" => [
-                "id" => $user->id,
-                "email" => $form->getValue("email"),
+                "id"        => $user->id,
+                "email"     => $form->getValue("email"),
                 "firstName" => $form->getValue("first_name"),
-                "lastName" => $form->getValue("last_name")
+                "lastName"  => $form->getValue("last_name")
             ],
             "status" => 201
         ];
     }
 
-    public function login(Form $form): array
+    private function buildSuccessLoginResponse($user): array
     {
-        try {
-            UserValidator::assertLogin($form);
-        } catch (FormException $e) {
-            return ["errors" => array_values($e->getForm()->getErrorMessages()), "status" => 400];
-        }
-
-        $clearPassword = $form->getValue("password");
-        $email = $form->getValue("email");
-
-        $user = $this->userBroker->findByEmail($email);
-        if (!$user || !Cryptography::verifyHashedPassword($clearPassword, $user->password_hash)) {
-            return ["errors" => ["Identifiants invalides."], "status" => 401];
-        }
-
-        $userKey = $this->encryptionService->deriveUserKey($clearPassword, $user->salt);
-        $this->encryptionService->storeUserContext($user->id, $userKey);
-
         return [
             "message" => "Connexion réussie",
             "user" => [
-                "id" => $user->id,
-                "email" => $email
+                "id"    => $user->id,
+                "email" => $user->email
             ],
             "status" => 200
+        ];
+    }
+
+    private function buildInvalidCredentialsResponse(): array
+    {
+        return [
+            "errors" => ["Identifiants invalides."],
+            "status" => 401
+        ];
+    }
+
+    private function buildErrorResponse(Form $form): array
+    {
+        return [
+            "errors" => array_values($form->getErrorMessages()),
+            "status" => 400
         ];
     }
 }

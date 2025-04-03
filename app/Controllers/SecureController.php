@@ -11,6 +11,11 @@ abstract class SecureController extends Controller
     protected ?string $currentUserId = null;
     protected ?string $currentUserKey = null;
 
+    public function getAuth(): array
+    {
+        return ["user_id" => $this->currentUserId, "user_key" => $this->currentUserKey];
+    }
+
     public function before(): ?Response
     {
         $encryptionService = new EncryptionService();
