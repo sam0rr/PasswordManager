@@ -1,5 +1,5 @@
 application:
-  project: "Template"
+  project: "KryptLok"
   env: "dev"
   contact_email: "info@ophelios.com"
   locales:
@@ -41,7 +41,7 @@ render:
 session:
   storage: "database"
   table: "public.session"
-  encrypted: false
+  encrypted: true
   lifetime: 1440
 
 security:

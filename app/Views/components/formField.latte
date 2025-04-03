@@ -1,0 +1,20 @@
+{var $type = $type ?? 'text'}
+
+<div class="mb-3">
+    <label for="{$name}" class="form-label fw-bold">
+        <i class="bi bi-{$icon} me-1"></i>{$label}
+    </label>
+
+    <input type="{$type}"
+           name="{$name}"
+           id="{$name}"
+           class="form-control {if isset($form) && $form->hasError($name)}is-invalid{/if}"
+           value="{if isset($form)}{$form->getValue($name) ?? ''}{/if}"
+           required>
+
+    {if isset($form) && $form->hasError($name)}
+        <div class="invalid-feedback">
+            {=getErrorMessage($name, $form)}
+        </div>
+    {/if}
+</div>

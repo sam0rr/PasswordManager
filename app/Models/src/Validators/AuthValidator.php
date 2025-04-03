@@ -9,44 +9,49 @@ use Zephyrus\Application\Rule;
 
 class AuthValidator
 {
-    public static function assertRegister(Form $form, AuthBroker $broker): void
+    public static function assertRegister(Form $form, AuthBroker $broker, bool $isHtmx): void
     {
-        $form->field("first_name", [
+        $firstNameField = $form->field("first_name", [
             Rule::required("Le prénom est requis."),
             Rule::minLength(2, "Le prénom doit contenir au moins 2 caractères.")
         ]);
+        self::optionalIf($firstNameField, $isHtmx);
 
-        $form->field("last_name", [
+        $lastNameField = $form->field("last_name", [
             Rule::required("Le nom est requis."),
             Rule::minLength(2, "Le nom doit contenir au moins 2 caractères.")
         ]);
+        self::optionalIf($lastNameField, $isHtmx);
 
-        $form->field("email", [
+        $emailField = $form->field("email", [
             Rule::required("L'adresse courriel est requise."),
             Rule::email("L'adresse courriel n'est pas valide.")
         ]);
+        self::optionalIf($emailField, $isHtmx);
 
-        $form->field("phone", [
+        $phoneField = $form->field("phone", [
             Rule::required("Le numéro de téléphone est requis."),
-            Rule::phone("téléphone n'est pas valide.")
+            Rule::phone("Le numéro de téléphone n'est pas valide.")
         ]);
+        self::optionalIf($phoneField, $isHtmx);
 
-        $form->field("password", [
+        $passwordField = $form->field("password", [
             Rule::required("Le mot de passe est requis."),
             Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
         ]);
+        self::optionalIf($passwordField, $isHtmx);
 
-        $form->field("image_url")->optional();
-
-        if (!$form->verify()) {
-            throw new FormException($form);
+        if (!$isHtmx && $broker->emailExists($form->getValue("email"))) {
+            $form->addError("email", "Cette adresse courriel est déjà utilisée.");
         }
 
-        if ($broker->emailExists($form->getValue("email"))) {
-            $form->addError("email", "Cette adresse courriel est déjà utilisée.");
+        $form->verify();
+
+        if ($form->hasError()) {
             throw new FormException($form);
         }
     }
+
 
     public static function assertLogin(Form $form): void
     {
@@ -59,8 +64,18 @@ class AuthValidator
             Rule::required("Le mot de passe est requis.")
         ]);
 
-        if (!$form->verify()) {
+        $form->verify();
+
+        if ($form->hasError()) {
             throw new FormException($form);
         }
     }
+
+    private static function optionalIf($field, bool $isHtmx): void
+    {
+        if ($isHtmx) {
+            $field->optional();
+        }
+    }
+
 }

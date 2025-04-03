@@ -19,68 +19,60 @@ class AuthService
         $this->encryptionService = new EncryptionService();
     }
 
-    public function register(Form $form): array
+    public function register(Form $form, $isHtmx): array
     {
-        if (!$this->validateRegisterForm($form)) {
+        try {
+            AuthValidator::assertRegister($form, $this->userBroker, $isHtmx);
+
+            if ($isHtmx) {
+                return [
+                    "form" => $form,
+                    "status" => 200
+                ];
+            }
+
+            $password = $form->getValue("password");
+            $salt = $this->encryptionService->generateSalt();
+            $userKey = $this->encryptionService->deriveUserKey($password, $salt);
+            $hashedPassword = Cryptography::hashPassword($password);
+
+            $encryptedData = $this->buildEncryptedUserData($form, $hashedPassword, $salt, $userKey);
+            $user = $this->userBroker->createUser($encryptedData);
+
+            $this->encryptionService->storeUserContext($user->id, $userKey);
+
+            return $this->buildSuccessRegisterResponse($user, $form);
+        } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
-
-        $password = $form->getValue("password");
-        $salt = $this->encryptionService->generateSalt();
-        $userKey = $this->encryptionService->deriveUserKey($password, $salt);
-        $hashedPassword = Cryptography::hashPassword($password);
-
-        $encryptedData = $this->buildEncryptedUserData($form, $hashedPassword, $salt, $userKey);
-        $user = $this->userBroker->createUser($encryptedData);
-
-        $this->encryptionService->storeUserContext($user->id, $userKey);
-
-        return $this->buildSuccessRegisterResponse($user, $form);
     }
 
     public function login(Form $form): array
     {
-        if (!$this->validateLoginForm($form)) {
-            return $this->buildErrorResponse($form);
-        }
-
-        $email = $form->getValue("email");
-        $password = $form->getValue("password");
-
-        $user = $this->userBroker->findByEmail($email);
-        if (!$user || !Cryptography::verifyHashedPassword($password, $user->password_hash)) {
-            return $this->buildInvalidCredentialsResponse();
-        }
-
-        $userKey = $this->encryptionService->deriveUserKey($password, $user->salt);
-        $user = $this->userBroker->findByEmail($email, $userKey);
-
-        $this->encryptionService->storeUserContext($user->id, $userKey);
-
-        return $this->buildSuccessLoginResponse($user);
-    }
-
-    //HELPERS
-
-    private function validateRegisterForm(Form $form): bool
-    {
-        try {
-            AuthValidator::assertRegister($form, $this->userBroker);
-            return true;
-        } catch (FormException) {
-            return false;
-        }
-    }
-
-    private function validateLoginForm(Form $form): bool
-    {
         try {
             AuthValidator::assertLogin($form);
-            return true;
+
+            $email = $form->getValue("email");
+            $password = $form->getValue("password");
+
+            $user = $this->userBroker->findByEmail($email);
+            if (!$user || !Cryptography::verifyHashedPassword($password, $user->password_hash)) {
+                $form->addError("login", "Identifiants invalides.");
+                return $this->buildErrorResponse($form);
+            }
+
+            $userKey = $this->encryptionService->deriveUserKey($password, $user->salt);
+            $user = $this->userBroker->findByEmail($email, $userKey);
+
+            $this->encryptionService->storeUserContext($user->id, $userKey);
+
+            return $this->buildSuccessLoginResponse($user);
         } catch (FormException) {
-            return false;
+            return $this->buildErrorResponse($form);
         }
     }
+
+    // Helpers
 
     private function buildEncryptedUserData(Form $form, string $hashedPassword, string $salt, string $userKey): array
     {
@@ -122,18 +114,11 @@ class AuthService
         ];
     }
 
-    private function buildInvalidCredentialsResponse(): array
-    {
-        return [
-            "errors" => ["Identifiants invalides."],
-            "status" => 401
-        ];
-    }
-
     private function buildErrorResponse(Form $form): array
     {
         return [
-            "errors" => array_values($form->getErrorMessages()),
+            "errors" => $form->getErrorMessages(),
+            "form" => $form,
             "status" => 400
         ];
     }

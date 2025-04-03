@@ -100,4 +100,12 @@ abstract class Controller extends BaseController
         }
         return $loadedLanguage;
     }
+
+    protected function isHtmx(): bool
+    {
+        return $this->request->getHeader('HX-Request') !== null;
+    }
+
+
+
 }
