@@ -22,7 +22,6 @@ class AuthController extends SecureController
             : $this->abortNotFound("Utilisateur introuvable.");
     }
 
-
     #[Post('/logout')]
     public function logout(): Response
     {
