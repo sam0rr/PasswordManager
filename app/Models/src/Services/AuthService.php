@@ -33,7 +33,7 @@ class AuthService extends BaseService
             $password = $form->getValue("password");
             $salt = $this->encryptionService->generateSalt();
             $userKey = $this->encryptionService->deriveUserKey($password, $salt);
-            $hashedPassword = $this->encryptionService->hash256($password);
+            $hashedPassword = $this->encryptionService->hashPassword($password);
 
             $encryptedData = $this->buildEncryptedUserData($form, $hashedPassword, $salt, $userKey);
             $user = $this->userBroker->createUser($encryptedData);
@@ -56,7 +56,7 @@ class AuthService extends BaseService
             $password = $form->getValue("password");
 
             $user = $this->userBroker->findByEmail($email);
-            if (!$user || !$this->encryptionService->verifyHash256($password, $user->password_hash)) {
+            if (!$user || !$this->encryptionService->verifyPassword($password, $user->password_hash)) {
                 $form->addError("login", "Identifiants invalides.");
                 throw new FormException($form);
             }

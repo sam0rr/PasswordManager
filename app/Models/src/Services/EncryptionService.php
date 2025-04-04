@@ -57,15 +57,19 @@ class EncryptionService extends BaseService
         return Cryptography::decrypt($cipherText, $userKey);
     }
 
+    public function hashPassword(string $password): string
+    {
+        return Cryptography::hashPassword($password);
+    }
+
+    public function verifyPassword(string $plainText, string $hashed): bool
+    {
+        return Cryptography::verifyHashedPassword($plainText, $hashed);
+    }
+
     public function hash256(string $data): string
     {
         return Cryptography::hash($data, 'sha256');
-
-    }
-
-    public function verifyHash256(string $plainText, string $hashed): bool
-    {
-        return Cryptography::verifyHashedPassword($plainText, $hashed);
     }
 
     public function generateSalt(int $length = 32): string

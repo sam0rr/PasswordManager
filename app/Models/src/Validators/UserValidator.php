@@ -27,10 +27,6 @@ class UserValidator
             Rule::phone("Numéro de téléphone invalide.")
         ])->optional();
 
-        $form->field("password", [
-            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
-        ])->optional();
-
         $newEmail = $form->getValue("email");
         if (!empty($newEmail)) {
             $existingUser = $broker->findByEmail($newEmail);
@@ -45,4 +41,24 @@ class UserValidator
             throw new FormException($form);
         }
     }
+
+    public static function assertUpdatePassword(Form $form): void
+    {
+        $form->field("old", [
+            Rule::required("L'ancien mot de passe est requis."),
+            Rule::minLength(8, "L'ancien mot de passe est trop court.")
+        ]);
+
+        $form->field("new", [
+            Rule::required("Le nouveau mot de passe est requis."),
+            Rule::minLength(8, "Le nouveau mot de passe doit contenir au moins 8 caractères.")
+        ]);
+
+        $form->verify();
+
+        if ($form->hasError()) {
+            throw new FormException($form);
+        }
+    }
+
 }

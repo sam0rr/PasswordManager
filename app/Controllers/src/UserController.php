@@ -75,5 +75,16 @@ class UserController extends SecureController
         return $this->json($result);
     }
 
+    #[Post('/password')]
+    public function updatePassword(): Response
+    {
+        $form = $this->buildForm();
+
+        $result = $this->userService->updatePassword($form);
+
+        return $this->json($result);
+    }
+
+
 
 }
