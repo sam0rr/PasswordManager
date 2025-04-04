@@ -41,9 +41,10 @@ class AuthValidator
         ]);
         self::optionalIf($passwordField, $isHtmx);
 
-        if (!$isHtmx && $broker->emailExists($form->getValue("email"))) {
+        if ($broker->emailExists($form->getValue("email"))) {
             $form->addError("email", "Cette adresse courriel est déjà utilisée.");
         }
+        self::optionalIf($emailField, $isHtmx);
 
         $form->verify();
 
