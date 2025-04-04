@@ -1,0 +1,35 @@
+{varType string $activePage}
+
+<div class="col-lg-2 col-md-3 bg-dark text-white p-0" style="min-height: 100vh;">
+    <div class="d-flex flex-column p-3">
+        <div class="text-center mb-4">
+            <img src="/assets/images/KryptLok.png" alt="KryptLok Logo" class="img-fluid" style="max-width: 100px;">
+            <h4 class="mt-2">KryptLok</h4>
+            <p class="small text-muted">Sécurisez vos accès</p>
+        </div>
+
+        <div class="nav flex-column nav-pills mt-2">
+            <a class="nav-link {$activePage == 'dashboard' ? 'active' : ''} text-white" href="/dashboard">
+                <i class="bi bi-speedometer2 me-2"></i> Tableau de bord
+            </a>
+            <a class="nav-link {$activePage == 'passwords' ? 'active' : ''} text-white" href="/passwords">
+                <i class="bi bi-key me-2"></i> Mes mots de passe
+            </a>
+            <a class="nav-link {$activePage == 'shared' ? 'active' : ''} text-white" href="/shared">
+                <i class="bi bi-people me-2"></i> Partages
+            </a>
+            <a class="nav-link {$activePage == 'profile' ? 'active' : ''} text-white" href="/profile">
+                <i class="bi bi-person-circle me-2"></i> Mon profil
+            </a>
+            <a class="nav-link {$activePage == 'security' ? 'active' : ''} text-white" href="/security">
+                <i class="bi bi-shield-lock me-2"></i> Sécurité
+            </a>
+        </div>
+
+        <div class="mt-auto text-center">
+            <a href="/logout" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-box-arrow-right me-2"></i> Déconnexion
+            </a>
+        </div>
+    </div>
+</div>

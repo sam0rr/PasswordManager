@@ -21,10 +21,16 @@ class UserController extends SecureController
             return $this->abortNotFound("Utilisateur introuvable.");
         }
 
-        return $this->render("user/dashboard", [
+        return $this->render("secure/dashboard", [
             "user" => $user,
-            "title" => "Tableau de bord"
+            "title" => "Tableau de bord",
+            "stats" => [],
+            "passwords" => [],
+            "shared_passwords" => [],
+            "auth_history" => [],
+            "shared_credentials" => [] // 🟢 AJOUT ICI
         ]);
+
     }
 
     #[Post('/logout')]

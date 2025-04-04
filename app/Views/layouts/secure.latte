@@ -1,0 +1,15 @@
+{layout 'main.latte'}
+
+{block content}
+    <div class="container-fluid p-0">
+        <div class="row min-vh-100 g-0">
+            {include '../components/sidebar.latte', activePage => $activePage ?? 'dashboard'}
+
+            <div class="col-lg-10 col-md-9 d-flex flex-column p-4">
+                {include '../components/header.latte', pageName => $pageName ?? '', pageParent => $pageParent ?? '', user => $user}
+
+                <div n:inner-block="pageContent"></div>
+            </div>
+        </div>
+    </div>
+{/block}

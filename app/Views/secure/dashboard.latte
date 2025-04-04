@@ -1,0 +1,25 @@
+{layout '../layouts/secure.latte'}
+
+{block pageContent}
+    <div class="d-flex flex-column flex-grow-1 w-100">
+        {include '../components/stats-cards.latte', stats => $stats, passwords => $passwords, shared_passwords => $shared_passwords}
+
+        <div class="row gy-4 mt-2 flex-grow-1">
+            <div class="col-lg-6">
+                {include '../components/activity-list.latte', auth_history => $auth_history}
+            </div>
+            <div class="col-lg-6">
+                {include '../components/password-table.latte', passwords => $passwords, showActions => false, showHeader => true}
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                {include '../components/sharing-table.latte', shared_credentials => $shared_credentials, user => $user}
+            </div>
+        </div>
+    </div>
+
+    {include '../modals/add-password.latte', passwords => $passwords}
+    {include '../modals/share-password.latte', passwords => $passwords}
+{/block}
