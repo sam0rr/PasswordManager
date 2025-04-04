@@ -4,7 +4,7 @@
           hx-post="/login"
           hx-trigger="change"
           hx-target="#login-form-wrapper"
-          hx-swap="innerHTML"
+          hx-swap="morphdom"
           hx-preserve="true"
           novalidate>
 
@@ -16,7 +16,8 @@
             </div>
         {/if}
 
-        {include '../components/formField.latte', name => 'email', label => 'Adresse courriel', icon => 'envelope', type => 'email'}
+        {include '../components/formField.latte', name => 'email', label => 'Adresse courriel', icon => 'envelope'
+        }
         {include '../components/formField.latte', name => 'password', label => 'Mot de passe', icon => 'lock', type => 'password'}
 
         <div class="d-grid gap-2 mt-4">

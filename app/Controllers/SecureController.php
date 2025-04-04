@@ -24,7 +24,7 @@ abstract class SecureController extends Controller
         $this->currentUserId = $encryptionService->getUserIdFromContext();
 
         if (is_null($this->currentUserKey) || is_null($this->currentUserId)) {
-            return $this->abortUnauthorized("Session invalide ou expirée.");
+            return $this->redirect("/login");
         }
 
         return parent::before();

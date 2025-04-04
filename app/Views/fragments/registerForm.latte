@@ -4,18 +4,17 @@
           hx-post="/register"
           hx-trigger="change"
           hx-target="#register-form-wrapper"
-          hx-swap="innerHTML"
+          hx-swap="morphdom"
           hx-preserve="true"
           novalidate>
 
         {include '../components/formField.latte', name => 'first_name', label => 'Prénom', icon => 'person'}
         {include '../components/formField.latte', name => 'last_name', label => 'Nom', icon => 'person-badge'}
-        {include '../components/formField.latte', name => 'email', label => 'Adresse courriel', icon => 'envelope', type => 'email'}
-        {include '../components/formField.latte', name => 'phone', label => 'Téléphone', icon => 'telephone', type => 'tel'}
+        {include '../components/formField.latte', name => 'email', label => 'Adresse courriel', icon => 'envelope'}
+        {include '../components/formField.latte', name => 'phone', label => 'Téléphone', icon => 'telephone'}
         {include '../components/formField.latte', name => 'password', label => 'Mot de passe', icon => 'lock', type => 'password'}
 
         <div class="d-grid gap-2">
-            <input type="hidden" name="submit" value="false" />
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="bi bi-person-plus me-2"></i>S'inscrire
             </button>

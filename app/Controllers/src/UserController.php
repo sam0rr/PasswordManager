@@ -33,7 +33,7 @@ class UserController extends SecureController
 
     }
 
-    #[Post('/logout')]
+    #[Get('/logout')]
     public function logout(): Response
     {
         EncryptionService::destroySession();
