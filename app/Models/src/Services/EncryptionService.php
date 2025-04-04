@@ -2,6 +2,7 @@
 
 namespace Models\src\Services;
 
+use Models\Exceptions\FormException;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\Cryptography;
 
@@ -60,6 +61,12 @@ class EncryptionService
     public function hash256(string $data): string
     {
         return Cryptography::hash($data, 'sha256');
+
+    }
+
+    public function verifyHash256(string $plainText, string $hashed): bool
+    {
+        return Cryptography::verifyHashedPassword($plainText, $hashed);
     }
 
     public function generateSalt(int $length = 32): string

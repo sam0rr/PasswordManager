@@ -3,19 +3,18 @@
 namespace Models\src\Services;
 
 use Models\Exceptions\FormException;
-use Models\src\Brokers\AuthBroker;
+use Models\src\Brokers\UserBroker;
 use Models\src\Validators\AuthValidator;
 use Zephyrus\Application\Form;
-use Zephyrus\Security\Cryptography;
 
 class AuthService
 {
-    private AuthBroker $userBroker;
+    private UserBroker $userBroker;
     private EncryptionService $encryptionService;
 
     public function __construct()
     {
-        $this->userBroker = new AuthBroker();
+        $this->userBroker = new UserBroker();
         $this->encryptionService = new EncryptionService();
     }
 
@@ -34,7 +33,7 @@ class AuthService
             $password = $form->getValue("password");
             $salt = $this->encryptionService->generateSalt();
             $userKey = $this->encryptionService->deriveUserKey($password, $salt);
-            $hashedPassword = Cryptography::hashPassword($password);
+            $hashedPassword = $this->encryptionService->hash256($password);
 
             $encryptedData = $this->buildEncryptedUserData($form, $hashedPassword, $salt, $userKey);
             $user = $this->userBroker->createUser($encryptedData);
@@ -57,7 +56,7 @@ class AuthService
             $password = $form->getValue("password");
 
             $user = $this->userBroker->findByEmail($email);
-            if (!$user || !Cryptography::verifyHashedPassword($password, $user->password_hash)) {
+            if (!$user || !$this->encryptionService->verifyHash256($password, $user->password_hash)) {
                 $form->addError("login", "Identifiants invalides.");
                 throw new FormException($form);
             }

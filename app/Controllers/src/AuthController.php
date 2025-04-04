@@ -11,11 +11,11 @@ use Zephyrus\Network\Router\Post;
 
 class AuthController extends Controller
 {
-    private AuthService $userService;
+    private AuthService $authService;
 
     public function __construct()
     {
-        $this->userService = new AuthService();
+        $this->authService = new AuthService();
     }
 
     #[Get('/login')]
@@ -27,13 +27,22 @@ class AuthController extends Controller
         ]);
     }
 
+    #[Post('/api/login')]
+    public function apiLogin(): Response
+    {
+        $form = $this->buildForm();
+        $result = $this->authService->login($form, false);
+
+        return $this->json($result);
+    }
+
     #[Post("/login")]
     public function login(): Response
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
 
-        $result = $this->userService->login($form, $isHtmx);
+        $result = $this->authService->login($form, $isHtmx);
 
         if ($isHtmx) {
             return $this->render("fragments/loginForm", [
@@ -62,13 +71,22 @@ class AuthController extends Controller
         ]);
     }
 
+    #[Post('/api/register')]
+    public function apiRegister(): Response
+    {
+        $form = $this->buildForm();
+        $result = $this->authService->register($form, false);
+
+        return $this->json($result);
+    }
+
     #[Post("/register")]
     public function register(): Response
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
 
-        $result = $this->userService->register($form, $isHtmx);
+        $result = $this->authService->register($form, $isHtmx);
 
             if ($isHtmx) {
                 return $this->render("fragments/registerForm", [

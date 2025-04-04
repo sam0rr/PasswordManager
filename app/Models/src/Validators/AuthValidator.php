@@ -2,14 +2,14 @@
 
 namespace Models\src\Validators;
 
-use Models\src\Brokers\AuthBroker;
+use Models\src\Brokers\UserBroker;
 use Models\Exceptions\FormException;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
 class AuthValidator
 {
-    public static function assertRegister(Form $form, AuthBroker $broker, bool $isHtmx): void
+    public static function assertRegister(Form $form, UserBroker $broker, bool $isHtmx): void
     {
         $firstNameField = $form->field("first_name", [
             Rule::required("Le prénom est requis."),
