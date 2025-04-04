@@ -71,7 +71,7 @@ class UserService extends BaseService
 
             $user = $this->getCurrentUserWithKey($userKey);
             return $this->buildSuccessUpdateResponse($user);
-        } catch (FormException $e) {
+        } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
     }
@@ -116,8 +116,7 @@ class UserService extends BaseService
             'image_url'     => $this->encryption->encryptWithUserKey($user->image_url, $newKey),
             'email_hash'    => $this->encryption->hash256($user->email),
             'password_hash' => $newHash,
-            'salt'          => $newSalt,
-            'user_key'      => $newKey // utilisé temporairement pour mise à jour du contexte
+            'salt'          => $newSalt
         ];
     }
 
