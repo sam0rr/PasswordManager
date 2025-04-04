@@ -2,11 +2,10 @@
 
 namespace Models\src\Services;
 
-use Models\Exceptions\FormException;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\Cryptography;
 
-class EncryptionService
+class EncryptionService extends BaseService
 {
     private const string CONTEXT_KEY = 'user_context';
 

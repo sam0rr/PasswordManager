@@ -2,7 +2,7 @@
 
 namespace Models\src\Services;
 
-class SharingService
+class SharingService extends BaseService
 {
 
 }

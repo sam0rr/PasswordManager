@@ -2,7 +2,7 @@
 
 namespace Models\src\Services;
 
-class VerifyService
+class VerifyService extends BaseService
 {
 
 }

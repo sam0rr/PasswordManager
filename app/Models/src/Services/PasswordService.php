@@ -2,7 +2,7 @@
 
 namespace Models\src\Services;
 
-class PasswordService
+class PasswordService extends BaseService
 {
 
 }

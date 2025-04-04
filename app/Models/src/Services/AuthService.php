@@ -7,7 +7,7 @@ use Models\src\Brokers\UserBroker;
 use Models\src\Validators\AuthValidator;
 use Zephyrus\Application\Form;
 
-class AuthService
+class AuthService extends BaseService
 {
     private UserBroker $userBroker;
     private EncryptionService $encryptionService;
@@ -118,15 +118,6 @@ class AuthService
                 "email" => $user->email
             ],
             "status" => 200
-        ];
-    }
-
-    private function buildErrorResponse(Form $form): array
-    {
-        return [
-            "errors" => $form->getErrorMessages(),
-            "form" => $form,
-            "status" => 400
         ];
     }
 }
