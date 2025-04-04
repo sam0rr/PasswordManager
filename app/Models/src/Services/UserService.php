@@ -57,54 +57,31 @@ class UserService extends BaseService
             $currentPassword = $form->getValue('old');
             $newPassword = $form->getValue('new');
 
-            // Vérifie le mot de passe actuel
             if (!$this->encryption->verifyPassword($currentPassword, $currentUser->password_hash)) {
                 $form->addError("old", "Mot de passe actuel invalide.");
                 throw new FormException($form);
             }
 
-            // Déchiffrer les données avec l’ancienne clé
-            $oldKey = $this->auth['user_key'];
-            $plainData = [
-                'first_name' => $this->encryption->decryptWithUserKey($currentUser->first_name, $oldKey),
-                'last_name' => $this->encryption->decryptWithUserKey($currentUser->last_name, $oldKey),
-                'email' => $this->encryption->decryptWithUserKey($currentUser->email, $oldKey),
-                'phone' => $this->encryption->decryptWithUserKey($currentUser->phone, $oldKey),
-                'image_url' => $this->encryption->decryptWithUserKey($currentUser->image_url, $oldKey)
-            ];
-
-            // Générer nouvelle clé + salt
-            $newSalt = $this->encryption->generateSalt();
-            $newKey = $this->encryption->deriveUserKey($newPassword, $newSalt);
-            $newHash = $this->encryption->hashPassword($newPassword);
-
-            // Ré-encrypter les données
-            $updated = [
-                'first_name'    => $this->encryption->encryptWithUserKey($plainData['first_name'], $newKey),
-                'last_name'     => $this->encryption->encryptWithUserKey($plainData['last_name'], $newKey),
-                'email'         => $this->encryption->encryptWithUserKey($plainData['email'], $newKey),
-                'phone'         => $this->encryption->encryptWithUserKey($plainData['phone'], $newKey),
-                'image_url'     => $this->encryption->encryptWithUserKey($plainData['image_url'], $newKey),
-                'email_hash'    => $this->encryption->hash256($plainData['email']),
-                'password_hash' => $newHash,
-                'salt'          => $newSalt
-            ];
-
-            // Dans le futur --> Ré-encrypter les mots de passes et les données associées
+            $updated = $this->buildEncryptedDataWithNewPassword($currentUser, $newPassword);
+            $userKey = $updated['user_key'];
+            unset($updated['user_key']);
 
             $this->userBroker->updateUser($this->auth['user_id'], $updated);
-            $this->encryption->storeUserContext($currentUser->id, $newKey); // Met à jour la session
+            $this->encryption->storeUserContext($currentUser->id, $userKey);
 
-            return [
-                "status" => 200,
-                "message" => "Mot de passe mis à jour avec succès."
-            ];
+            $user = $this->getCurrentUserWithKey($userKey);
+            return $this->buildSuccessUpdateResponse($user);
         } catch (FormException $e) {
             return $this->buildErrorResponse($form);
         }
     }
 
     // Helpers
+
+    private function getCurrentUserWithKey(string $key): ?User
+    {
+        return $this->userBroker->findById($this->auth['user_id'], $key);
+    }
 
     private function buildEncryptedUpdateData(Form $form): array
     {
@@ -120,11 +97,28 @@ class UserService extends BaseService
             }
         }
 
-        if ($form->getValue('password')) {
-            $data['password_hash'] = $this->encryption->hashPassword($form->getValue('password'));
-        }
-
         return $data;
+    }
+
+    private function buildEncryptedDataWithNewPassword(User $user, string $newPassword): array
+    {
+        $newSalt = $this->encryption->generateSalt();
+        $newKey = $this->encryption->deriveUserKey($newPassword, $newSalt);
+        $newHash = $this->encryption->hashPassword($newPassword);
+
+        // TODO: Ré-encrypter aussi les mots de passe du gestionnaire, si applicable
+
+        return [
+            'first_name'    => $this->encryption->encryptWithUserKey($user->first_name, $newKey),
+            'last_name'     => $this->encryption->encryptWithUserKey($user->last_name, $newKey),
+            'email'         => $this->encryption->encryptWithUserKey($user->email, $newKey),
+            'phone'         => $this->encryption->encryptWithUserKey($user->phone, $newKey),
+            'image_url'     => $this->encryption->encryptWithUserKey($user->image_url, $newKey),
+            'email_hash'    => $this->encryption->hash256($user->email),
+            'password_hash' => $newHash,
+            'salt'          => $newSalt,
+            'user_key'      => $newKey // utilisé temporairement pour mise à jour du contexte
+        ];
     }
 
     private function buildSuccessUpdateResponse(User $user): array

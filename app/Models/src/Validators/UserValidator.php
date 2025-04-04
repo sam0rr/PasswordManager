@@ -54,6 +54,10 @@ class UserValidator
             Rule::minLength(8, "Le nouveau mot de passe doit contenir au moins 8 caractères.")
         ]);
 
+        if ($form->getValue("old") === $form->getValue("new")) {
+            $form->addError("new", "Le nouveau mot de passe doit être différent de l'ancien.");
+        }
+
         $form->verify();
 
         if ($form->hasError()) {
