@@ -50,6 +50,67 @@ class PasswordService extends BaseService
         }
     }
 
+    public function updatePassword(Form $form, string $passwordId): array
+    {
+        try {
+            $this->assertValidPasswordId($passwordId, $form);
+
+            $password = $this->getPassword($passwordId, $form);
+
+            PasswordValidator::assertUpdate($form, $this->passwordBroker, $this->auth['user_id'], $password);
+
+            $updates = $this->buildEncryptedUpdateData($form);
+
+            if (!empty($updates)) {
+                $this->passwordBroker->updatePassword($passwordId, $updates);
+            }
+
+            $updatedPassword = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
+
+            return $this->buildPasswordResponse($updatedPassword);
+        } catch (FormException $e) {
+            return $this->buildErrorResponse($form);
+        }
+    }
+
+    public function deletePassword(Form $form, string $passwordId): array
+    {
+        try {
+            $this->assertValidPasswordId($passwordId, $form);
+
+            PasswordValidator::assertPasswordVerification($form);
+
+            $submittedPassword = $form->getValue("password");
+            $user = $this->getAuthenticatedUser($submittedPassword, $form);
+            $this->verifyTempKey($submittedPassword, $user->salt, $form);
+
+            $this->getPassword($passwordId, $form);
+
+            $this->passwordBroker->deletePassword($passwordId);
+
+            return [
+                "status" => 200,
+                "message" => "Mot de passe supprimé avec succès."
+            ];
+        } catch (FormException $e) {
+            return $this->buildErrorResponse($form);
+        }
+    }
+
+    // Helpers
+
+    private function getPassword(string $passwordId, Form $form): UserPassword
+    {
+        $password = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
+
+        if (!$password || $password->user_id !== $this->auth['user_id']) {
+            $form->addError('global', "Mot de passe introuvable ou non autorisé.");
+            throw new FormException($form);
+        }
+
+        return $password;
+    }
+
     public function updatePasswordsWithNewKey(string $userId, string $oldKey, string $newKey): void
     {
         $passwords = $this->passwordBroker->findAllByUser($userId, $oldKey);
@@ -66,8 +127,6 @@ class PasswordService extends BaseService
         }
     }
 
-    // Helpers
-
     private function buildEncryptedPasswordData(Form $form): array
     {
         $key = $this->auth['user_key'];
@@ -80,6 +139,38 @@ class PasswordService extends BaseService
             'note'               => $this->encryption->encryptWithUserKey($form->getValue('note'), $key),
             'password' => $this->encryption->encryptWithUserKey($form->getValue('password'), $key)
         ];
+    }
+
+    private function buildEncryptedUpdateData(Form $form): array
+    {
+        $key = $this->auth['user_key'];
+        $updates = [];
+
+        $description = $form->getValue('description');
+        if (!empty($description)) {
+            $updates['description'] = $this->encryption->encryptWithUserKey($description, $key);
+            $updates['description_hash'] = $this->encryption->hash256($description);
+        }
+
+        $note = $form->getValue('note');
+        if (!empty($note)) {
+            $updates['note'] = $this->encryption->encryptWithUserKey($note, $key);
+        }
+
+        $password = $form->getValue('password');
+        if (!empty($password)) {
+            $updates['password'] = $this->encryption->encryptWithUserKey($password, $key);
+        }
+
+        return $updates;
+    }
+
+    private function assertValidPasswordId(string $passwordId, Form $form): void
+    {
+        if (!isValidUuid($passwordId)) {
+            $form->addError("global", "Identifiant de mot de passe invalide.");
+            throw new FormException($form);
+        }
     }
 
     private function buildSuccessGetResponse(array $passwords): array

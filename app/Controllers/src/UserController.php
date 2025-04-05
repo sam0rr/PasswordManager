@@ -7,7 +7,7 @@ use Models\src\Services\UserService;
 use Models\src\Services\EncryptionService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
-use Zephyrus\Network\Router\Post;
+use Zephyrus\Network\Router\Put;
 
 class UserController extends SecureController
 {
@@ -65,7 +65,7 @@ class UserController extends SecureController
         return $this->json($user);
     }
 
-    #[Post('/update')]
+    #[Put('/update')]
     public function update(): Response
     {
         $form = $this->buildForm();
@@ -75,7 +75,7 @@ class UserController extends SecureController
         return $this->json($result);
     }
 
-    #[Post('/password')]
+    #[Put('/password')]
     public function updatePassword(): Response
     {
         $form = $this->buildForm();

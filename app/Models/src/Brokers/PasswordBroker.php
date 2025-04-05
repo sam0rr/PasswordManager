@@ -28,6 +28,15 @@ class PasswordBroker extends DatabaseBroker
         );
     }
 
+    public function findById(string $id, string $userKey): ?UserPassword
+    {
+        $row = $this->selectSingle("SELECT * FROM user_password WHERE id = ?", [$id]);
+        if (!$row) return null;
+
+        $password = UserPassword::build($row);
+        return $this->decryptPassword($password, $userKey);
+    }
+
     public function createPassword(array $data, string $userKey): ?UserPassword
     {
         $sql = "
@@ -70,6 +79,13 @@ class PasswordBroker extends DatabaseBroker
         if (!$result) return null;
 
         return UserPassword::build($result);
+    }
+
+    public function deletePassword(string $passwordId): bool
+    {
+        $sql = "DELETE FROM user_password WHERE id = ?";
+        $rowCount = $this->selectSingle($sql, [$passwordId]);
+        return $rowCount > 0;
     }
 
     public function descriptionExistsForUser(string $userId, string $description): bool
