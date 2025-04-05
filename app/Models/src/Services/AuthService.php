@@ -66,7 +66,7 @@ class AuthService extends BaseService
 
             $this->encryption->storeUserContext($user->id, $userKey);
 
-            $this->history->logSuccess($user, $userKey);
+            $this->history->logSuccess($user);
 
             return $this->buildSuccessLoginResponse($user);
         } catch (FormException) {

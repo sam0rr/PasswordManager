@@ -16,7 +16,6 @@ class UserService extends BaseService
     {
         $this->auth = $auth;
         $this->userBroker = new UserBroker();
-        $this->history = new AuthHistoryService($auth);
         $this->encryption = new EncryptionService();
         $this->passwordService = new PasswordService($auth);
     }
@@ -108,7 +107,6 @@ class UserService extends BaseService
 
         // Étape 3 : Mettre à jour les données dépendantes (passwords, logs)
         $this->passwordService->updatePasswordsWithNewKey($user->id, $oldUserKey, $newUserKey);
-        $this->history->updateHistoryWithNewKey($user->id, $oldUserKey, $newUserKey);
 
         // Étape 4 : Mettre à jour le contexte
         $this->updateUserContext($user->id, $newUserKey);
