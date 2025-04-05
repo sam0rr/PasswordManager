@@ -16,6 +16,7 @@ class UserService extends BaseService
     {
         $this->auth = $auth;
         $this->userBroker = new UserBroker();
+        $this->history = new AuthHistoryService($auth);
         $this->encryption = new EncryptionService();
         $this->passwordService = new PasswordService($auth);
     }
@@ -61,23 +62,7 @@ class UserService extends BaseService
                 throw new FormException($form);
             }
 
-            // Préparation des données avec la newKey
-            $updated = $this->buildEncryptedDataWithNewPassword($currentUser, $newPassword);
-            $newUserKey = $updated['user_key'];
-            unset($updated['user_key']);
-            $oldUserKey = $this->auth['user_key'];
-
-            // Étape 1 : Update le user
-            $this->userBroker->updateUser($this->auth['user_id'], $updated);
-
-            // Étape 2 : Update les mots de passes
-            $this->passwordService->updatePasswordsWithNewKey($currentUser->id, $oldUserKey, $newUserKey);
-
-            // Étape 3 : Mettre à jour le contexte d'encryption
-            $this->updateUserContext($currentUser->id, $newUserKey);
-
-            // Étape 4 : Recharger le user avec la nouvelle clé
-            $user = $this->userBroker->findById($this->auth['user_id'], $newUserKey);
+            $user = $this->rotateUserKey($currentUser, $newPassword);
 
             return $this->buildSuccessUpdateResponse($user);
         } catch (FormException) {
@@ -108,6 +93,28 @@ class UserService extends BaseService
         }
 
         return $data;
+    }
+
+    private function rotateUserKey(User $user, string $newPassword): User
+    {
+        // Étape 1 : Génération des nouvelles données encryptées
+        $updated = $this->buildEncryptedDataWithNewPassword($user, $newPassword);
+        $newUserKey = $updated['user_key'];
+        unset($updated['user_key']);
+        $oldUserKey = $this->auth['user_key'];
+
+        // Étape 2 : Mettre à jour l'utilisateur
+        $this->userBroker->updateUser($user->id, $updated);
+
+        // Étape 3 : Mettre à jour les données dépendantes (passwords, logs)
+        $this->passwordService->updatePasswordsWithNewKey($user->id, $oldUserKey, $newUserKey);
+        $this->history->updateHistoryWithNewKey($user->id, $oldUserKey, $newUserKey);
+
+        // Étape 4 : Mettre à jour le contexte
+        $this->updateUserContext($user->id, $newUserKey);
+
+        // Étape 5 : Retourner l’utilisateur mis à jour
+        return $this->userBroker->findById($user->id, $newUserKey);
     }
 
     private function buildEncryptedDataWithNewPassword(User $user, string $newPassword): array

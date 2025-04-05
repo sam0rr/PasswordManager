@@ -13,6 +13,7 @@ abstract class BaseService
     protected PasswordBroker $passwordBroker;
     protected UserBroker $userBroker;
     protected EncryptionService $encryption;
+    protected AuthHistoryService $history;
     protected array $auth;
 
     protected function buildErrorResponse(Form $form): array

@@ -16,12 +16,12 @@ class AuthHistoryBroker extends DatabaseBroker
         $this->encryption = new EncryptionService();
     }
 
-    public function logAuthEvent(array $data): AuthHistory
+    public function logAuthEvent(array $data, ?string $key = null): AuthHistory
     {
         $row = $this->selectSingle(
             "INSERT INTO auth_history (user_id, ip_address, user_agent, result, location)
-             VALUES (?, ?, ?, ?, ?)
-             RETURNING *;",
+         VALUES (?, ?, ?, ?, ?)
+         RETURNING *;",
             [
                 $data['user_id'],
                 $data['ip_address'],
@@ -32,29 +32,47 @@ class AuthHistoryBroker extends DatabaseBroker
         );
 
         $history = AuthHistory::build($row);
-        return $this->decryptHistory($history);
+        return $key ? $this->decryptHistory($history, $key) : $history;
     }
 
-    public function getHistoryForUser(string $userId): array
+    public function getHistoryForUser(string $userId, string $key): array
     {
         $rows = $this->select(
             "SELECT * FROM auth_history WHERE user_id = ? ORDER BY auth_timestamp DESC",
             [$userId]
         );
 
-        return array_map(function ($row) {
+        return array_map(function ($row) use ($key) {
             $history = AuthHistory::build($row);
-            return $this->decryptHistory($history);
+            return $this->decryptHistory($history, $key);
         }, $rows);
     }
 
-    private function decryptHistory(AuthHistory $history): AuthHistory
+    public function updateAuthHistory(string $id, array $updates): void
     {
-        $key = $this->encryption->getUserKeyFromContext();
+        if (empty($updates)) {
+            return;
+        }
 
-        $history->ip_address = $this->encryption->decryptWithUserKey($history->ip_address, $key);
-        $history->user_agent = $this->encryption->decryptWithUserKey($history->user_agent, $key);
-        $history->location = $this->encryption->decryptWithUserKey($history->location, $key);
+        $columns = [];
+        $values = [];
+
+        foreach ($updates as $column => $value) {
+            $columns[] = "$column = ?";
+            $values[] = $value;
+        }
+
+        $values[] = $id;
+
+        $sql = "UPDATE auth_history SET " . implode(", ", $columns) . " WHERE id = ?";
+        $this->query($sql, $values);
+    }
+
+    private function decryptHistory(AuthHistory $history, string $userKey): AuthHistory
+    {
+        $history->ip_address = $this->encryption->decryptWithUserKey($history->ip_address, $userKey);
+        $history->user_agent = $this->encryption->decryptWithUserKey($history->user_agent, $userKey);
+        $history->location = $this->encryption->decryptWithUserKey($history->location, $userKey);
 
         return $history;
     }

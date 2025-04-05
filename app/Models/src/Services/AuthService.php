@@ -10,8 +10,6 @@ use Zephyrus\Application\Form;
 
 class AuthService extends BaseService
 {
-
-    private AuthHistoryService $history;
     public function __construct()
     {
         $this->userBroker = new UserBroker();
@@ -59,8 +57,6 @@ class AuthService extends BaseService
             $userKey = $this->encryption->deriveUserKey($password, $user->salt);
             $user = $this->userBroker->findByEmail($email, $userKey);
 
-            $this->history->logSuccess($user);
-
             if ($isHtmx) {
                 return [
                     "form" => $form,
@@ -69,6 +65,8 @@ class AuthService extends BaseService
             }
 
             $this->encryption->storeUserContext($user->id, $userKey);
+
+            $this->history->logSuccess($user, $userKey);
 
             return $this->buildSuccessLoginResponse($user);
         } catch (FormException) {

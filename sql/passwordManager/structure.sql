@@ -33,7 +33,7 @@ CREATE TABLE users (
 CREATE TABLE auth_history (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    ip_address INET NOT NULL,
+    ip_address TEXT NOT NULL,
     user_agent TEXT NOT NULL,
     auth_timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     result login_result NOT NULL,
@@ -87,28 +87,40 @@ CREATE TABLE password_sharing (
 
 -- INDEXES --
 
+-- Recherche rapide d’un utilisateur par email (login, register, validation)
 CREATE INDEX idx_account_users_email ON users (email);
+-- Accès rapide à tous les logs d’un utilisateur (ex: /history)
+CREATE INDEX idx_auth_history_user ON auth_history (user_id);
+-- Récupération rapide des mots de passe d’un utilisateur (ex: /passwords)
+CREATE INDEX idx_password_user ON user_password (user_id);
+-- Optimisé pour afficher les derniers logs en haut (ORDER BY auth_timestamp DESC)
 CREATE INDEX idx_login_records_user_time ON auth_history (user_id, auth_timestamp DESC);
+-- Vérifie efficacement l’unicité d’une description pour un utilisateur
 CREATE INDEX idx_password_user_service ON user_password (user_id, description_hash);
+-- Permet de valider un token rapidement (vérification email)
 CREATE INDEX idx_email_token_token ON email_token (token);
+-- Récupération rapide des méthodes MFA actives pour un utilisateur
 CREATE INDEX idx_user_auth_methods_active ON user_verify (user_id, is_active);
+-- Permet d’afficher rapidement les partages faits par un utilisateur
 CREATE INDEX idx_sharing_owner ON password_sharing (owner_id);
+-- Permet d’afficher rapidement les partages reçus par un utilisateur
 CREATE INDEX idx_sharing_shared ON password_sharing (shared_id);
 
 -- TRIGGERS --
 
+-- Met automatiquement à jour le champ `updated_at` lors d’une modification d’un utilisateur
 CREATE TRIGGER trigger_users_updated
     BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
+-- Met automatiquement à jour `updated_at` quand un mot de passe est modifié
 CREATE TRIGGER trigger_password_updated
     BEFORE UPDATE ON user_password
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
+-- Met à jour `updated_at` lorsqu’une méthode MFA est modifiée (activation, dernière vérification)
 CREATE TRIGGER trigger_verify_methods_updated
     BEFORE UPDATE ON user_verify
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
+-- Met à jour `updated_at` si un partage de mot de passe change (statut, expiration, etc.)
 CREATE TRIGGER trigger_sharing_updated
     BEFORE UPDATE ON password_sharing
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();

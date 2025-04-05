@@ -21,39 +21,66 @@ class AuthHistoryService extends BaseService
     public function getHistoryForUser(): array
     {
         $userId = $this->auth['user_id'] ?? null;
-        if (!$userId) {
+        $key = $this->auth['user_key'] ?? null;
+
+        if (!$userId || !$key) {
             return [];
         }
 
-        return $this->authHistoryBroker->getHistoryForUser($userId);
+        return $this->authHistoryBroker->getHistoryForUser($userId, $key);
     }
 
-    // Helpers
+    //Helpers
 
-    public function logSuccess(User $user): void
+    public function logSuccess(User $user, string $key): void
     {
-        $this->authHistoryBroker->logAuthEvent(
-            $this->buildEncryptedAuthData($user->id, 'success')
-        );
+        $data = $this->buildEncryptedAuthData($user->id, 'success', $key);
+        $this->authHistoryBroker->logAuthEvent($data, $key);
     }
 
-    public function logFailure(?string $email = null): void
+    public function logFailure(?string $email): void
     {
-        $userId = null;
-        if (!empty($email)) {
-            $user = $this->userBroker->findByEmail($email);
-            $userId = $user?->id ?? null;
+        $key = null;
+
+        if (empty($email)) {
+            return;
         }
 
-        $this->authHistoryBroker->logAuthEvent(
-            $this->buildEncryptedAuthData($userId, 'fail')
-        );
+        $user = $this->userBroker->findByEmail($email);
+        if (!$user) {
+            return;
+        }
+
+        $userId = $user->id;
+
+        $data = [
+            'user_id' => $userId,
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+            'result' => 'fail',
+            'location' => 'unknown'
+        ];
+
+        $this->authHistoryBroker->logAuthEvent($data, $key);
     }
 
-    private function buildEncryptedAuthData(?string $userId, string $result): array
+    public function updateHistoryWithNewKey(string $userId, string $oldKey, string $newKey): void
     {
-        $key = $this->encryption->getUserKeyFromContext();
+        $rows = $this->authHistoryBroker->getHistoryForUser($userId, $oldKey);
 
+        foreach ($rows as $history) {
+            $updates = [
+                'ip_address' => $this->encryption->encryptWithUserKey($history->ip_address, $newKey),
+                'user_agent' => $this->encryption->encryptWithUserKey($history->user_agent, $newKey),
+                'location' => $this->encryption->encryptWithUserKey($history->location, $newKey)
+            ];
+
+            $this->authHistoryBroker->updateAuthHistory($history->id, $updates);
+        }
+    }
+
+    private function buildEncryptedAuthData(?string $userId, string $result, string $key): array
+    {
         return [
             'user_id'    => $userId,
             'ip_address' => $this->encryption->encryptWithUserKey($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0', $key),
