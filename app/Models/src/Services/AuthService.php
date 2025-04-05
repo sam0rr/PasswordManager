@@ -10,12 +10,13 @@ use Zephyrus\Application\Form;
 
 class AuthService extends BaseService
 {
-    private EncryptionService $encryptionService;
 
+    private AuthHistoryService $history;
     public function __construct()
     {
         $this->userBroker = new UserBroker();
-        $this->encryptionService = new EncryptionService();
+        $this->history = new AuthHistoryService();
+        $this->encryption = new EncryptionService();
     }
 
     public function register(Form $form, $isHtmx): array
@@ -31,14 +32,14 @@ class AuthService extends BaseService
             }
 
             $password = $form->getValue("password");
-            $salt = $this->encryptionService->generateSalt();
-            $userKey = $this->encryptionService->deriveUserKey($password, $salt);
-            $hashedPassword = $this->encryptionService->hashPassword($password);
+            $salt = $this->encryption->generateSalt();
+            $userKey = $this->encryption->deriveUserKey($password, $salt);
+            $hashedPassword = $this->encryption->hashPassword($password);
 
             $encryptedData = $this->buildEncryptedUserData($form, $hashedPassword, $salt, $userKey);
             $user = $this->userBroker->createUser($encryptedData);
 
-            $this->encryptionService->storeUserContext($user->id, $userKey);
+            $this->encryption->storeUserContext($user->id, $userKey);
 
             return $this->buildSuccessRegisterResponse($user, $form);
         } catch (FormException) {
@@ -55,9 +56,10 @@ class AuthService extends BaseService
             $password = $form->getValue("password");
 
             $user = $this->validateUserCredentials($email, $password, $form);
-            $userKey = $this->encryptionService->deriveUserKey($password, $user->salt);
-
+            $userKey = $this->encryption->deriveUserKey($password, $user->salt);
             $user = $this->userBroker->findByEmail($email, $userKey);
+
+            $this->history->logSuccess($user);
 
             if ($isHtmx) {
                 return [
@@ -66,10 +68,11 @@ class AuthService extends BaseService
                 ];
             }
 
-            $this->encryptionService->storeUserContext($user->id, $userKey);
+            $this->encryption->storeUserContext($user->id, $userKey);
 
             return $this->buildSuccessLoginResponse($user);
         } catch (FormException) {
+            $this->history->logFailure($form->getValue("email"));
             return $this->buildErrorResponse($form);
         }
     }
@@ -80,7 +83,7 @@ class AuthService extends BaseService
     {
         $user = $this->userBroker->findByEmail($email);
 
-        if (!$user || !$this->encryptionService->verifyPassword($password, $user->password_hash)) {
+        if (!$user || !$this->encryption->verifyPassword($password, $user->password_hash)) {
             $form->addError("login", "Identifiants invalides.");
             throw new FormException($form);
         }
@@ -91,12 +94,12 @@ class AuthService extends BaseService
     private function buildEncryptedUserData(Form $form, string $hashedPassword, string $salt, string $userKey): array
     {
         return [
-            'first_name'    => $this->encryptionService->encryptWithUserKey($form->getValue("first_name"), $userKey),
-            'last_name'     => $this->encryptionService->encryptWithUserKey($form->getValue("last_name"), $userKey),
-            'email'         => $this->encryptionService->encryptWithUserKey($form->getValue("email"), $userKey),
-            'phone'         => $this->encryptionService->encryptWithUserKey($form->getValue("phone"), $userKey),
-            'image_url'     => $this->encryptionService->encryptWithUserKey($form->getValue("image_url") ?? "", $userKey),
-            'email_hash'    => $this->encryptionService->hash256($form->getValue("email")),
+            'first_name'    => $this->encryption->encryptWithUserKey($form->getValue("first_name"), $userKey),
+            'last_name'     => $this->encryption->encryptWithUserKey($form->getValue("last_name"), $userKey),
+            'email'         => $this->encryption->encryptWithUserKey($form->getValue("email"), $userKey),
+            'phone'         => $this->encryption->encryptWithUserKey($form->getValue("phone"), $userKey),
+            'image_url'     => $this->encryption->encryptWithUserKey($form->getValue("image_url") ?? "", $userKey),
+            'email_hash'    => $this->encryption->hash256($form->getValue("email")),
             'password_hash' => $hashedPassword,
             'salt'          => $salt
         ];

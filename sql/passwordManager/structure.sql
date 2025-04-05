@@ -37,9 +37,7 @@ CREATE TABLE auth_history (
     user_agent TEXT NOT NULL,
     auth_timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     result login_result NOT NULL,
-    location TEXT NOT NULL,
-    failed_logins INTEGER NOT NULL DEFAULT 0,
-    account_lock_until TIMESTAMPTZ
+    location TEXT NOT NULL
 );
 
 CREATE TABLE user_password (

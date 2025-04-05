@@ -13,6 +13,4 @@ class AuthHistory extends Entity
     public string $auth_timestamp;
     public string $result;
     public string $location;
-    public int $failed_logins;
-    public ?string $account_lock_until;
 }
