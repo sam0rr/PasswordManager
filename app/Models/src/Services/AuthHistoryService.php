@@ -53,12 +53,29 @@ class AuthHistoryService extends BaseService
 
     private function buildAuthData(?string $userId, string $result): array
     {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $location = $this->fetchLocation($ip);
+
         return [
             'user_id'    => $userId,
-            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0',
+            'ip_address' => $ip,
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
             'result'     => $result,
-            'location'   => 'unknown'
+            'location'   => $location
         ];
     }
+
+    private function fetchLocation(string $ip): string
+    {
+        $url = "https://ipapi.co/{$ip}/city/";
+
+        $location = @file_get_contents($url);
+
+        if (!$location) {
+            return 'unknown';
+        }
+
+        return trim($location);
+    }
+
 }
