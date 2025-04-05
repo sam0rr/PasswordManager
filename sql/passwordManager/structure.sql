@@ -42,12 +42,12 @@ CREATE TABLE auth_history (
     account_lock_until TIMESTAMPTZ
 );
 
-CREATE TABLE user_passwords (
+CREATE TABLE user_password (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     description TEXT NOT NULL,
     note TEXT NOT NULL,
-    encrypted_password TEXT NOT NULL,
+    password TEXT NOT NULL,
     description_hash TEXT NOT NULL,
     last_use TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -55,7 +55,7 @@ CREATE TABLE user_passwords (
     UNIQUE (user_id, description_hash)
 );
 
-CREATE TABLE email_tokens (
+CREATE TABLE email_token (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     token TEXT UNIQUE NOT NULL,
@@ -76,9 +76,9 @@ CREATE TABLE user_verify (
     UNIQUE(user_id, method)
 );
 
-CREATE TABLE credential_sharing (
+CREATE TABLE password_sharing (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    credential_id UUID REFERENCES user_passwords(id) ON DELETE CASCADE,
+    password_id UUID REFERENCES user_password(id) ON DELETE CASCADE,
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
     shared_id UUID REFERENCES users(id) ON DELETE CASCADE,
     status share_status NOT NULL DEFAULT 'pending',
@@ -91,11 +91,11 @@ CREATE TABLE credential_sharing (
 
 CREATE INDEX idx_account_users_email ON users (email);
 CREATE INDEX idx_login_records_user_time ON auth_history (user_id, auth_timestamp DESC);
-CREATE INDEX idx_credentials_user_service ON user_passwords (user_id, description_hash);
-CREATE INDEX idx_email_tokens_token ON email_tokens (token);
+CREATE INDEX idx_password_user_service ON user_password (user_id, description_hash);
+CREATE INDEX idx_email_token_token ON email_token (token);
 CREATE INDEX idx_user_auth_methods_active ON user_verify (user_id, is_active);
-CREATE INDEX idx_sharing_owner ON credential_sharing (owner_id);
-CREATE INDEX idx_sharing_shared ON credential_sharing (shared_id);
+CREATE INDEX idx_sharing_owner ON password_sharing (owner_id);
+CREATE INDEX idx_sharing_shared ON password_sharing (shared_id);
 
 -- TRIGGERS --
 
@@ -103,8 +103,8 @@ CREATE TRIGGER trigger_users_updated
     BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
-CREATE TRIGGER trigger_credentials_updated
-    BEFORE UPDATE ON user_passwords
+CREATE TRIGGER trigger_password_updated
+    BEFORE UPDATE ON user_password
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER trigger_verify_methods_updated
@@ -112,5 +112,5 @@ CREATE TRIGGER trigger_verify_methods_updated
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER trigger_sharing_updated
-    BEFORE UPDATE ON credential_sharing
+    BEFORE UPDATE ON password_sharing
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();

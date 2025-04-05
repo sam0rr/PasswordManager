@@ -10,7 +10,7 @@ class UserPassword extends Entity
     public string $user_id;
     public string $description;
     public string $note;
-    public string $encrypted_password;
+    public string $password;
     public string $description_hash;
     public string $last_use;
     public string $created_at;

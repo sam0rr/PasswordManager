@@ -2,6 +2,7 @@
 
 namespace Models\src\Brokers;
 
+use DateTime;
 use Models\src\Entities\User;
 use Models\src\Services\EncryptionService;
 use Zephyrus\Database\DatabaseBroker;
@@ -41,7 +42,7 @@ class UserBroker extends DatabaseBroker
             $data['email_hash'],
             $data['password_hash'],
             $data['salt'],
-            $data['mfa_end'] ?? new \DateTime()->format('c')
+            $data['mfa_end'] ?? new DateTime()->format('c')
         ]);
 
         return User::build($result);

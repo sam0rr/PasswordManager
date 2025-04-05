@@ -19,7 +19,7 @@ class PasswordBroker extends DatabaseBroker
     public function findAllByUser(string $userId, string $userKey): array
     {
         $rows = $this->select(
-            "SELECT * FROM user_passwords WHERE user_id = ? ORDER BY updated_at DESC",
+            "SELECT * FROM user_password WHERE user_id = ? ORDER BY updated_at DESC",
             [$userId]
         );
 
@@ -31,7 +31,7 @@ class PasswordBroker extends DatabaseBroker
     public function createPassword(array $data, string $userKey): ?UserPassword
     {
         $sql = "
-            INSERT INTO user_passwords (user_id, description, description_hash, note, encrypted_password)
+            INSERT INTO user_password (user_id, description, description_hash, note, password)
             VALUES (?, ?, ?, ?, ?)
             RETURNING *;
         ";
@@ -41,7 +41,7 @@ class PasswordBroker extends DatabaseBroker
             $data['description'],
             $data['description_hash'],
             $data['note'],
-            $data['encrypted_password']
+            $data['password']
         ]);
 
         $password = UserPassword::build($row);
@@ -64,7 +64,7 @@ class PasswordBroker extends DatabaseBroker
 
         $values[] = $passwordId;
 
-        $sql = "UPDATE user_passwords SET " . implode(", ", $columns) . " WHERE id = ? RETURNING *";
+        $sql = "UPDATE user_password SET " . implode(", ", $columns) . " WHERE id = ? RETURNING *";
         $result = $this->selectSingle($sql, $values);
 
         if (!$result) return null;
@@ -75,7 +75,7 @@ class PasswordBroker extends DatabaseBroker
     public function descriptionExistsForUser(string $userId, string $description): bool
     {
         $hash = $this->encryption->hash256($description);
-        $sql = "SELECT 1 FROM user_passwords WHERE user_id = ? AND description_hash = ?";
+        $sql = "SELECT 1 FROM user_password WHERE user_id = ? AND description_hash = ?";
         return (bool) $this->selectSingle($sql, [$userId, $hash]);
     }
 
@@ -83,7 +83,7 @@ class PasswordBroker extends DatabaseBroker
     {
         $password->description = $this->encryption->decryptWithUserKey($password->description, $userKey);
         $password->note = $this->encryption->decryptWithUserKey($password->note, $userKey);
-        $password->encrypted_password = $this->encryption->decryptWithUserKey($password->encrypted_password, $userKey);
+        $password->password = $this->encryption->decryptWithUserKey($password->password, $userKey);
         return $password;
     }
 }

@@ -59,7 +59,7 @@ class PasswordService extends BaseService
                 'description'        => $this->encryption->encryptWithUserKey($password->description, $newKey),
                 'description_hash'   => $this->encryption->hash256($password->description),
                 'note'               => $this->encryption->encryptWithUserKey($password->note, $newKey),
-                'encrypted_password' => $this->encryption->encryptWithUserKey($password->encrypted_password, $newKey),
+                'password'           => $this->encryption->encryptWithUserKey($password->password, $newKey),
             ];
 
             $this->passwordBroker->updatePassword($password->id, $updates);
@@ -78,7 +78,7 @@ class PasswordService extends BaseService
             'description'        => $this->encryption->encryptWithUserKey($description, $key),
             'description_hash'   => $this->encryption->hash256($description),
             'note'               => $this->encryption->encryptWithUserKey($form->getValue('note'), $key),
-            'encrypted_password' => $this->encryption->encryptWithUserKey($form->getValue('password'), $key)
+            'password' => $this->encryption->encryptWithUserKey($form->getValue('password'), $key)
         ];
     }
 
@@ -106,7 +106,7 @@ class PasswordService extends BaseService
             "description" => $p->description,
             "description_hash" => $p->description_hash,
             "note" => $p->note,
-            "encrypted_password" => $p->encrypted_password,
+            "password" => $p->password,
             "last_use" => $p->last_use,
             "created_at" => $p->created_at,
             "updated_at" => $p->updated_at
