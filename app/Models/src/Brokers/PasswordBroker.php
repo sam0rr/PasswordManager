@@ -48,7 +48,7 @@ class PasswordBroker extends DatabaseBroker
         return $this->decryptPassword($password, $userKey);
     }
 
-    public function updatePassword(int $passwordId, array $updates): ?UserPassword
+    public function updatePassword(string $passwordId, array $updates): ?UserPassword
     {
         if (empty($updates)) {
             return null;

@@ -61,18 +61,24 @@ class UserService extends BaseService
                 throw new FormException($form);
             }
 
+            // Préparation des données avec la newKey
             $updated = $this->buildEncryptedDataWithNewPassword($currentUser, $newPassword);
             $newUserKey = $updated['user_key'];
             unset($updated['user_key']);
             $oldUserKey = $this->auth['user_key'];
 
+            // Étape 1 : Update le user
             $this->userBroker->updateUser($this->auth['user_id'], $updated);
 
+            // Étape 2 : Update les mots de passes
             $this->passwordService->updatePasswordsWithNewKey($currentUser->id, $oldUserKey, $newUserKey);
 
+            // Étape 3 : Mettre à jour le contexte d'encryption
             $this->updateUserContext($currentUser->id, $newUserKey);
 
+            // Étape 4 : Recharger le user avec la nouvelle clé
             $user = $this->userBroker->findById($this->auth['user_id'], $newUserKey);
+
             return $this->buildSuccessUpdateResponse($user);
         } catch (FormException) {
             return $this->buildErrorResponse($form);
@@ -81,7 +87,7 @@ class UserService extends BaseService
 
     // Helpers
 
-    private function updateUserContext(int $userId, string $userKey): void
+    private function updateUserContext(string $userId, string $userKey): void
     {
         $this->encryption->storeUserContext($userId, $userKey);
         $this->auth['user_key'] = $userKey;
