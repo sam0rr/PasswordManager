@@ -3,6 +3,7 @@
 namespace Controllers\src;
 
 use Controllers\SecureController;
+use Models\src\Services\AuthHistoryService;
 use Models\src\Services\UserService;
 use Models\src\Services\EncryptionService;
 use Zephyrus\Network\Response;
@@ -12,6 +13,7 @@ use Zephyrus\Network\Router\Put;
 class UserController extends SecureController
 {
     private ?UserService $userService = null;
+    private ?AuthHistoryService $authHistoryService = null;
 
     public function before(): ?Response
     {
@@ -22,6 +24,7 @@ class UserController extends SecureController
 
         $auth = $this->getAuth();
         $this->userService = new UserService($auth);
+        $this->authHistoryService = new AuthHistoryService($auth);
         return null;
     }
 
@@ -83,6 +86,17 @@ class UserController extends SecureController
         $result = $this->userService->updatePassword($form);
 
         return $this->json($result);
+    }
+
+    #[Get('/history')]
+    public function history(): Response
+    {
+        $history = $this->authHistoryService->getHistoryForUser();
+
+        return $this->json([
+            "status" => 200,
+            "history" => $history
+        ]);
     }
 
 

@@ -100,6 +100,7 @@ class PasswordBroker extends DatabaseBroker
         $password->description = $this->encryption->decryptWithUserKey($password->description, $userKey);
         $password->note = $this->encryption->decryptWithUserKey($password->note, $userKey);
         $password->password = $this->encryption->decryptWithUserKey($password->password, $userKey);
+
         return $password;
     }
 }

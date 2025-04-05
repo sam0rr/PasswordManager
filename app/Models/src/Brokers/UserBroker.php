@@ -104,6 +104,7 @@ class UserBroker extends DatabaseBroker
         $user->email = $this->encryptionService->decryptWithUserKey($user->email, $userKey);
         $user->phone = $this->encryptionService->decryptWithUserKey($user->phone, $userKey);
         $user->image_url = $this->encryptionService->decryptWithUserKey($user->image_url, $userKey);
+
         return $user;
     }
 
