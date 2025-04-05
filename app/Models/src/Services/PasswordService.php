@@ -4,27 +4,36 @@ namespace Models\src\Services;
 
 use Models\Exceptions\FormException;
 use Models\src\Brokers\PasswordBroker;
+use Models\src\Brokers\UserBroker;
 use Models\src\Entities\UserPassword;
 use Models\src\Validators\PasswordValidator;
 use Zephyrus\Application\Form;
 
 class PasswordService extends BaseService
 {
-    private PasswordBroker $passwordBroker;
-    private array $auth;
-    private EncryptionService $encryption;
-
     public function __construct(array $auth)
     {
         $this->auth = $auth;
         $this->passwordBroker = new PasswordBroker();
+        $this->userBroker = new UserBroker();
         $this->encryption = new EncryptionService();
     }
 
-    public function getPasswords(): array
+    public function getPasswords(Form $form): array
     {
-        $passwords = $this->passwordBroker->findAllByUser($this->auth['user_id']);
-        return array_map(fn(UserPassword $p) => $this->buildPasswordResponse($p), $passwords);
+        try {
+            PasswordValidator::assertPasswordVerification($form);
+
+            $submittedPassword = $form->getValue("password");
+            $user = $this->getAuthenticatedUser($submittedPassword, $form);
+            $this->verifyTempKey($submittedPassword, $user->salt, $form);
+
+            $passwords = $this->passwordBroker->findAllByUser($user->id, $this->auth['user_key']);
+
+            return $this->buildSuccessGetResponse($passwords);
+        } catch (FormException) {
+            return $this->buildErrorResponse($form);
+        }
     }
 
     public function addPassword(Form $form): array
@@ -33,7 +42,7 @@ class PasswordService extends BaseService
             PasswordValidator::assertAdd($form, $this->passwordBroker, $this->auth['user_id']);
 
             $data = $this->buildEncryptedPasswordData($form);
-            $password = $this->passwordBroker->createPassword($data);
+            $password = $this->passwordBroker->createPassword($data, $this->auth['user_key']);
 
             return $this->buildSuccessAddResponse($password);
         } catch (FormException) {
@@ -54,6 +63,14 @@ class PasswordService extends BaseService
             'description_hash'   => $this->encryption->hash256($description),
             'note'               => $this->encryption->encryptWithUserKey($form->getValue('note'), $key),
             'encrypted_password' => $this->encryption->encryptWithUserKey($form->getValue('password'), $key)
+        ];
+    }
+
+    private function buildSuccessGetResponse(array $passwords): array
+    {
+        return [
+            "status" => 200,
+            "passwords" => array_map(fn(UserPassword $p) => $this->buildPasswordResponse($p), $passwords)
         ];
     }
 

@@ -10,10 +10,6 @@ use Zephyrus\Application\Form;
 
 class UserService extends BaseService
 {
-    private UserBroker $userBroker;
-    private array $auth;
-    private EncryptionService $encryption;
-
     public function __construct(array $auth)
     {
         $this->auth = $auth;
@@ -67,20 +63,23 @@ class UserService extends BaseService
             unset($updated['user_key']);
 
             $this->userBroker->updateUser($this->auth['user_id'], $updated);
-            $this->encryption->storeUserContext($currentUser->id, $userKey);
 
-            $user = $this->getCurrentUserWithKey($userKey);
+            $this->updateUserContext($currentUser->id, $userKey);
+
+            $user = $this->userBroker->findById($this->auth['user_id'], $userKey);
             return $this->buildSuccessUpdateResponse($user);
         } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
     }
 
+
     // Helpers
 
-    private function getCurrentUserWithKey(string $key): ?User
+    private function updateUserContext(int $userId, string $userKey): void
     {
-        return $this->userBroker->findById($this->auth['user_id'], $key);
+        $this->encryption->storeUserContext($userId, $userKey);
+        $this->auth['user_key'] = $userKey;
     }
 
     private function buildEncryptedUpdateData(Form $form): array
@@ -116,7 +115,8 @@ class UserService extends BaseService
             'image_url'     => $this->encryption->encryptWithUserKey($user->image_url, $newKey),
             'email_hash'    => $this->encryption->hash256($user->email),
             'password_hash' => $newHash,
-            'salt'          => $newSalt
+            'salt'          => $newSalt,
+            'user_key'      => $newKey
         ];
     }
 

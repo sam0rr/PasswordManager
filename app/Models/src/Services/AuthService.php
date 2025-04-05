@@ -4,12 +4,12 @@ namespace Models\src\Services;
 
 use Models\Exceptions\FormException;
 use Models\src\Brokers\UserBroker;
+use Models\src\Entities\User;
 use Models\src\Validators\AuthValidator;
 use Zephyrus\Application\Form;
 
 class AuthService extends BaseService
 {
-    private UserBroker $userBroker;
     private EncryptionService $encryptionService;
 
     public function __construct()
@@ -47,7 +47,6 @@ class AuthService extends BaseService
     }
 
     public function login(Form $form, $isHtmx): array
-
     {
         try {
             AuthValidator::assertLogin($form, $isHtmx);
@@ -55,13 +54,9 @@ class AuthService extends BaseService
             $email = $form->getValue("email");
             $password = $form->getValue("password");
 
-            $user = $this->userBroker->findByEmail($email);
-            if (!$user || !$this->encryptionService->verifyPassword($password, $user->password_hash)) {
-                $form->addError("login", "Identifiants invalides.");
-                throw new FormException($form);
-            }
-
+            $user = $this->validateUserCredentials($email, $password, $form);
             $userKey = $this->encryptionService->deriveUserKey($password, $user->salt);
+
             $user = $this->userBroker->findByEmail($email, $userKey);
 
             if ($isHtmx) {
@@ -81,6 +76,18 @@ class AuthService extends BaseService
 
     // Helpers
 
+    private function validateUserCredentials(string $email, string $password, Form $form): User
+    {
+        $user = $this->userBroker->findByEmail($email);
+
+        if (!$user || !$this->encryptionService->verifyPassword($password, $user->password_hash)) {
+            $form->addError("login", "Identifiants invalides.");
+            throw new FormException($form);
+        }
+
+        return $user;
+    }
+
     private function buildEncryptedUserData(Form $form, string $hashedPassword, string $salt, string $userKey): array
     {
         return [
@@ -95,7 +102,7 @@ class AuthService extends BaseService
         ];
     }
 
-    private function buildSuccessRegisterResponse($user, Form $form): array
+    private function buildSuccessRegisterResponse(User $user, Form $form): array
     {
         return [
             "message" => "Compte créé avec succès",
@@ -109,7 +116,7 @@ class AuthService extends BaseService
         ];
     }
 
-    private function buildSuccessLoginResponse($user): array
+    private function buildSuccessLoginResponse(User $user): array
     {
         return [
             "message" => "Connexion réussie",

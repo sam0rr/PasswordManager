@@ -16,23 +16,19 @@ class PasswordBroker extends DatabaseBroker
         $this->encryption = new EncryptionService();
     }
 
-    public function findAllByUser(string $userId, ?string $userKey = null): array
+    public function findAllByUser(string $userId, string $userKey): array
     {
         $rows = $this->select(
             "SELECT * FROM user_passwords WHERE user_id = ? ORDER BY updated_at DESC",
             [$userId]
         );
 
-        $passwords = array_map(fn($row) => UserPassword::build($row), $rows);
-
-        if ($userKey) {
-            $passwords = array_map(fn(UserPassword $password) => $this->decryptPassword($password, $userKey), $passwords);
-        }
-
-        return $passwords;
+        return array_map(fn($row) =>
+        $this->decryptPassword(UserPassword::build($row), $userKey), $rows
+        );
     }
 
-    public function createPassword(array $data, ?string $userKey = null): ?UserPassword
+    public function createPassword(array $data, string $userKey): ?UserPassword
     {
         $sql = "
             INSERT INTO user_passwords (user_id, description, description_hash, note, encrypted_password)
@@ -49,7 +45,7 @@ class PasswordBroker extends DatabaseBroker
         ]);
 
         $password = UserPassword::build($row);
-        return ($userKey) ? $this->decryptPassword($password, $userKey) : $password;
+        return $this->decryptPassword($password, $userKey);
     }
 
     public function descriptionExistsForUser(string $userId, string $description): bool

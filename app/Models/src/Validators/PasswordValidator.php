@@ -36,4 +36,18 @@ class PasswordValidator
             throw new FormException($form);
         }
     }
+
+    public static function assertPasswordVerification(Form $form): void
+    {
+        $form->field("password", [
+            Rule::required("Le mot de passe est requis."),
+            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
+        ]);
+
+        $form->verify();
+
+        if ($form->hasError()) {
+            throw new FormException($form);
+        }
+    }
 }

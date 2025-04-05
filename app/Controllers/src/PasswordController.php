@@ -5,7 +5,6 @@ namespace Controllers\src;
 use Controllers\SecureController;
 use Models\src\Services\PasswordService;
 use Zephyrus\Network\Response;
-use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
 class PasswordController extends SecureController
@@ -24,11 +23,12 @@ class PasswordController extends SecureController
         return null;
     }
 
-    #[Get('/passwords')]
+    #[Post('/passwords')]
     public function getPasswords(): Response
     {
-        $passwords = $this->passwordService->getPasswords();
-        return $this->json($passwords);
+        $form = $this->buildForm();
+        $result = $this->passwordService->getPasswords($form);
+        return $this->json($result);
     }
 
     #[Post('/addpassword')]
