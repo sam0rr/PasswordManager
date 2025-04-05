@@ -45,4 +45,9 @@ abstract class BaseService
             throw new FormException($form);
         }
     }
+
+    protected function isValidUuid(string $uuid): bool
+    {
+        return preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
+    }
 }

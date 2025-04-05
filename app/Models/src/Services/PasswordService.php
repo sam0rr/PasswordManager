@@ -68,7 +68,7 @@ class PasswordService extends BaseService
             $updatedPassword = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
 
             return $this->buildPasswordResponse($updatedPassword);
-        } catch (FormException $e) {
+        } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
     }
@@ -92,7 +92,7 @@ class PasswordService extends BaseService
                 "status" => 200,
                 "message" => "Mot de passe supprimé avec succès."
             ];
-        } catch (FormException $e) {
+        } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
     }
@@ -167,7 +167,7 @@ class PasswordService extends BaseService
 
     private function assertValidPasswordId(string $passwordId, Form $form): void
     {
-        if (!isValidUuid($passwordId)) {
+        if (!$this->isValidUuid($passwordId)) {
             $form->addError("global", "Identifiant de mot de passe invalide.");
             throw new FormException($form);
         }
