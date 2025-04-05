@@ -10,11 +10,14 @@ use Zephyrus\Application\Form;
 
 class UserService extends BaseService
 {
+    protected PasswordService $passwordService;
+
     public function __construct(array $auth)
     {
         $this->auth = $auth;
         $this->userBroker = new UserBroker();
         $this->encryption = new EncryptionService();
+        $this->passwordService = new PasswordService($auth);
     }
 
     public function getCurrentUserEntity(): ?User
@@ -59,20 +62,22 @@ class UserService extends BaseService
             }
 
             $updated = $this->buildEncryptedDataWithNewPassword($currentUser, $newPassword);
-            $userKey = $updated['user_key'];
+            $newUserKey = $updated['user_key'];
             unset($updated['user_key']);
+            $oldUserKey = $this->auth['user_key'];
 
             $this->userBroker->updateUser($this->auth['user_id'], $updated);
 
-            $this->updateUserContext($currentUser->id, $userKey);
+            $this->passwordService->updatePasswordsWithNewKey($currentUser->id, $oldUserKey, $newUserKey);
 
-            $user = $this->userBroker->findById($this->auth['user_id'], $userKey);
+            $this->updateUserContext($currentUser->id, $newUserKey);
+
+            $user = $this->userBroker->findById($this->auth['user_id'], $newUserKey);
             return $this->buildSuccessUpdateResponse($user);
         } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
     }
-
 
     // Helpers
 
@@ -104,8 +109,6 @@ class UserService extends BaseService
         $newSalt = $this->encryption->generateSalt();
         $newKey = $this->encryption->deriveUserKey($newPassword, $newSalt);
         $newHash = $this->encryption->hashPassword($newPassword);
-
-        // TODO: Ré-encrypter aussi les mots de passe du gestionnaire, si applicable
 
         return [
             'first_name'    => $this->encryption->encryptWithUserKey($user->first_name, $newKey),

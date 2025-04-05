@@ -48,6 +48,30 @@ class PasswordBroker extends DatabaseBroker
         return $this->decryptPassword($password, $userKey);
     }
 
+    public function updatePassword(int $passwordId, array $updates): ?UserPassword
+    {
+        if (empty($updates)) {
+            return null;
+        }
+
+        $columns = [];
+        $values = [];
+
+        foreach ($updates as $column => $value) {
+            $columns[] = "$column = ?";
+            $values[] = $value;
+        }
+
+        $values[] = $passwordId;
+
+        $sql = "UPDATE user_passwords SET " . implode(", ", $columns) . " WHERE id = ? RETURNING *";
+        $result = $this->selectSingle($sql, $values);
+
+        if (!$result) return null;
+
+        return UserPassword::build($result);
+    }
+
     public function descriptionExistsForUser(string $userId, string $description): bool
     {
         $hash = $this->encryption->hash256($description);

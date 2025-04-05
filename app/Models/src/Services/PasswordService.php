@@ -50,6 +50,22 @@ class PasswordService extends BaseService
         }
     }
 
+    public function updatePasswordsWithNewKey(string $userId, string $oldKey, string $newKey): void
+    {
+        $passwords = $this->passwordBroker->findAllByUser($userId, $oldKey);
+
+        foreach ($passwords as $password) {
+            $updates = [
+                'description'        => $this->encryption->encryptWithUserKey($password->description, $newKey),
+                'description_hash'   => $this->encryption->hash256($password->description),
+                'note'               => $this->encryption->encryptWithUserKey($password->note, $newKey),
+                'encrypted_password' => $this->encryption->encryptWithUserKey($password->encrypted_password, $newKey),
+            ];
+
+            $this->passwordBroker->updatePassword($password->id, $updates);
+        }
+    }
+
     // Helpers
 
     private function buildEncryptedPasswordData(Form $form): array
@@ -88,7 +104,7 @@ class PasswordService extends BaseService
         return [
             "id" => $p->id,
             "description" => $p->description,
-            "desccription_hash" => $p->description_hash,
+            "description_hash" => $p->description_hash,
             "note" => $p->note,
             "encrypted_password" => $p->encrypted_password,
             "last_use" => $p->last_use,
