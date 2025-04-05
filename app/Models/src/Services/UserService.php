@@ -105,7 +105,7 @@ class UserService extends BaseService
         // Étape 2 : Mettre à jour l'utilisateur
         $this->userBroker->updateUser($user->id, $updated);
 
-        // Étape 3 : Mettre à jour les données dépendantes (passwords, logs)
+        // Étape 3 : Mettre à jour les données dépendantes (passwords)
         $this->passwordService->updatePasswordsWithNewKey($user->id, $oldUserKey, $newUserKey);
 
         // Étape 4 : Mettre à jour le contexte

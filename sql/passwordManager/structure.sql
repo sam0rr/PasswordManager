@@ -33,7 +33,7 @@ CREATE TABLE users (
 CREATE TABLE auth_history (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    ip_address TEXT NOT NULL,
+    ip_address INET NOT NULL,
     user_agent TEXT NOT NULL,
     auth_timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     result login_result NOT NULL,
