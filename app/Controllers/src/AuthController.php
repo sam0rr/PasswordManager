@@ -27,15 +27,6 @@ class AuthController extends Controller
         ]);
     }
 
-    #[Post('/api/login')]
-    public function apiLogin(): Response
-    {
-        $form = $this->buildForm();
-        $result = $this->authService->login($form, false);
-
-        return $this->json($result);
-    }
-
     #[Post("/login")]
     public function login(): Response
     {
@@ -70,16 +61,6 @@ class AuthController extends Controller
             "title" => "Inscription"
         ]);
     }
-
-    #[Post('/api/register')]
-    public function apiRegister(): Response
-    {
-        $form = $this->buildForm();
-        $result = $this->authService->register($form, false);
-
-        return $this->json($result);
-    }
-
     #[Post("/register")]
     public function register(): Response
     {

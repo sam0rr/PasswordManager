@@ -48,9 +48,11 @@ CREATE TABLE user_passwords (
     description TEXT NOT NULL,
     note TEXT NOT NULL,
     encrypted_password TEXT NOT NULL,
+    description_hash TEXT NOT NULL,
     last_use TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, description_hash)
 );
 
 CREATE TABLE email_tokens (
@@ -89,9 +91,9 @@ CREATE TABLE credential_sharing (
 
 CREATE INDEX idx_account_users_email ON users (email);
 CREATE INDEX idx_login_records_user_time ON auth_history (user_id, auth_timestamp DESC);
-CREATE INDEX idx_credentials_user_service ON user_passwords (user_id, description);
+CREATE INDEX idx_credentials_user_service ON user_passwords (user_id, description_hash);
 CREATE INDEX idx_email_tokens_token ON email_tokens (token);
-CREATE INDEX idx_user_auth_methods_active ON user_auth (user_id, is_active);
+CREATE INDEX idx_user_auth_methods_active ON user_verify (user_id, is_active);
 CREATE INDEX idx_sharing_owner ON credential_sharing (owner_id);
 CREATE INDEX idx_sharing_shared ON credential_sharing (shared_id);
 
