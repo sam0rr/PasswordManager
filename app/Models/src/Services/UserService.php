@@ -120,6 +120,7 @@ class UserService extends BaseService
         $newSalt = $this->encryption->generateSalt();
         $newKey = $this->encryption->deriveUserKey($newPassword, $newSalt);
         $newHash = $this->encryption->hashPassword($newPassword);
+        $newPublicKey = $this->encryption->generatePublicKey($newKey);
 
         return [
             'first_name'    => $this->encryption->encryptWithUserKey($user->first_name, $newKey),
@@ -130,6 +131,7 @@ class UserService extends BaseService
             'email_hash'    => $this->encryption->hash256($user->email),
             'password_hash' => $newHash,
             'salt'          => $newSalt,
+            'public_key'    => $newPublicKey,
             'user_key'      => $newKey
         ];
     }

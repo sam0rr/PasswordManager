@@ -77,6 +77,11 @@ class EncryptionService extends BaseService
         return Cryptography::randomHex($length);
     }
 
+    public function generatePublicKey(string $userKey): string
+    {
+        return $this->hash256($userKey);
+    }
+
     public static function destroySession(): void
     {
         Session::destroy();

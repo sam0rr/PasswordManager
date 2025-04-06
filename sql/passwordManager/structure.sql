@@ -24,6 +24,7 @@ CREATE TABLE users (
     email_hash TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     salt TEXT NOT NULL,
+    public_key TEXT NOT NULL,
     mfa INTEGER NOT NULL DEFAULT 0 CHECK (mfa >= 0),
     mfa_end TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

@@ -29,8 +29,9 @@ class UserBroker extends DatabaseBroker
                 email_hash,
                 password_hash,
                 salt,
+                public_key,
                 mfa_end
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *";
 
         $result = $this->selectSingle($sql, [
@@ -42,6 +43,7 @@ class UserBroker extends DatabaseBroker
             $data['email_hash'],
             $data['password_hash'],
             $data['salt'],
+            $data['public_key'],
             $data['mfa_end'] ?? new DateTime()->format('c')
         ]);
 
