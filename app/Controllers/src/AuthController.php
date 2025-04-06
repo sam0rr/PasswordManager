@@ -61,6 +61,7 @@ class AuthController extends Controller
             "title" => "Inscription"
         ]);
     }
+
     #[Post("/register")]
     public function register(): Response
     {
@@ -84,6 +85,5 @@ class AuthController extends Controller
 
         return $this->redirect("/login");
     }
-
 
 }

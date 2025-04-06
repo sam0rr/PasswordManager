@@ -24,7 +24,7 @@ class UserController extends SecureController
 
         $auth = $this->getAuth();
         $this->userService = new UserService($auth);
-        $this->authHistoryService = new AuthHistoryService($auth);
+        $this->authHistoryService = new AuthHistoryService();
         return null;
     }
 

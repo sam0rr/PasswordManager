@@ -137,7 +137,7 @@ class PasswordService extends BaseService
             'description'        => $this->encryption->encryptWithUserKey($description, $key),
             'description_hash'   => $this->encryption->hash256($description),
             'note'               => $this->encryption->encryptWithUserKey($form->getValue('note'), $key),
-            'password' => $this->encryption->encryptWithUserKey($form->getValue('password'), $key)
+            'password'           => $this->encryption->encryptWithUserKey($form->getValue('password'), $key)
         ];
     }
 

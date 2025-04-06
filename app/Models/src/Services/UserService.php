@@ -155,6 +155,8 @@ class UserService extends BaseService
             "phone" => $user->phone,
             "image_url" => $user->image_url,
             "mfa" => $user->mfa,
+            "salt" => $user->salt,
+            "public_key" => $user->public_key,
             "mfa_end" => $user->mfa_end,
             "created_at" => $user->created_at,
             "updated_at" => $user->updated_at
