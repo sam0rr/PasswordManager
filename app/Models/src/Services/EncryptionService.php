@@ -79,7 +79,19 @@ class EncryptionService extends BaseService
 
     public function generatePublicKey(string $userKey): string
     {
-        return $this->hash256($userKey);
+        $binaryKey = hex2bin(mb_substr($userKey, 0, 64));
+
+        if ($binaryKey === false || strlen($binaryKey) !== SODIUM_CRYPTO_SCALARMULT_BYTES) {
+            throw new \InvalidArgumentException("Clé privée invalide pour dériver la clé publique.");
+        }
+
+        try {
+            $publicKey = sodium_crypto_scalarmult_base($binaryKey);
+        } catch (\SodiumException) {
+            throw new \InvalidArgumentException("Clé privée invalide pour dériver la clé publique.");
+        }
+
+        return base64_encode($publicKey);
     }
 
     public static function destroySession(): void
