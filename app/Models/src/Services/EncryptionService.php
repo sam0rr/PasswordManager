@@ -123,7 +123,7 @@ class EncryptionService extends BaseService
         }
 
         try {
-            $keyPair = sodium_crypto_box_keypair_from_secretkey_and_publickey($binaryPrivateKey, $binaryPublicKey);
+            $keyPair = $this->buildKeyPair($binaryPrivateKey, $binaryPublicKey);
             $plaintext = sodium_crypto_box_seal_open($cipherText, $keyPair);
             if ($plaintext === false) {
                 throw new \RuntimeException("Decryption failed: invalid message or mismatched keys.");
@@ -131,6 +131,15 @@ class EncryptionService extends BaseService
             return $plaintext;
         } catch (\SodiumException $e) {
             throw new \RuntimeException("An error occurred during decryption: " . $e->getMessage(), 0, $e);
+        }
+    }
+
+    private function buildKeyPair(string $privateKey, string $publicKey): string
+    {
+        try {
+            return sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
+        } catch (\SodiumException $e) {
+            throw new \RuntimeException("An error occurred when making the key pair: " . $e->getMessage(), 0, $e);
         }
     }
 
