@@ -15,4 +15,5 @@ class UserPassword extends Entity
     public string $last_use;
     public string $created_at;
     public string $updated_at;
+    public bool $verified;
 }

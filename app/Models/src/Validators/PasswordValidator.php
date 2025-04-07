@@ -66,6 +66,10 @@ class PasswordValidator
             Rule::minLength(2, "La note doit contenir au moins 2 caractères.")
         ])->optional();
 
+        $form->field("verified", [
+            Rule::boolean("Le champ 'verified' doit être un booléen.")
+        ])->optional();
+
         $newDescription = $form->getValue("description");
         if (!empty($newDescription) && $broker->descriptionExistsForUser($userId, $newDescription)
             && $newDescription !== $currentPassword->description) {

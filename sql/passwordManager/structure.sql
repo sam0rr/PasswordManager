@@ -1,13 +1,24 @@
 -- ENUM TYPES
 CREATE TYPE login_result AS ENUM ('success', 'fail');
 CREATE TYPE auth_method AS ENUM ('email', 'sms', 'authenticator');
-CREATE TYPE share_status AS ENUM ('active', 'pending', 'fail');
+CREATE TYPE share_status AS ENUM ('success', 'pending', 'fail');
 
 -- FUNCTION TO AUTO-UPDATE updated_at FIELD
 CREATE OR REPLACE FUNCTION update_timestamp()
     RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- FUNCTION TO DELETE SHARING ON SUCCESS
+CREATE OR REPLACE FUNCTION delete_successful_sharing()
+    RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status = 'success' THEN
+        DELETE FROM password_sharing WHERE id = NEW.id;
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -48,6 +59,7 @@ CREATE TABLE user_password (
     note TEXT NOT NULL,
     password TEXT NOT NULL,
     description_hash TEXT NOT NULL,
+    verified BOOLEAN NOT NULL DEFAULT TRUE,
     last_use TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -80,6 +92,7 @@ CREATE TABLE password_sharing (
     password_id UUID REFERENCES user_password(id) ON DELETE CASCADE,
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
     shared_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    public_key_hash TEXT NOT NULL,
     status share_status NOT NULL DEFAULT 'pending',
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -125,3 +138,9 @@ CREATE TRIGGER trigger_verify_methods_updated
 CREATE TRIGGER trigger_sharing_updated
     BEFORE UPDATE ON password_sharing
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+-- TRIGGER POUR EFFACER LE SHARING QUAND status = 'success'
+CREATE TRIGGER trigger_sharing_auto_delete_success
+    AFTER UPDATE ON password_sharing
+    FOR EACH ROW
+    WHEN (NEW.status = 'success')
+EXECUTE FUNCTION delete_successful_sharing();

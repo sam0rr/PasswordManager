@@ -40,8 +40,8 @@ class PasswordBroker extends DatabaseBroker
     public function createPassword(array $data, string $userKey): ?UserPassword
     {
         $sql = "
-            INSERT INTO user_password (user_id, description, description_hash, note, password)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO user_password (user_id, description, description_hash, note, password, verified)
+            VALUES (?, ?, ?, ?, ?, ?)
             RETURNING *;
         ";
 
@@ -50,7 +50,8 @@ class PasswordBroker extends DatabaseBroker
             $data['description'],
             $data['description_hash'],
             $data['note'],
-            $data['password']
+            $data['password'],
+            $data['verified'] ?? true
         ]);
 
         $password = UserPassword::build($row);

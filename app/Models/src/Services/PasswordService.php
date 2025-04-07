@@ -137,7 +137,8 @@ class PasswordService extends BaseService
             'description'        => $this->encryption->encryptWithUserKey($description, $key),
             'description_hash'   => $this->encryption->hash256($description),
             'note'               => $this->encryption->encryptWithUserKey($form->getValue('note'), $key),
-            'password'           => $this->encryption->encryptWithUserKey($form->getValue('password'), $key)
+            'password'           => $this->encryption->encryptWithUserKey($form->getValue('password'), $key),
+            'verified'           => true
         ];
     }
 
@@ -162,8 +163,13 @@ class PasswordService extends BaseService
             $updates['password'] = $this->encryption->encryptWithUserKey($password, $key);
         }
 
+        if (!is_null($form->getValue('verified'))) {
+            $updates['verified'] = filter_var($form->getValue('verified'), FILTER_VALIDATE_BOOLEAN);
+        }
+
         return $updates;
     }
+
 
     private function assertValidPasswordId(string $passwordId, Form $form): void
     {
@@ -200,7 +206,9 @@ class PasswordService extends BaseService
             "password" => $p->password,
             "last_use" => $p->last_use,
             "created_at" => $p->created_at,
-            "updated_at" => $p->updated_at
+            "updated_at" => $p->updated_at,
+            "verified" => $p->verified
         ];
     }
+
 }
