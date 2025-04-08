@@ -9,6 +9,7 @@ use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
 use Models\src\Entities\PasswordSharing;
 use Models\src\Validators\SharingValidator;
+use Throwable as ThrowableAlias;
 use Zephyrus\Application\Form;
 
 class SharingService extends BaseService
@@ -38,7 +39,7 @@ class SharingService extends BaseService
             try {
                 $this->acceptShare($share, $userKey);
                 $this->sharingBroker->markAsSuccess($share->id);
-            } catch (\Throwable $e) {
+            } catch (ThrowableAlias $e) {
                 $this->sharingBroker->markAsFailed($share->id);
                 error_log("Échec du partage #{$share->id} : " . $e->getMessage());
             }
@@ -63,7 +64,7 @@ class SharingService extends BaseService
             $encPassword = $this->encryptFromPublicKey($password->password, $recipient->public_key);
             $encDescription = $this->encryptFromPublicKey($password->description, $recipient->public_key);
 
-            $this->insertSharingRecord($recipient->id, $recipient->public_key, $encPassword, $encDescription);
+            $this->insertSharingRecord($recipient->id, $encPassword, $encDescription);
 
             return $this->buildSuccessResponse();
         } catch (FormException) {
@@ -96,14 +97,13 @@ class SharingService extends BaseService
         return $this->encryption->decryptFromPublicKey($encrypted, $publicKey, $userKey);
     }
 
-    private function insertSharingRecord(string $recipientId, string $publicKey, string $encPassword, string $encDescription): void
+    private function insertSharingRecord(string $recipientId, string $encPassword, string $encDescription): void
     {
         $this->sharingBroker->insertSharing([
             'encrypted_password'    => $encPassword,
             'encrypted_description' => $encDescription,
             'owner_id'              => $this->auth['user_id'],
             'shared_id'             => $recipientId,
-            'public_key_hash'       => $this->encryption->hash256($publicKey),
             'status'                => 'pending',
             'expires_at'            => date('Y-m-d H:i:s', strtotime('+7 days'))
         ]);

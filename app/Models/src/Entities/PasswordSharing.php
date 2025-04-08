@@ -11,7 +11,6 @@ class PasswordSharing extends Entity
     public string $encrypted_description;
     public string $owner_id;
     public string $shared_id;
-    public string $public_key_hash;
     public string $status;
     public string $expires_at;
     public string $created_at;

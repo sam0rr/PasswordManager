@@ -15,10 +15,9 @@ class SharingBroker extends DatabaseBroker
                 encrypted_description,
                 owner_id,
                 shared_id,
-                public_key_hash,
                 status,
                 expires_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?)
             RETURNING *;
         ";
 
