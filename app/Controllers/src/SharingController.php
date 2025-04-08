@@ -18,7 +18,8 @@ class SharingController extends SecureController
             return $parentResponse;
         }
 
-        $this->service = new SharingService();
+        $auth = $this->getAuth();
+        $this->service = new SharingService($auth);
         return null;
     }
 

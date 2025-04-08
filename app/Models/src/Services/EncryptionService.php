@@ -2,6 +2,9 @@
 
 namespace Models\src\Services;
 
+use InvalidArgumentException;
+use RuntimeException;
+use SodiumException;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\Cryptography;
 
@@ -82,13 +85,13 @@ class EncryptionService extends BaseService
         $binaryKey = hex2bin(mb_substr($userKey, 0, 64));
 
         if ($binaryKey === false || strlen($binaryKey) !== SODIUM_CRYPTO_SCALARMULT_BYTES) {
-            throw new \InvalidArgumentException("Invalid private key format for public key derivation.");
+            throw new InvalidArgumentException("Invalid private key format for public key derivation.");
         }
 
         try {
             $publicKey = sodium_crypto_scalarmult_base($binaryKey);
-        } catch (\SodiumException $e) {
-            throw new \RuntimeException("Failed to generate public key: " . $e->getMessage(), 0, $e);
+        } catch (SodiumException $e) {
+            throw new RuntimeException("Failed to generate public key: " . $e->getMessage(), 0, $e);
         }
 
         return base64_encode($publicKey);
@@ -99,14 +102,14 @@ class EncryptionService extends BaseService
         $publicKey = base64_decode($basePublicKey);
 
         if ($publicKey === false || strlen($publicKey) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {
-            throw new \InvalidArgumentException("Invalid public key format.");
+            throw new InvalidArgumentException("Invalid public key format.");
         }
 
         try {
             $sealed = sodium_crypto_box_seal($plainText, $publicKey);
             return base64_encode($sealed);
-        } catch (\SodiumException $e) {
-            throw new \RuntimeException("Encryption with public key failed: " . $e->getMessage(), 0, $e);
+        } catch (SodiumException $e) {
+            throw new RuntimeException("Encryption with public key failed: " . $e->getMessage(), 0, $e);
         }
     }
 
@@ -114,23 +117,23 @@ class EncryptionService extends BaseService
     {
         $binaryPrivateKey = hex2bin(mb_substr($userKey, 0, 64));
         if ($binaryPrivateKey === false || strlen($binaryPrivateKey) !== SODIUM_CRYPTO_BOX_SECRETKEYBYTES) {
-            throw new \InvalidArgumentException("Invalid private key.");
+            throw new InvalidArgumentException("Invalid private key.");
         }
 
         $binaryPublicKey = base64_decode($publicKey);
         if ($binaryPublicKey === false || strlen($binaryPublicKey) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {
-            throw new \InvalidArgumentException("Invalid public key.");
+            throw new InvalidArgumentException("Invalid public key.");
         }
 
         try {
             $keyPair = $this->buildKeyPair($binaryPrivateKey, $binaryPublicKey);
             $plaintext = sodium_crypto_box_seal_open($cipherText, $keyPair);
             if ($plaintext === false) {
-                throw new \RuntimeException("Decryption failed: invalid message or mismatched keys.");
+                throw new RuntimeException("Decryption failed: invalid message or mismatched keys.");
             }
             return $plaintext;
-        } catch (\SodiumException $e) {
-            throw new \RuntimeException("An error occurred during decryption: " . $e->getMessage(), 0, $e);
+        } catch (SodiumException $e) {
+            throw new RuntimeException("An error occurred during decryption: " . $e->getMessage(), 0, $e);
         }
     }
 
@@ -138,8 +141,8 @@ class EncryptionService extends BaseService
     {
         try {
             return sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
-        } catch (\SodiumException $e) {
-            throw new \RuntimeException("An error occurred when making the key pair: " . $e->getMessage(), 0, $e);
+        } catch (SodiumException $e) {
+            throw new RuntimeException("An error occurred when making the key pair: " . $e->getMessage(), 0, $e);
         }
     }
 

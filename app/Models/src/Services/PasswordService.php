@@ -170,15 +170,6 @@ class PasswordService extends BaseService
         return $updates;
     }
 
-
-    private function assertValidPasswordId(string $passwordId, Form $form): void
-    {
-        if (!$this->isValidUuid($passwordId)) {
-            $form->addError("global", "Identifiant de mot de passe invalide.");
-            throw new FormException($form);
-        }
-    }
-
     private function buildSuccessGetResponse(array $passwords): array
     {
         return [

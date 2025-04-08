@@ -89,9 +89,9 @@ CREATE TABLE user_verify (
 
 CREATE TABLE password_sharing (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    password_id UUID REFERENCES user_password(id) ON DELETE CASCADE,
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
     shared_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    encrypted_password TEXT NOT NULL,
     public_key_hash TEXT NOT NULL,
     status share_status NOT NULL DEFAULT 'pending',
     expires_at TIMESTAMPTZ NOT NULL,
