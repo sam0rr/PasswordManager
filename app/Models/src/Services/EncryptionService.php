@@ -4,7 +4,6 @@ namespace Models\src\Services;
 
 use InvalidArgumentException;
 use RuntimeException;
-use SodiumException;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\Cryptography;
 
