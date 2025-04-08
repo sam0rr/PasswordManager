@@ -126,9 +126,8 @@ class SharingService extends BaseService
 
         $this->assertUniqueDescription($description);
 
-        $this->storeSharedPassword($description, $description, $password, $emailFrom, $userKey);
+        $this->storeSharedPassword($description, $password, $emailFrom, $userKey);
     }
-
 
     private function getCurrentUserPublicKey(): string
     {
