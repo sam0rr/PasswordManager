@@ -9,6 +9,7 @@ use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
 use Models\src\Entities\PasswordSharing;
 use Models\src\Validators\SharingValidator;
+use RuntimeException;
 use Throwable as ThrowableAlias;
 use Zephyrus\Application\Form;
 
@@ -43,7 +44,6 @@ class SharingService extends BaseService
                 $this->sharingBroker->markAsFailed($share->id);
                 error_log("Échec du partage #{$share->id} : " . $e->getMessage());
             }
-
         }
     }
 
@@ -53,6 +53,32 @@ class SharingService extends BaseService
 
         return [
             'shares' => array_map(fn(PasswordSharing $share) => $this->buildShareResponse($share), $shares)
+        ];
+    }
+
+    public function deleteShare(string $shareId): array
+    {
+        if (!$this->isValidUuid($shareId)) {
+            return $this->buildStatusResponse(400, 'UUID de partage invalide.');
+        }
+
+        $share = $this->sharingBroker->findById($shareId);
+
+        if (!$share) {
+            return $this->buildStatusResponse(404, 'Partage inexistant.');
+        }
+
+        if ($share->owner_id !== $this->auth['user_id']) {
+            return $this->buildStatusResponse(403, 'Vous ne pouvez pas supprimer ce partage.');
+        }
+
+        $deleted = $this->sharingBroker->deleteShare($shareId);
+
+        return [
+            'success' => $deleted,
+            'message' => $deleted
+                ? 'Partage supprimé avec succès.'
+                : 'Une erreur est survenue lors de la suppression.'
         ];
     }
 
@@ -159,7 +185,7 @@ class SharingService extends BaseService
     private function assertUniqueDescription(string $description): void
     {
         if ($this->passwordBroker->descriptionExistsForUser($this->auth['user_id'], $description)) {
-            throw new \RuntimeException("Conflit : un mot de passe avec cette description existe déjà.");
+            throw new RuntimeException("Conflit : un mot de passe avec cette description existe déjà.");
         }
     }
 
@@ -183,6 +209,14 @@ class SharingService extends BaseService
         return [
             "success" => true,
             "message" => "Mot de passe partagé avec succès."
+        ];
+    }
+
+    private function buildStatusResponse(int $status, string $message): array
+    {
+        return [
+            'status' => $status,
+            'error' => $message
         ];
     }
 }

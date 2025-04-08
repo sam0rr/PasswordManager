@@ -35,6 +35,12 @@ class SharingBroker extends DatabaseBroker
         return PasswordSharing::build($row);
     }
 
+    public function findById(string $id): ?PasswordSharing
+    {
+        $row = $this->selectSingle("SELECT * FROM password_sharing WHERE id = ?", [$id]);
+        return $row ? PasswordSharing::build($row) : null;
+    }
+
     public function isAlreadyShared(string $ownerId, string $sharedId, string $descriptionHash): bool
     {
         $sql = "
@@ -82,5 +88,12 @@ class SharingBroker extends DatabaseBroker
         $sql = "UPDATE password_sharing SET status = 'fail' WHERE id = ? RETURNING *";
         $row = $this->selectSingle($sql, [$shareId]);
         return PasswordSharing::build($row);
+    }
+
+    public function deleteShare(string $shareId): bool
+    {
+        $sql = "DELETE FROM password_sharing WHERE id = ?";
+        $rowCount = $this->selectSingle($sql, [$shareId]);
+        return $rowCount > 0;
     }
 }
