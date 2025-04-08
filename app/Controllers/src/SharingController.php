@@ -5,6 +5,7 @@ namespace Controllers\src;
 use Controllers\SecureController;
 use Models\src\Services\SharingService;
 use Zephyrus\Network\Response;
+use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
 class SharingController extends SecureController
@@ -30,5 +31,14 @@ class SharingController extends SecureController
         $result = $this->service->sharePassword($form, $id);
         return $this->json($result);
     }
+
+    #[Get('/shares')]
+    public function listShares(): Response
+    {
+        $status = $this->request->getParameter('status');
+        $result = $this->service->getShares($status);
+        return $this->json($result);
+    }
+
 
 }

@@ -12,17 +12,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- FUNCTION TO DELETE SHARING ON SUCCESS
-CREATE OR REPLACE FUNCTION delete_successful_sharing()
-    RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.status = 'success' THEN
-        DELETE FROM password_sharing WHERE id = NEW.id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
 -- TABLES --
 
 CREATE TABLE users (
@@ -140,9 +129,3 @@ CREATE TRIGGER trigger_verify_methods_updated
 CREATE TRIGGER trigger_sharing_updated
     BEFORE UPDATE ON password_sharing
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
--- TRIGGER POUR EFFACER LE SHARING QUAND status = 'success'
-CREATE TRIGGER trigger_sharing_auto_delete_success
-    AFTER UPDATE ON password_sharing
-    FOR EACH ROW
-    WHEN (NEW.status = 'success')
-EXECUTE FUNCTION delete_successful_sharing();

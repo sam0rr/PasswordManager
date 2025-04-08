@@ -47,6 +47,15 @@ class SharingService extends BaseService
         }
     }
 
+    public function getShares(?string $status = null): array
+    {
+        $shares = $this->sharingBroker->findAllSharesByOwner($this->auth['user_id'], $status);
+
+        return [
+            'shares' => array_map(fn(PasswordSharing $share) => $this->buildShareResponse($share), $shares)
+        ];
+    }
+
     public function sharePassword(Form $form, string $passwordId): array
     {
         try {
@@ -109,6 +118,19 @@ class SharingService extends BaseService
             'status'                => 'pending',
             'expires_at'            => date('Y-m-d H:i:s', strtotime('+7 days'))
         ]);
+    }
+
+    private function buildShareResponse(PasswordSharing $share): array
+    {
+        return [
+            'id' => $share->id,
+            'status' => $share->status,
+            'shared_id' => $share->shared_id,
+            'owner_id' => $share->owner_id,
+            'expires_at' => $share->expires_at,
+            'created_at' => $share->created_at,
+            'updated_at' => $share->updated_at
+        ];
     }
 
     private function isExpired(PasswordSharing $share): bool
