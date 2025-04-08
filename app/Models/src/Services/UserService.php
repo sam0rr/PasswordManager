@@ -18,6 +18,7 @@ class UserService extends BaseService
         $this->userBroker = new UserBroker();
         $this->encryption = new EncryptionService();
         $this->passwordService = new PasswordService($auth);
+        $this->sharing = new SharingService($auth);
     }
 
     public function getCurrentUserEntity(): ?User
@@ -60,6 +61,9 @@ class UserService extends BaseService
                 $form->addError("old", "Mot de passe actuel invalide.");
                 throw new FormException($form);
             }
+
+            //Accepter avant la rotation des clées
+            $this->sharing->acceptPendingShares();
 
             $user = $this->rotateUserKey($currentUser, $newPassword);
 

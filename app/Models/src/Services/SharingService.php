@@ -40,8 +40,6 @@ class SharingService extends BaseService
                 $this->sharingBroker->markAsSuccess($share->id);
             } catch (\Throwable $e) {
                 $this->sharingBroker->markAsFailed($share->id);
-
-                // TEMP : log ou affichage pour debug
                 error_log("Échec du partage #{$share->id} : " . $e->getMessage());
             }
 
@@ -93,9 +91,9 @@ class SharingService extends BaseService
         return $this->encryption->encryptWithPublicKey($value, $recipientPublicKey);
     }
 
-    private function decryptFromPublicKey(string $encrypted, string $senderPublicKey, string $userKey): string
+    private function decryptFromPublicKey(string $encrypted, string $publicKey, string $userKey): string
     {
-        return $this->encryption->decryptFromPublicKey($encrypted, $senderPublicKey, $userKey);
+        return $this->encryption->decryptFromPublicKey($encrypted, $publicKey, $userKey);
     }
 
     private function insertSharingRecord(string $recipientId, string $publicKey, string $encPassword, string $encDescription): void
@@ -118,10 +116,11 @@ class SharingService extends BaseService
 
     private function acceptShare(PasswordSharing $share, string $userKey): void
     {
-        $owner = $this->userBroker->findById($share->owner_id);
+        $currentUser = $this->userBroker->findById($this->auth['user_id']);
+        $publicKey = $currentUser->public_key;
 
-        $description = $this->decryptFromPublicKey($share->encrypted_description, $owner->public_key, $userKey);
-        $password = $this->decryptFromPublicKey($share->encrypted_password, $owner->public_key, $userKey);
+        $description = $this->decryptFromPublicKey($share->encrypted_description, $publicKey, $userKey);
+        $password = $this->decryptFromPublicKey($share->encrypted_password, $publicKey, $userKey);
 
         $this->passwordBroker->createPassword([
             'user_id'          => $this->auth['user_id'],

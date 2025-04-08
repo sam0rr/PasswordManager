@@ -82,74 +82,55 @@ class EncryptionService extends BaseService
 
     public function generatePublicKey(string $userKey): string
     {
-        $binaryKey = hex2bin(mb_substr($userKey, 0, 64));
-
-        if ($binaryKey === false || strlen($binaryKey) !== SODIUM_CRYPTO_SCALARMULT_BYTES) {
-            throw new InvalidArgumentException("Invalid private key format for public key derivation.");
-        }
-
-        try {
-            $publicKey = sodium_crypto_scalarmult_base($binaryKey);
-        } catch (SodiumException $e) {
-            throw new RuntimeException("Failed to generate public key: " . $e->getMessage(), 0, $e);
-        }
-
-        return base64_encode($publicKey);
+        $binaryPrivateKey = $this->extractPrivateKey($userKey, SODIUM_CRYPTO_SCALARMULT_BYTES);
+        return base64_encode(sodium_crypto_scalarmult_base($binaryPrivateKey));
     }
 
-    public function encryptWithPublicKey(string $plainText, string $basePublicKey): string
+    public function encryptWithPublicKey(string $plainText, string $base64PublicKey): string
     {
-        $publicKey = base64_decode($basePublicKey);
+        $publicKey = $this->decodePublicKey($base64PublicKey);
+        return base64_encode(sodium_crypto_box_seal($plainText, $publicKey));
+    }
 
-        if ($publicKey === false || strlen($publicKey) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {
+    public function decryptFromPublicKey(string $base64CipherText, string $base64PublicKey, string $userKey): ?string
+    {
+        $privateKey = $this->extractPrivateKey($userKey, SODIUM_CRYPTO_BOX_SECRETKEYBYTES);
+        $publicKey = $this->decodePublicKey($base64PublicKey);
+        $sealed = base64_decode($base64CipherText);
+
+        if ($sealed === false) {
+            throw new RuntimeException("Invalid base64 ciphertext.");
+        }
+
+        $keyPair = sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
+        $plaintext = sodium_crypto_box_seal_open($sealed, $keyPair);
+
+        if ($plaintext === false) {
+            throw new RuntimeException("Decryption failed: invalid message or mismatched keys.");
+        }
+
+        return $plaintext;
+    }
+
+    private function extractPrivateKey(string $userKey, int $expectedLength): string
+    {
+        $binary = hex2bin(mb_substr($userKey, 0, 64));
+
+        if ($binary === false || strlen($binary) !== $expectedLength) {
+            throw new InvalidArgumentException("Invalid private key format.");
+        }
+
+        return $binary;
+    }
+
+    private function decodePublicKey(string $base64): string
+    {
+        $decoded = base64_decode($base64);
+        if ($decoded === false || strlen($decoded) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {
             throw new InvalidArgumentException("Invalid public key format.");
         }
 
-        try {
-            $sealed = sodium_crypto_box_seal($plainText, $publicKey);
-            return base64_encode($sealed);
-        } catch (SodiumException $e) {
-            throw new RuntimeException("Encryption with public key failed: " . $e->getMessage(), 0, $e);
-        }
-    }
-
-    public function decryptFromPublicKey(string $cipherText, string $publicKey, string $userKey): ?string
-    {
-        $binaryPrivateKey = hex2bin(mb_substr($userKey, 0, 64));
-        if ($binaryPrivateKey === false || strlen($binaryPrivateKey) !== SODIUM_CRYPTO_BOX_SECRETKEYBYTES) {
-            throw new InvalidArgumentException("Invalid private key.");
-        }
-
-        $binaryPublicKey = base64_decode($publicKey);
-        if ($binaryPublicKey === false || strlen($binaryPublicKey) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {
-            throw new InvalidArgumentException("Invalid public key.");
-        }
-
-        // Décoder le texte chiffré de base64
-        $binaryCipherText = base64_decode($cipherText);
-        if ($binaryCipherText === false) {
-            throw new InvalidArgumentException("Invalid cipher text format.");
-        }
-
-        try {
-            $keyPair = $this->buildKeyPair($binaryPrivateKey, $binaryPublicKey);
-            $plaintext = sodium_crypto_box_seal_open($binaryCipherText, $keyPair);
-            if ($plaintext === false) {
-                throw new RuntimeException("Decryption failed: invalid message or mismatched keys.");
-            }
-            return $plaintext;
-        } catch (SodiumException $e) {
-            throw new RuntimeException("An error occurred during decryption: " . $e->getMessage(), 0, $e);
-        }
-    }
-
-    private function buildKeyPair(string $privateKey, string $publicKey): string
-    {
-        try {
-            return sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
-        } catch (SodiumException $e) {
-            throw new RuntimeException("An error occurred when making the key pair: " . $e->getMessage(), 0, $e);
-        }
+        return $decoded;
     }
 
     public static function destroySession(): void
