@@ -10,17 +10,12 @@ class SharingBroker extends DatabaseBroker
     public function insertSharing(array $data): PasswordSharing
     {
         $row = $this->selectSingle(
-            "INSERT INTO password_sharing (
-                encrypted_password,
-                owner_id,
-                shared_id,
-                public_key_hash,
-                status,
-                expires_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
-            RETURNING *;",
+            "INSERT INTO password_sharing (encrypted_password, encrypted_description, owner_id, shared_id, public_key_hash, status, expires_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
+         RETURNING *;",
             [
                 $data['encrypted_password'],
+                $data['encrypted_description'],
                 $data['owner_id'],
                 $data['shared_id'],
                 $data['public_key_hash'],
@@ -31,6 +26,7 @@ class SharingBroker extends DatabaseBroker
 
         return PasswordSharing::build($row);
     }
+
 
     public function isAlreadyShared(string $ownerId, string $sharedId, string $descriptionHash): bool
     {

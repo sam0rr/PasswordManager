@@ -23,27 +23,31 @@ class SharingService extends BaseService
         $this->encryption = new EncryptionService();
     }
 
-    public function sharePassword(Form $form): array
+    public function sharePassword(Form $form, string $passwordId): array
     {
         try {
             $ownerId = $this->auth['user_id'];
             $userKey = $this->auth['user_key'];
-            $passwordId = $form->getValue("password_id");
 
             $this->assertValidPasswordId($passwordId, $form);
 
-            SharingValidator::assertShare($form, $this->sharingBroker, $this->userBroker,
-                                            $this->passwordBroker, $ownerId, $userKey);
+            SharingValidator::assertShare($form, $this->userBroker);
+
+            $password = $this->getPassword($passwordId, $form);
+            $recipient = $this->fetchRecipient($form);
+
+            $this->assertNotAlreadyShared($form, $ownerId, $recipient->id, $password->description_hash);
 
             $this->getAuthenticatedUser($form->getValue("password"), $form);
 
-            $recipient = $this->fetchRecipient($form);
+            $password = $this->passwordBroker->findById($passwordId, $userKey);
+            $decrypted = $password->password;
+            $description = $password->description;
 
-            $decrypted = $this->decryptSharedPassword($passwordId, $userKey);
+            $encPassword = $this->encryption->encryptWithPublicKey($decrypted, $recipient->public_key);
+            $encDescription = $this->encryption->encryptWithPublicKey($description, $recipient->public_key);
 
-            $encrypted = $this->encryption->encryptWithPublicKey($decrypted, $recipient->public_key);
-
-            $this->insertSharingRecord($recipient->id, $recipient->public_key, $encrypted);
+            $this->insertSharingRecord($recipient->id, $recipient->public_key, $encPassword, $encDescription);
 
             return $this->buildSuccessResponse();
         } catch (FormException) {
@@ -55,19 +59,22 @@ class SharingService extends BaseService
 
     private function fetchRecipient(Form $form): User
     {
-        return $this->userBroker->findByEmail($form->getValue("recipient_email"));
+        return $this->userBroker->findByEmail($form->getValue("email"));
     }
 
-    private function decryptSharedPassword(string $passwordId, string $userKey): string
+    private function assertNotAlreadyShared(Form $form, string $ownerId, string $recipientId, string $descriptionHash): void
     {
-        $password = $this->passwordBroker->findById($passwordId, $userKey);
-        return $this->encryption->decryptWithUserKey($password->password, $userKey);
+        if ($this->sharingBroker->isAlreadyShared($ownerId, $recipientId, $descriptionHash)) {
+            $form->addError("email", "Ce mot de passe est déjà partagé avec cet utilisateur.");
+            throw new FormException($form);
+        }
     }
 
-    private function insertSharingRecord(string $recipientId, string $publicKey, string $encryptedPassword): void
+    private function insertSharingRecord(string $recipientId, string $publicKey, string $encPassword, string $encDescription): void
     {
         $this->sharingBroker->insertSharing([
-            'encrypted_password' => $encryptedPassword,
+            'encrypted_password' => $encPassword,
+            'encrypted_description' => $encDescription,
             'owner_id' => $this->auth['user_id'],
             'shared_id' => $recipientId,
             'public_key_hash' => $this->encryption->hash256($publicKey),
@@ -76,6 +83,8 @@ class SharingService extends BaseService
         ]);
     }
 
+
+
     private function buildSuccessResponse(): array
     {
         return [
@@ -83,4 +92,5 @@ class SharingService extends BaseService
             "message" => "Mot de passe partagé avec succès."
         ];
     }
+
 }

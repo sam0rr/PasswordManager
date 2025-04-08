@@ -92,6 +92,7 @@ CREATE TABLE password_sharing (
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
     shared_id UUID REFERENCES users(id) ON DELETE CASCADE,
     encrypted_password TEXT NOT NULL,
+    encrypted_description TEXT NOT NULL,
     public_key_hash TEXT NOT NULL,
     status share_status NOT NULL DEFAULT 'pending',
     expires_at TIMESTAMPTZ NOT NULL,

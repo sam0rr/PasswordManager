@@ -23,11 +23,12 @@ class SharingController extends SecureController
         return null;
     }
 
-    #[Post('/share')]
-    public function sharePassword(): Response
+    #[Post('/share/{id}')]
+    public function sharePassword(string $id): Response
     {
         $form = $this->buildForm();
-        $result = $this->service->sharePassword($form);
+        $result = $this->service->sharePassword($form, $id);
         return $this->json($result);
     }
+
 }

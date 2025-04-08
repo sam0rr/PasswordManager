@@ -99,18 +99,6 @@ class PasswordService extends BaseService
 
     // Helpers
 
-    private function getPassword(string $passwordId, Form $form): UserPassword
-    {
-        $password = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
-
-        if (!$password || $password->user_id !== $this->auth['user_id']) {
-            $form->addError('global', "Mot de passe introuvable ou non autorisé.");
-            throw new FormException($form);
-        }
-
-        return $password;
-    }
-
     public function updatePasswordsWithNewKey(string $userId, string $oldKey, string $newKey): void
     {
         $passwords = $this->passwordBroker->findAllByUser($userId, $oldKey);

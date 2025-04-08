@@ -6,6 +6,7 @@ use Models\Exceptions\FormException;
 use Models\src\Brokers\PasswordBroker;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
+use Models\src\Entities\UserPassword;
 use Zephyrus\Application\Form;
 
 abstract class BaseService
@@ -45,6 +46,18 @@ abstract class BaseService
             $form->addError("global", "La clé dérivée ne correspond pas au contexte actif.");
             throw new FormException($form);
         }
+    }
+
+    protected function getPassword(string $passwordId, Form $form): UserPassword
+    {
+        $password = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
+
+        if (!$password || $password->user_id !== $this->auth['user_id']) {
+            $form->addError('global', "Mot de passe introuvable ou non autorisé.");
+            throw new FormException($form);
+        }
+
+        return $password;
     }
 
     protected function assertValidPasswordId(string $passwordId, Form $form): void
