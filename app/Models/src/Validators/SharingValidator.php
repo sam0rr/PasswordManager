@@ -3,14 +3,13 @@
 namespace Models\src\Validators;
 
 use Models\Exceptions\FormException;
-use Models\src\Brokers\SharingBroker;
 use Models\src\Brokers\UserBroker;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
 class SharingValidator
 {
-    public static function assertShare(Form $form, UserBroker $userBroker): void
+    public static function assertShare(Form $form, UserBroker $userBroker, $ownerId): void
     {
         $form->field("email", [
             Rule::required("L’adresse courriel du destinataire est requise."),
@@ -21,9 +20,14 @@ class SharingValidator
             Rule::required("Le mot de passe maître est requis.")
         ]);
 
-        $recipient = $userBroker->findByEmail($form->getValue("email"));
+        $recipientEmail = $form->getValue("email");
+        $recipient = $userBroker->findByEmail($recipientEmail);
+        $currentUser = $userBroker->findById($ownerId);
+
         if (!$recipient) {
             $form->addError("email", "Aucun utilisateur trouvé avec cette adresse courriel.");
+        } elseif ($recipient->id === $currentUser->id) {
+            $form->addError("email", "Vous ne pouvez pas partager un mot de passe avec vous-même.");
         }
 
         $form->verify();

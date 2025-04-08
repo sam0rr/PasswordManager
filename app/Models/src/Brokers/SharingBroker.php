@@ -9,35 +9,65 @@ class SharingBroker extends DatabaseBroker
 {
     public function insertSharing(array $data): PasswordSharing
     {
-        $row = $this->selectSingle(
-            "INSERT INTO password_sharing (encrypted_password, encrypted_description, owner_id, shared_id, public_key_hash, status, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
-         RETURNING *;",
-            [
-                $data['encrypted_password'],
-                $data['encrypted_description'],
-                $data['owner_id'],
-                $data['shared_id'],
-                $data['public_key_hash'],
-                $data['status'] ?? 'pending',
-                $data['expires_at']
-            ]
-        );
+        $sql = "
+            INSERT INTO password_sharing (
+                encrypted_password,
+                encrypted_description,
+                owner_id,
+                shared_id,
+                public_key_hash,
+                status,
+                expires_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            RETURNING *;
+        ";
+
+        $row = $this->selectSingle($sql, [
+            $data['encrypted_password'],
+            $data['encrypted_description'],
+            $data['owner_id'],
+            $data['shared_id'],
+            $data['public_key_hash'],
+            $data['status'] ?? 'pending',
+            $data['expires_at']
+        ]);
 
         return PasswordSharing::build($row);
     }
 
-
     public function isAlreadyShared(string $ownerId, string $sharedId, string $descriptionHash): bool
     {
-        return $this->selectSingle(
-                "SELECT ps.*
-             FROM password_sharing ps
-             JOIN user_password up ON up.user_id = ps.owner_id
-             WHERE ps.owner_id = ? 
-               AND ps.shared_id = ? 
-               AND up.description_hash = ?;",
-                [$ownerId, $sharedId, $descriptionHash]
-            ) !== null;
+        $sql = "
+            SELECT ps.*
+            FROM password_sharing ps
+            JOIN user_password up ON up.user_id = ps.owner_id
+            WHERE ps.owner_id = ?
+              AND ps.shared_id = ?
+              AND up.description_hash = ?
+        ";
+
+        return $this->selectSingle($sql, [$ownerId, $sharedId, $descriptionHash]) !== null;
+    }
+
+    public function findPendingSharesForUser(string $userId): array
+    {
+        $sql = "SELECT * FROM password_sharing WHERE shared_id = ? AND status = 'pending'";
+        $rows = $this->select($sql, [$userId]);
+
+        return array_map(fn($row) => PasswordSharing::build($row), $rows);
+    }
+
+    public function markAsSuccess(string $shareId): ?PasswordSharing
+    {
+        $sql = "UPDATE password_sharing SET status = 'success' WHERE id = ? RETURNING *";
+        $row = $this->selectSingle($sql, [$shareId]);
+        return PasswordSharing::build($row);
+    }
+
+    public function markAsFailed(string $shareId): ?PasswordSharing
+    {
+        $sql = "UPDATE password_sharing SET status = 'fail' WHERE id = ? RETURNING *";
+        $row = $this->selectSingle($sql, [$shareId]);
+        return PasswordSharing::build($row);
     }
 }

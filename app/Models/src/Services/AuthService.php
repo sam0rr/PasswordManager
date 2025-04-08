@@ -66,6 +66,8 @@ class AuthService extends BaseService
 
             $this->encryption->storeUserContext($user->id, $userKey);
 
+            $this->acceptUserPendingShares($user->id, $userKey);
+
             $this->history->logSuccess($user);
 
             return $this->buildSuccessLoginResponse($user);
@@ -76,6 +78,16 @@ class AuthService extends BaseService
     }
 
     // Helpers
+
+    private function acceptUserPendingShares(string $userId, string $userKey): void
+    {
+        $sharingService = new SharingService([
+            'user_id' => $userId,
+            'user_key' => $userKey
+        ]);
+
+        $sharingService->acceptPendingShares();
+    }
 
     private function validateUserCredentials(string $email, string $password, Form $form): User
     {

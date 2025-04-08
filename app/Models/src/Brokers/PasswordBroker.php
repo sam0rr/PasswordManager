@@ -40,10 +40,10 @@ class PasswordBroker extends DatabaseBroker
     public function createPassword(array $data, string $userKey): ?UserPassword
     {
         $sql = "
-            INSERT INTO user_password (user_id, description, description_hash, note, password, verified)
-            VALUES (?, ?, ?, ?, ?, ?)
-            RETURNING *;
-        ";
+        INSERT INTO user_password (user_id, description, description_hash, note, password, verified)
+        VALUES (?, ?, ?, ?, ?, ?)
+        RETURNING *;
+    ";
 
         $row = $this->selectSingle($sql, [
             $data['user_id'],

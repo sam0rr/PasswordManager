@@ -125,9 +125,15 @@ class EncryptionService extends BaseService
             throw new InvalidArgumentException("Invalid public key.");
         }
 
+        // Décoder le texte chiffré de base64
+        $binaryCipherText = base64_decode($cipherText);
+        if ($binaryCipherText === false) {
+            throw new InvalidArgumentException("Invalid cipher text format.");
+        }
+
         try {
             $keyPair = $this->buildKeyPair($binaryPrivateKey, $binaryPublicKey);
-            $plaintext = sodium_crypto_box_seal_open($cipherText, $keyPair);
+            $plaintext = sodium_crypto_box_seal_open($binaryCipherText, $keyPair);
             if ($plaintext === false) {
                 throw new RuntimeException("Decryption failed: invalid message or mismatched keys.");
             }

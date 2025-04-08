@@ -16,6 +16,7 @@ abstract class BaseService
     protected EncryptionService $encryption;
     protected AuthHistoryService $history;
     protected array $auth;
+    protected SharingService $sharing;
 
     protected function buildErrorResponse(Form $form): array
     {
