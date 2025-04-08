@@ -107,6 +107,7 @@ class PasswordService extends BaseService
             $updates = [
                 'description'        => $this->encryption->encryptWithUserKey($password->description, $newKey),
                 'description_hash'   => $this->encryption->hash256($password->description),
+                'email_from'         => $this->encryption->encryptWithUserKey($password->email_from, $newKey),
                 'note'               => $this->encryption->encryptWithUserKey($password->note, $newKey),
                 'password'           => $this->encryption->encryptWithUserKey($password->password, $newKey),
             ];
@@ -120,10 +121,14 @@ class PasswordService extends BaseService
         $key = $this->auth['user_key'];
         $description = $form->getValue('description');
 
+        $user = $this->userBroker->findById($this->auth['user_id'], $key);
+        $email_from = $user->email;
+
         return [
             'user_id'            => $this->auth['user_id'],
             'description'        => $this->encryption->encryptWithUserKey($description, $key),
             'description_hash'   => $this->encryption->hash256($description),
+            'email_from'         => $this->encryption->encryptWithUserKey($email_from, $key),
             'note'               => $this->encryption->encryptWithUserKey($form->getValue('note'), $key),
             'password'           => $this->encryption->encryptWithUserKey($form->getValue('password'), $key),
             'verified'           => true
@@ -181,6 +186,7 @@ class PasswordService extends BaseService
             "id" => $p->id,
             "description" => $p->description,
             "description_hash" => $p->description_hash,
+            "email_from" => $p->email_from,
             "note" => $p->note,
             "password" => $p->password,
             "last_use" => $p->last_use,

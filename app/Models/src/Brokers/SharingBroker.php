@@ -10,23 +10,24 @@ class SharingBroker extends DatabaseBroker
     public function insertSharing(array $data): PasswordSharing
     {
         $sql = "
-            INSERT INTO password_sharing (
-                encrypted_password,
-                encrypted_description,
-                owner_id,
-                shared_id,
-                status,
-                expires_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
-            RETURNING *;
-        ";
+        INSERT INTO password_sharing (
+            encrypted_password,
+            encrypted_description,
+            encrypted_email_from,
+            owner_id,
+            shared_id,
+            status,
+            expires_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING *;
+    ";
 
         $row = $this->selectSingle($sql, [
             $data['encrypted_password'],
             $data['encrypted_description'],
+            $data['encrypted_email_from'],
             $data['owner_id'],
             $data['shared_id'],
-            $data['public_key_hash'],
             $data['status'] ?? 'pending',
             $data['expires_at']
         ]);

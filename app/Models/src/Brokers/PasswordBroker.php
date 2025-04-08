@@ -40,8 +40,8 @@ class PasswordBroker extends DatabaseBroker
     public function createPassword(array $data, string $userKey): ?UserPassword
     {
         $sql = "
-        INSERT INTO user_password (user_id, description, description_hash, note, password, verified)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO user_password (user_id, description, description_hash, email_from, note, password, verified)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING *;
     ";
 
@@ -49,6 +49,7 @@ class PasswordBroker extends DatabaseBroker
             $data['user_id'],
             $data['description'],
             $data['description_hash'],
+            $data['email_from'],
             $data['note'],
             $data['password'],
             $data['verified'] ?? true
@@ -100,6 +101,7 @@ class PasswordBroker extends DatabaseBroker
     {
         $password->description = $this->encryption->decryptWithUserKey($password->description, $userKey);
         $password->note = $this->encryption->decryptWithUserKey($password->note, $userKey);
+        $password->email_from = $this->encryption->decryptWithUserKey($password->email_from, $userKey);
         $password->password = $this->encryption->decryptWithUserKey($password->password, $userKey);
 
         return $password;

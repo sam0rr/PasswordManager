@@ -63,8 +63,9 @@ class SharingService extends BaseService
 
             $encPassword = $this->encryptFromPublicKey($password->password, $recipient->public_key);
             $encDescription = $this->encryptFromPublicKey($password->description, $recipient->public_key);
+            $encEmailFrom = $this->encryptFromPublicKey($password->email_from, $recipient->public_key);
 
-            $this->insertSharingRecord($recipient->id, $encPassword, $encDescription);
+            $this->insertSharingRecord($recipient->id, $encPassword, $encDescription, $encEmailFrom);
 
             return $this->buildSuccessResponse();
         } catch (FormException) {
@@ -97,11 +98,12 @@ class SharingService extends BaseService
         return $this->encryption->decryptFromPublicKey($encrypted, $publicKey, $userKey);
     }
 
-    private function insertSharingRecord(string $recipientId, string $encPassword, string $encDescription): void
+    private function insertSharingRecord(string $recipientId, string $encPassword, string $encDescription, string $encryptedEmailFrom): void
     {
         $this->sharingBroker->insertSharing([
             'encrypted_password'    => $encPassword,
             'encrypted_description' => $encDescription,
+            'encrypted_email_from'  => $encryptedEmailFrom,
             'owner_id'              => $this->auth['user_id'],
             'shared_id'             => $recipientId,
             'status'                => 'pending',
@@ -121,11 +123,13 @@ class SharingService extends BaseService
 
         $description = $this->decryptFromPublicKey($share->encrypted_description, $publicKey, $userKey);
         $password = $this->decryptFromPublicKey($share->encrypted_password, $publicKey, $userKey);
+        $emailFrom = $this->decryptFromPublicKey($share->encrypted_email_from, $publicKey, $userKey);
 
         $this->passwordBroker->createPassword([
             'user_id'          => $this->auth['user_id'],
             'description'      => $this->encryption->encryptWithUserKey($description, $userKey),
             'description_hash' => $this->encryption->hash256($description),
+            'email_from'       => $this->encryption->encryptWithUserKey($emailFrom, $userKey),
             'note'             => $this->encryption->encryptWithUserKey('', $userKey),
             'password'         => $this->encryption->encryptWithUserKey($password, $userKey),
             'verified'         => false
