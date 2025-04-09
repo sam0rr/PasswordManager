@@ -1,25 +1,30 @@
 {layout '../layouts/secure.latte'}
 
 {block pageContent}
-    <div class="d-flex flex-column flex-grow-1 w-100">
-        {include '../components/stats-cards.latte', stats => $stats, passwords => $passwords, shared_passwords => $shared_passwords}
+    <div class="container py-4">
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link {$activeSection == 'profile' ? 'active' : ''}" href="?section=profile">Profil</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {$activeSection == 'passwords' ? 'active' : ''}" href="?section=passwords">Mots de passe</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {$activeSection == 'history' ? 'active' : ''}" href="?section=history">Historique</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {$activeSection == 'shares' ? 'active' : ''}" href="?section=shares">Partages</a>
+            </li>
+        </ul>
 
-        <div class="row gy-4 mt-2 flex-grow-1">
-            <div class="col-lg-6">
-                {include '../components/activity-list.latte', auth_history => $auth_history}
-            </div>
-            <div class="col-lg-6">
-                {include '../components/password-table.latte', passwords => $passwords, showActions => false, showHeader => true}
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col">
-                {include '../components/sharing-table.latte', shared_credentials => $shared_credentials, user => $user}
-            </div>
-        </div>
+        {if $activeSection == 'profile'}
+            {include '../components/dashboard-sections/profile.latte', user => $user}
+        {elseif $activeSection == 'passwords'}
+            {include '../components/dashboard-sections/passwords.latte', passwords => $passwords, passwordsUnlocked => $passwordsUnlocked}
+        {elseif $activeSection == 'history'}
+            {include '../components/dashboard-sections/history.latte', auth_history => $auth_history}
+        {elseif $activeSection == 'shares'}
+            {include '../components/dashboard-sections/shares.latte', shared_credentials => $shared_credentials, user => $user}
+        {/if}
     </div>
-
-    {include '../modals/add-password.latte', passwords => $passwords}
-    {include '../modals/share-password.latte', passwords => $passwords}
 {/block}

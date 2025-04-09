@@ -7,7 +7,7 @@ use Models\src\Brokers\UserBroker;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class SharingValidator
+class SharingValidator extends BaseValidator
 {
     public static function assertShare(Form $form, UserBroker $userBroker, $ownerId): void
     {

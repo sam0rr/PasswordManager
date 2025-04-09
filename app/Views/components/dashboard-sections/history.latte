@@ -1,0 +1,19 @@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Historique de connexions</h5>
+    </div>
+    <div class="card-body">
+        {if count($auth_history) > 0}
+            <ul class="list-group list-group-flush">
+                {foreach $auth_history as $history}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{date('d/m/Y H:i', strtotime($history->auth_timestamp))}</span>
+                        <span>{$history->ip_address}</span>
+                    </li>
+                {/foreach}
+            </ul>
+        {else}
+            <p class="text-muted">Aucun historique disponible.</p>
+        {/if}
+    </div>
+</div>

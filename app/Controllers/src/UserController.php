@@ -6,9 +6,10 @@ use Controllers\SecureController;
 use Models\src\Services\AuthHistoryService;
 use Models\src\Services\UserService;
 use Models\src\Services\EncryptionService;
+use Zephyrus\Application\Form;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
-use Zephyrus\Network\Router\Put;
+use Zephyrus\Network\Router\Post;
 
 class UserController extends SecureController
 {
@@ -37,22 +38,83 @@ class UserController extends SecureController
             return $this->abortNotFound("Utilisateur introuvable.");
         }
 
+        $activeSection = $this->request->getParameter('section') ?? 'profile';
+        $tab = $this->request->getParameter('tab') ?? 'info';
+
         return $this->render("secure/dashboard", [
             "user" => $user,
             "title" => "Tableau de bord",
             "stats" => [],
             "passwords" => [],
             "shared_passwords" => [],
-            "auth_history" => [],
-            "shared_credentials" => []
+            "auth_history" => $this->getUserHistory(),
+            "shared_credentials" => [],
+            "passwordsUnlocked" => false,
+            "activeSection" => $activeSection,
+            "tab" => $tab,
+            "form" => new Form()
         ]);
+    }
+
+    #[Post('/update')]
+    public function update(): Response
+    {
+        $isHtmx = $this->isHtmx();
+        $form = $this->buildForm();
+        $result = $this->userService->updateUser($form, $isHtmx);
+
+        if ($isHtmx) {
+            return $this->render("fragments/updateProfileForm", [
+                "form" => $result["form"],
+                "user" => $result["user"] ?? null,
+                "isHtmx" => true
+            ]);
+        }
+
+        if (isset($result["errors"])) {
+            return $this->render("secure/dashboard", [
+                "form" => $result["form"],
+                "user" => $this->userService->getCurrentUserEntity(),
+                "activeSection" => 'profile',
+                "tab" => 'info',
+                "isHtmx" => false
+            ]);
+        }
+
+        return $this->redirect("/dashboard?section=profile");
+    }
+
+    #[Post('/password')]
+    public function updatePassword(): Response
+    {
+        $isHtmx = $this->isHtmx();
+        $form = $this->buildForm();
+        $result = $this->userService->updatePassword($form, $isHtmx);
+
+        if ($isHtmx) {
+            return $this->render("fragments/updatePasswordForm", [
+                "form" => $result["form"],
+                "isHtmx" => true
+            ]);
+        }
+
+        if (isset($result["errors"])) {
+            return $this->render("secure/dashboard", [
+                "form" => $result["form"],
+                "user" => $this->userService->getCurrentUserEntity(),
+                "activeSection" => 'profile',
+                "tab" => 'password',
+                "isHtmx" => false
+            ]);
+        }
+
+        return $this->redirect("/dashboard?section=profile&tab=password");
     }
 
     #[Get('/logout')]
     public function logout(): Response
     {
         EncryptionService::destroySession();
-
         return $this->redirect("/login");
     }
 
@@ -68,37 +130,8 @@ class UserController extends SecureController
         return $this->json($user);
     }
 
-    #[Put('/update')]
-    public function update(): Response
+    private function getUserHistory(): array
     {
-        $form = $this->buildForm();
-
-        $result = $this->userService->updateUser($form);
-
-        return $this->json($result);
+        return $this->authHistoryService->getHistoryForUser();
     }
-
-    #[Put('/password')]
-    public function updatePassword(): Response
-    {
-        $form = $this->buildForm();
-
-        $result = $this->userService->updatePassword($form);
-
-        return $this->json($result);
-    }
-
-    #[Get('/history')]
-    public function history(): Response
-    {
-        $history = $this->authHistoryService->getHistoryForUser();
-
-        return $this->json([
-            "status" => 200,
-            "history" => $history
-        ]);
-    }
-
-
-
 }

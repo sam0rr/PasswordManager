@@ -7,7 +7,7 @@ use Models\src\Brokers\UserBroker;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class UserValidator
+class UserValidator extends BaseValidator
 {
     public static function assertUpdate(Form $form, UserBroker $broker, string $currentUserId): void
     {
@@ -27,6 +27,10 @@ class UserValidator
             Rule::phone("Numéro de téléphone invalide.")
         ])->optional();
 
+        $form->field("image_url", [
+            Rule::url("Lien de l'image invalide.")
+        ])->optional();
+
         $newEmail = $form->getValue("email");
         if (!empty($newEmail)) {
             $existingUser = $broker->findByEmail($newEmail);
@@ -42,19 +46,21 @@ class UserValidator
         }
     }
 
-    public static function assertUpdatePassword(Form $form): void
+    public static function assertUpdatePassword(Form $form, bool $isHtmx): void
     {
-        $form->field("old", [
+        $oldPasswordField = $form->field("old", [
             Rule::required("L'ancien mot de passe est requis."),
             Rule::minLength(8, "L'ancien mot de passe est trop court.")
         ]);
+        self::optionalIf($oldPasswordField, $isHtmx);
 
-        $form->field("new", [
+        $newPasswordField = $form->field("new", [
             Rule::required("Le nouveau mot de passe est requis."),
             Rule::minLength(8, "Le nouveau mot de passe doit contenir au moins 8 caractères.")
         ]);
+        self::optionalIf($newPasswordField, $isHtmx);
 
-        if ($form->getValue("old") === $form->getValue("new")) {
+        if ($form->getValue("old") === $form->getValue("new") && !$isHtmx) {
             $form->addError("new", "Le nouveau mot de passe doit être différent de l'ancien.");
         }
 
@@ -64,5 +70,4 @@ class UserValidator
             throw new FormException($form);
         }
     }
-
 }

@@ -1,12 +1,12 @@
 {var $type = $type ?? 'text'}
+{var $hasError = isset($form) && $form->hasError($name)}
+{var $isValid = isset($form) && !$form->hasError($name) && $form->getValue($name)}
+{var $fieldValue = (isset($form) ? $form->getValue($name) : null) ?? $value ?? ''}
 
 <div class="mb-3">
     <label for="{$name}" class="form-label fw-bold">
         <i class="bi bi-{$icon} me-1"></i>{$label}
     </label>
-
-    {var $hasError = isset($form) && $form->hasError($name)}
-    {var $isValid = isset($form) && !$form->hasError($name) && $form->getValue($name)}
 
     <input type="{$type}"
            name="{$name}"
@@ -14,7 +14,7 @@
            class="form-control
                   {if $hasError}is-invalid{/if}
                   {if $isValid}is-valid{/if}"
-           value="{if isset($form)}{$form->getValue($name) ?? ''}{/if}"
+           value="{$fieldValue}"
            required>
 
     {if $hasError}
@@ -22,5 +22,4 @@
             {=getErrorMessage($name, $form)}
         </div>
     {/if}
-
 </div>

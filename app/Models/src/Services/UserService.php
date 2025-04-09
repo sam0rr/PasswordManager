@@ -32,10 +32,17 @@ class UserService extends BaseService
         return $user ? $this->buildUserResponse($user) : null;
     }
 
-    public function updateUser(Form $form): array
+    public function updateUser(Form $form, $isHtmx): array
     {
         try {
             UserValidator::assertUpdate($form, $this->userBroker, $this->auth['user_id']);
+
+            if ($isHtmx) {
+                return [
+                    "form" => $form,
+                    "status" => 200
+                ];
+            }
 
             $form->removeField('password');
             $updates = $this->buildEncryptedUpdateData($form);
@@ -48,10 +55,17 @@ class UserService extends BaseService
         }
     }
 
-    public function updatePassword(Form $form): array
+    public function updatePassword(Form $form, $isHtmx): array
     {
         try {
-            UserValidator::assertUpdatePassword($form);
+            UserValidator::assertUpdatePassword($form, $isHtmx);
+
+            if ($isHtmx) {
+                return [
+                    "form" => $form,
+                    "status" => 200
+                ];
+            }
 
             $currentUser = $this->getCurrentUserEntity();
             $currentPassword = $form->getValue('old');

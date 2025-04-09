@@ -1,0 +1,57 @@
+<div id="profile-form-wrapper">
+    <form method="post"
+          action="/update"
+          hx-post="/update"
+          hx-trigger="change"
+          hx-target="#profile-form-wrapper"
+          hx-swap="morphdom"
+          hx-preserve="true"
+          novalidate>
+
+        {include '../components/formField.latte',
+        name => 'first_name',
+        label => 'Prénom',
+        icon => 'person',
+        form => $form,
+        value => $user->first_name
+        }
+
+        {include '../components/formField.latte',
+        name => 'last_name',
+        label => 'Nom',
+        icon => 'person-badge',
+        form => $form,
+        value => $user->last_name
+        }
+
+        {include '../components/formField.latte',
+        name => 'email',
+        label => 'Adresse courriel',
+        icon => 'envelope',
+        form => $form,
+        value => $user->email
+        }
+
+        {include '../components/formField.latte',
+        name => 'phone',
+        label => 'Téléphone',
+        icon => 'telephone',
+        form => $form,
+        value => $user->phone
+        }
+
+        {include '../components/formField.latte',
+        name => 'image_url',
+        label => 'Avatar URL',
+        icon => 'image',
+        form => $form,
+        value => $user->image_url
+        }
+
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-save me-2"></i> Enregistrer
+            </button>
+        </div>
+    </form>
+</div>

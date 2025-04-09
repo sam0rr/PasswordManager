@@ -7,7 +7,7 @@ use Models\Exceptions\FormException;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class AuthValidator
+class AuthValidator extends BaseValidator
 {
     public static function assertRegister(Form $form, UserBroker $broker, bool $isHtmx): void
     {
@@ -71,13 +71,6 @@ class AuthValidator
 
         if ($form->hasError()) {
             throw new FormException($form);
-        }
-    }
-
-    private static function optionalIf($field, bool $isHtmx): void
-    {
-        if ($isHtmx) {
-            $field->optional();
         }
     }
 

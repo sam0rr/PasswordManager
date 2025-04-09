@@ -8,7 +8,7 @@ use Models\src\Entities\UserPassword;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class PasswordValidator
+class PasswordValidator extends BaseValidator
 {
     public static function assertAdd(Form $form, PasswordBroker $broker, string $userId): void
     {

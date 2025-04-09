@@ -2,7 +2,6 @@
 
 namespace Controllers;
 
-use Zephyrus\Application\Controller;
 use Zephyrus\Network\Response;
 use Models\src\Services\EncryptionService;
 
