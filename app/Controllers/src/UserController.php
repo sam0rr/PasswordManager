@@ -5,6 +5,7 @@ namespace Controllers\src;
 use Controllers\SecureController;
 use Models\src\Services\AuthHistoryService;
 use Models\src\Services\UserService;
+use Models\src\Services\Utils\AvatarService;
 use Models\src\Services\EncryptionService;
 use Zephyrus\Application\Form;
 use Zephyrus\Network\Response;
@@ -15,6 +16,7 @@ class UserController extends SecureController
 {
     private ?UserService $userService = null;
     private ?AuthHistoryService $authHistoryService = null;
+    private ?AvatarService $avatarService = null;
 
     public function before(): ?Response
     {
@@ -26,6 +28,9 @@ class UserController extends SecureController
         $auth = $this->getAuth();
         $this->userService = new UserService($auth);
         $this->authHistoryService = new AuthHistoryService($auth);
+        $this->avatarService = new AvatarService();
+
+        $this->avatarService->cleanupTempFiles();
         return null;
     }
 
@@ -33,7 +38,6 @@ class UserController extends SecureController
     public function dashboard(): Response
     {
         $user = $this->userService->getCurrentUserEntity();
-
         if (!$user) {
             return $this->abortNotFound("Utilisateur introuvable.");
         }
@@ -84,17 +88,21 @@ class UserController extends SecureController
         return $this->redirect("/dashboard?section=profile");
     }
 
-    #[Post('/upload-avatar')]
-    public function uploadAvatar(): Response
+    #[Post('/upload-avatar-temp')]
+    public function uploadAvatarTemp(): Response
     {
-        $result = $this->userService->uploadAvatar($this->request->getFiles());
+        $file = $this->request->getFiles()['avatar'] ?? [];
+
+        $result = $this->avatarService->uploadTemp($file);
 
         if (isset($result['error'])) {
             return $this->json(['error' => $result['error']]);
         }
 
         return $this->render("fragments/avatarPreview", [
-            'imageUrl' => $result['imageUrl']
+            'imageUrl' => $result['publicUrl'],
+            'tempUrl' => $result['publicUrl'],
+            'isTemp' => true
         ]);
     }
 

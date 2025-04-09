@@ -2,7 +2,16 @@
 
 {block pageContent}
     <div class="container py-4">
-        <ul class="nav nav-tabs mb-4">
+        <div class="d-md-none mb-3">
+            <select class="form-select" id="section-selector">
+                <option value="?section=profile" {$activeSection == 'profile' ? 'selected' : ''}>Profil</option>
+                <option value="?section=passwords" {$activeSection == 'passwords' ? 'selected' : ''}>Mots de passe</option>
+                <option value="?section=history" {$activeSection == 'history' ? 'selected' : ''}>Historique</option>
+                <option value="?section=shares" {$activeSection == 'shares' ? 'selected' : ''}>Partages</option>
+            </select>
+        </div>
+
+        <ul class="nav nav-tabs d-none d-md-flex mb-4 flex-wrap">
             <li class="nav-item">
                 <a class="nav-link {$activeSection == 'profile' ? 'active' : ''}" href="?section=profile">Profil</a>
             </li>

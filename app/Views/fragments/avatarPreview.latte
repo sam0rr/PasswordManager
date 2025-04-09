@@ -1,19 +1,42 @@
-<div id="avatar-upload-wrapper" class="text-center mb-3">
-    <label for="avatar" class="d-block border border-dashed rounded p-3" style="cursor: pointer;">
-        <img src="{$imageUrl ?? '/assets/images/default-avatar.png'}"
-             alt="Avatar"
-             class="rounded-circle mb-2"
-             width="80">
-        <div>Glisser-déposer ou cliquer pour changer l’avatar</div>
-    </label>
-    <input type="file"
-           name="avatar"
-           id="avatar"
-           accept="image/*"
-           hx-post="/upload-avatar"
-           hx-target="#avatar-upload-wrapper"
-           hx-swap="outerHTML"
-           hx-encoding="multipart/form-data"
-           onchange="this.dispatchEvent(new Event('change', { bubbles: true }));"
-           hidden>
+<div id="avatar-preview-container">
+    <div class="mb-4">
+        <label class="form-label">Photo de profil</label>
+        <div class="d-flex align-items-center">
+            <div class="avatar-preview me-3">
+                <img src="{$imageUrl ?? '/assets/images/default-avatar.png'}"
+                     alt="Avatar"
+                     class="rounded-circle"
+                     style="width: 100px; height: 100px; object-fit: cover;">
+            </div>
+            <div>
+                <form id="avatar-upload-form"
+                      method="post"
+                      enctype="multipart/form-data"
+                      hx-post="/upload-avatar-temp"
+                      hx-target="#avatar-preview-container"
+                      hx-swap="outerHTML">
+                    <input type="file"
+                           name="avatar"
+                           class="form-control mb-2"
+                           accept="image/jpeg,image/png,image/gif,image/webp">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Prévisualiser
+                    </button>
+                </form>
+
+                {ifset $isTemp}
+                    <div class="mt-2 text-info">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Image téléchargée temporairement. Cliquez sur "Enregistrer" pour confirmer.
+                    </div>
+                {/ifset}
+
+                {ifset $error}
+                    <div class="alert alert-danger mt-2">
+                        <i class="bi bi-exclamation-triangle me-1"></i> {$error}
+                    </div>
+                {/ifset}
+            </div>
+        </div>
+    </div>
 </div>

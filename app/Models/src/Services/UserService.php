@@ -41,7 +41,10 @@ class UserService extends BaseService
                 ];
             }
 
+            $this->handleTempAvatar($form);
+
             $form->removeField('password');
+
             $updates = $this->buildEncryptedUpdateData($form);
             $this->userBroker->updateUser($this->auth['user_id'], $updates);
             $user = $this->getCurrentUserEntity();
@@ -84,33 +87,23 @@ class UserService extends BaseService
         }
     }
 
-    public function uploadAvatar(array $files): array
-    {
-        $result = $this->avatar->upload($files['avatar'] ?? []);
-
-        if (isset($result['error'])) {
-            return ['error' => $result['error']];
-        }
-
-        $user = $this->getCurrentUserEntity();
-        if (!$user) {
-            return ['error' => 'Utilisateur introuvable.'];
-        }
-
-        $updates = $this->buildEncryptedUpdateData(new Form([
-            'image_url' => $result['publicUrl']
-        ]));
-        $this->userBroker->updateUser($this->auth['user_id'], $updates);
-
-        return ['imageUrl' => $result['publicUrl']];
-    }
-
     // Helpers
 
     private function updateUserContext(string $userId, string $userKey): void
     {
         $this->encryption->storeUserContext($userId, $userKey);
         $this->auth['user_key'] = $userKey;
+    }
+
+    private function handleTempAvatar(Form $form): void
+    {
+        $tempAvatarUrl = $form->getValue('temp_avatar_url');
+        if ($tempAvatarUrl) {
+            $result = $this->avatar->moveFromTemp($tempAvatarUrl);
+            if (!isset($result['error'])) {
+                $form->addField('image_url', $result['publicUrl']);
+            }
+        }
     }
 
     private function buildEncryptedUpdateData(Form $form): array

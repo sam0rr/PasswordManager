@@ -6,7 +6,18 @@
     </div>
 
     <div class="card-body">
-        <ul class="nav nav-pills mb-3">
+        <div class="d-md-none mb-3">
+            <select class="form-select" id="profile-tab-selector">
+                <option value="?section=profile&tab=info" {$profileTab == 'info' ? 'selected' : ''}>
+                    Modifier mes informations
+                </option>
+                <option value="?section=profile&tab=password" {$profileTab == 'password' ? 'selected' : ''}>
+                    Changer mon mot de passe
+                </option>
+            </select>
+        </div>
+
+        <ul class="nav nav-pills mb-3 d-none d-md-flex">
             <li class="nav-item">
                 <a class="nav-link {$profileTab == 'info' ? 'active' : ''}" href="?section=profile&tab=info">
                     Modifier mes informations
