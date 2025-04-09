@@ -4,14 +4,33 @@
     </div>
     <div class="card-body">
         {if count($auth_history) > 0}
-            <ul class="list-group list-group-flush">
+            <div class="list-group list-group-flush">
                 {foreach $auth_history as $history}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>{date('d/m/Y H:i', strtotime($history->auth_timestamp))}</span>
-                        <span>{$history->ip_address}</span>
-                    </li>
+                    <div class="list-group-item d-flex justify-content-between align-items-center flex-column flex-md-row">
+                        <div class="mb-2 mb-md-0 w-100 w-md-50">
+                            <div class="fw-bold text-dark">
+                                <i class="bi bi-clock-history me-2"></i>{date('d/m/Y H:i', strtotime($history->auth_timestamp))}
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="bi bi-browser-chrome me-1"></i>{$history->user_agent|truncate:50}
+                            </div>
+                        </div>
+                        <div class="text-end w-100 w-md-50">
+                            <div>
+                                <i class="bi bi-geo-alt-fill me-1"></i><span class="me-2">{$history->location}</span>
+                                <i class="bi bi-router-fill me-1"></i>{$history->ip_address}
+                            </div>
+                            <div class="mt-1">
+                                {if $history->result == 'success'}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Succès</span>
+                                {else}
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Échec</span>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
                 {/foreach}
-            </ul>
+            </div>
         {else}
             <p class="text-muted">Aucun historique disponible.</p>
         {/if}

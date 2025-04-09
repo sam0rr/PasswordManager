@@ -65,7 +65,9 @@ class AuthService extends BaseService
 
             return ["form" => $form];
         } catch (FormException $e) {
-            $this->history->logFailure($form->getValue("email"));
+            if (!$isHtmx && $form->getValue("email")) {
+                $this->history->logFailure($form->getValue("email"));
+            }
             return ["form" => $e->getForm(), "errors" => true];
         }
     }
@@ -74,7 +76,7 @@ class AuthService extends BaseService
 
     private function acceptUserPendingShares(string $userId, string $userKey): void
     {
-        (new SharingService(['user_id' => $userId, 'user_key' => $userKey]))->acceptPendingShares();
+        new SharingService(['user_id' => $userId, 'user_key' => $userKey])->acceptPendingShares();
     }
 
     private function validateUserCredentials(string $email, string $password, Form $form): User
