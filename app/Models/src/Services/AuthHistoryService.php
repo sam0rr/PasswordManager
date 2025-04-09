@@ -5,6 +5,7 @@ namespace Models\src\Services;
 use Models\src\Brokers\AuthHistoryBroker;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
+use Models\src\Services\Utils\BaseService;
 
 class AuthHistoryService extends BaseService
 {

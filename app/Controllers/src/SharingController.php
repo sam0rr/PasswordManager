@@ -41,7 +41,6 @@ class SharingController extends SecureController
         return $this->json($result);
     }
 
-
     #[Delete('/share/{id}/delete')]
     public function deleteShare(string $id): Response
     {

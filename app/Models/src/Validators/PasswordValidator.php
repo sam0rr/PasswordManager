@@ -5,6 +5,7 @@ namespace Models\src\Validators;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\PasswordBroker;
 use Models\src\Entities\UserPassword;
+use Models\src\Validators\Utils\BaseValidator;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 

@@ -1,12 +1,15 @@
 <?php
 
-namespace Models\src\Services;
+namespace Models\src\Services\Utils;
 
 use Models\Exceptions\FormException;
 use Models\src\Brokers\PasswordBroker;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
 use Models\src\Entities\UserPassword;
+use Models\src\Services\AuthHistoryService;
+use Models\src\Services\EncryptionService;
+use Models\src\Services\SharingService;
 use Zephyrus\Application\Form;
 
 abstract class BaseService
@@ -17,6 +20,7 @@ abstract class BaseService
     protected AuthHistoryService $history;
     protected array $auth;
     protected SharingService $sharing;
+    protected AvatarService $avatar;
 
     protected function buildErrorResponse(Form $form): array
     {

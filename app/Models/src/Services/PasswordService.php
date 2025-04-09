@@ -6,6 +6,7 @@ use Models\Exceptions\FormException;
 use Models\src\Brokers\PasswordBroker;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\UserPassword;
+use Models\src\Services\Utils\BaseService;
 use Models\src\Validators\PasswordValidator;
 use Zephyrus\Application\Form;
 

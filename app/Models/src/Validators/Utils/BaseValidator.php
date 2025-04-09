@@ -1,6 +1,6 @@
 <?php
 
-namespace Models\src\Validators;
+namespace Models\src\Validators\Utils;
 
 class BaseValidator
 {

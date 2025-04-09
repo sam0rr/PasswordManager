@@ -3,6 +3,7 @@
 namespace Models\src\Services;
 
 use InvalidArgumentException;
+use Models\src\Services\Utils\BaseService;
 use RuntimeException;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\Cryptography;

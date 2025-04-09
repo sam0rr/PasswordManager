@@ -5,6 +5,7 @@ namespace Models\src\Services;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
+use Models\src\Services\Utils\BaseService;
 use Models\src\Validators\AuthValidator;
 use Zephyrus\Application\Form;
 

@@ -5,6 +5,8 @@ namespace Models\src\Services;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
+use Models\src\Services\Utils\AvatarService;
+use Models\src\Services\Utils\BaseService;
 use Models\src\Validators\UserValidator;
 use Zephyrus\Application\Form;
 
@@ -19,6 +21,7 @@ class UserService extends BaseService
         $this->encryption = new EncryptionService();
         $this->passwordService = new PasswordService($auth);
         $this->sharing = new SharingService($auth);
+        $this->avatar = new AvatarService();
     }
 
     public function getCurrentUserEntity(): ?User
@@ -83,25 +86,11 @@ class UserService extends BaseService
 
     public function uploadAvatar(array $files): array
     {
-        if (!isset($files['avatar']) || $files['avatar']['error'] !== UPLOAD_ERR_OK) {
-            return ['error' => 'Échec de l’upload.'];
+        $result = $this->avatar->upload($files['avatar'] ?? []);
+
+        if (isset($result['error'])) {
+            return ['error' => $result['error']];
         }
-
-        $file = $files['avatar'];
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('avatar_', true) . '.' . $extension;
-        $uploadPath = __DIR__ . '/../../../../public/uploads/' . $filename;
-
-        $uploadDir = dirname($uploadPath);
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
-            return ['error' => 'Impossible de sauvegarder le fichier.'];
-        }
-
-        $publicUrl = '/uploads/' . $filename;
 
         $user = $this->getCurrentUserEntity();
         if (!$user) {
@@ -109,11 +98,11 @@ class UserService extends BaseService
         }
 
         $updates = $this->buildEncryptedUpdateData(new Form([
-            'image_url' => $publicUrl
+            'image_url' => $result['publicUrl']
         ]));
         $this->userBroker->updateUser($this->auth['user_id'], $updates);
 
-        return ['imageUrl' => $publicUrl];
+        return ['imageUrl' => $result['publicUrl']];
     }
 
     // Helpers

@@ -2,8 +2,9 @@
 
 namespace Models\src\Validators;
 
-use Models\src\Brokers\UserBroker;
 use Models\Exceptions\FormException;
+use Models\src\Brokers\UserBroker;
+use Models\src\Validators\Utils\BaseValidator;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
