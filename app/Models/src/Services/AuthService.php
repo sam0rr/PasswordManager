@@ -17,16 +17,13 @@ class AuthService extends BaseService
         $this->encryption = new EncryptionService();
     }
 
-    public function register(Form $form, $isHtmx): array
+    public function register(Form $form, bool $isHtmx): array
     {
         try {
             AuthValidator::assertRegister($form, $this->userBroker, $isHtmx);
 
             if ($isHtmx) {
-                return [
-                    "form" => $form,
-                    "status" => 200
-                ];
+                return ["form" => $form];
             }
 
             $password = $form->getValue("password");
@@ -39,13 +36,13 @@ class AuthService extends BaseService
 
             $this->encryption->storeUserContext($user->id, $userKey);
 
-            return $this->buildSuccessRegisterResponse($user, $form);
-        } catch (FormException) {
-            return $this->buildErrorResponse($form);
+            return ["form" => $form];
+        } catch (FormException $e) {
+            return ["form" => $e->getForm(), "errors" => true];
         }
     }
 
-    public function login(Form $form, $isHtmx): array
+    public function login(Form $form, bool $isHtmx): array
     {
         try {
             AuthValidator::assertLogin($form, $isHtmx);
@@ -58,35 +55,25 @@ class AuthService extends BaseService
             $user = $this->userBroker->findByEmail($email, $userKey);
 
             if ($isHtmx) {
-                return [
-                    "form" => $form,
-                    "status" => 200
-                ];
+                return ["form" => $form];
             }
 
             $this->encryption->storeUserContext($user->id, $userKey);
-
             $this->acceptUserPendingShares($user->id, $userKey);
-
             $this->history->logSuccess($user);
 
-            return $this->buildSuccessLoginResponse($user);
-        } catch (FormException) {
+            return ["form" => $form];
+        } catch (FormException $e) {
             $this->history->logFailure($form->getValue("email"));
-            return $this->buildErrorResponse($form);
+            return ["form" => $e->getForm(), "errors" => true];
         }
     }
 
-    // Helpers
+    // Helpers...
 
     private function acceptUserPendingShares(string $userId, string $userKey): void
     {
-        $sharingService = new SharingService([
-            'user_id' => $userId,
-            'user_key' => $userKey
-        ]);
-
-        $sharingService->acceptPendingShares();
+        (new SharingService(['user_id' => $userId, 'user_key' => $userKey]))->acceptPendingShares();
     }
 
     private function validateUserCredentials(string $email, string $password, Form $form): User
@@ -113,32 +100,6 @@ class AuthService extends BaseService
             'password_hash' => $hashedPassword,
             'salt'          => $salt,
             'public_key'    => $this->encryption->generatePublicKey($userKey),
-        ];
-    }
-
-    private function buildSuccessRegisterResponse(User $user, Form $form): array
-    {
-        return [
-            "message" => "Compte créé avec succès",
-            "user" => [
-                "id"        => $user->id,
-                "email"     => $form->getValue("email"),
-                "firstName" => $form->getValue("first_name"),
-                "lastName"  => $form->getValue("last_name")
-            ],
-            "status" => 201
-        ];
-    }
-
-    private function buildSuccessLoginResponse(User $user): array
-    {
-        return [
-            "message" => "Connexion réussie",
-            "user" => [
-                "id"    => $user->id,
-                "email" => $user->email
-            ],
-            "status" => 200
         ];
     }
 }

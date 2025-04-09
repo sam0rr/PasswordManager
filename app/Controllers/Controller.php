@@ -75,9 +75,15 @@ abstract class Controller extends BaseController
         $csp->setChildSources(["'self'"]);
         $csp->setWorkerSources(["blob:"]);
         $csp->setConnectSources(["'self'", 'https://api.mapbox.com', 'https://events.mapbox.com']);
+        $csp->addImageSource("https://yourdomain.com/uploads/");
 
         // Allow Google authenticator image generation
-        $csp->setImageSources(["'self'", 'blob:', 'data:', 'https://chart.googleapis.com', 'https://api.qrserver.com']);
+        $csp->setImageSources([
+            "'self'",
+            'blob:',
+            'data:',
+            'https:'
+        ]);
         $csp->setBaseUri([$this->request->getUrl()->getBaseUrl()]);
 
         // Add custom CSP

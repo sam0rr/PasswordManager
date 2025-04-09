@@ -27,10 +27,6 @@ class UserValidator extends BaseValidator
             Rule::phone("Numéro de téléphone invalide.")
         ])->optional();
 
-        $form->field("image_url", [
-            Rule::url("Lien de l'image invalide.")
-        ])->optional();
-
         $newEmail = $form->getValue("email");
         if (!empty($newEmail)) {
             $existingUser = $broker->findByEmail($newEmail);
@@ -60,7 +56,9 @@ class UserValidator extends BaseValidator
         ]);
         self::optionalIf($newPasswordField, $isHtmx);
 
-        if ($form->getValue("old") === $form->getValue("new") && !$isHtmx) {
+        $old = $form->getValue("old");
+        $new = $form->getValue("new");
+        if (!empty($old) && !empty($new) && $old === $new) {
             $form->addError("new", "Le nouveau mot de passe doit être différent de l'ancien.");
         }
 

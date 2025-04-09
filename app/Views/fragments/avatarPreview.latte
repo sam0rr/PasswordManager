@@ -1,0 +1,9 @@
+<div id="avatar-upload-wrapper" class="text-center mb-3">
+    <form id="avatar-form" hx-post="/upload-avatar" ... enctype="multipart/form-data">
+        <label for="avatar" ...>
+            <img src="{$imageUrl}" alt="Avatar" ...>
+            <div>Glisser-déposer ou cliquer pour changer l’avatar</div>
+        </label>
+        <input type="file" name="avatar" id="avatar" accept="image/*" hidden>
+    </form>
+</div>

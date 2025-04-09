@@ -26,12 +26,6 @@ class UserService extends BaseService
         return $this->userBroker->findById($this->auth['user_id'], $this->auth['user_key']);
     }
 
-    public function getCurrentUser(): ?array
-    {
-        $user = $this->getCurrentUserEntity();
-        return $user ? $this->buildUserResponse($user) : null;
-    }
-
     public function updateUser(Form $form, $isHtmx): array
     {
         try {
@@ -49,7 +43,7 @@ class UserService extends BaseService
             $this->userBroker->updateUser($this->auth['user_id'], $updates);
             $user = $this->getCurrentUserEntity();
 
-            return $this->buildSuccessUpdateResponse($user);
+            return ["form" => $form, "user" => $user];
         } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
@@ -60,13 +54,6 @@ class UserService extends BaseService
         try {
             UserValidator::assertUpdatePassword($form, $isHtmx);
 
-            if ($isHtmx) {
-                return [
-                    "form" => $form,
-                    "status" => 200
-                ];
-            }
-
             $currentUser = $this->getCurrentUserEntity();
             $currentPassword = $form->getValue('old');
             $newPassword = $form->getValue('new');
@@ -76,15 +63,57 @@ class UserService extends BaseService
                 throw new FormException($form);
             }
 
-            //Accepter avant la rotation des clées
+            if ($isHtmx) {
+                return [
+                    "form" => $form,
+                    "status" => 200
+                ];
+            }
+
+            // Accepter avant la rotation des clés
             $this->sharing->acceptPendingShares();
 
             $user = $this->rotateUserKey($currentUser, $newPassword);
 
-            return $this->buildSuccessUpdateResponse($user);
+            return ["form" => $form, "user" => $user];
         } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
+    }
+
+    public function uploadAvatar(array $files): array
+    {
+        if (!isset($files['avatar']) || $files['avatar']['error'] !== UPLOAD_ERR_OK) {
+            return ['error' => 'Échec de l’upload.'];
+        }
+
+        $file = $files['avatar'];
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('avatar_', true) . '.' . $extension;
+        $uploadPath = __DIR__ . '/../../../../public/uploads/' . $filename;
+
+        $uploadDir = dirname($uploadPath);
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+            return ['error' => 'Impossible de sauvegarder le fichier.'];
+        }
+
+        $publicUrl = '/uploads/' . $filename;
+
+        $user = $this->getCurrentUserEntity();
+        if (!$user) {
+            return ['error' => 'Utilisateur introuvable.'];
+        }
+
+        $updates = $this->buildEncryptedUpdateData(new Form([
+            'image_url' => $publicUrl
+        ]));
+        $this->userBroker->updateUser($this->auth['user_id'], $updates);
+
+        return ['imageUrl' => $publicUrl];
     }
 
     // Helpers
@@ -154,30 +183,4 @@ class UserService extends BaseService
         ];
     }
 
-    private function buildSuccessUpdateResponse(User $user): array
-    {
-        return [
-            "status" => 200,
-            "message" => "Profil mis à jour avec succès.",
-            "user" => $this->buildUserResponse($user)
-        ];
-    }
-
-    private function buildUserResponse(User $user): array
-    {
-        return [
-            "id" => $user->id,
-            "email" => $user->email,
-            "first_name" => $user->first_name,
-            "last_name" => $user->last_name,
-            "phone" => $user->phone,
-            "image_url" => $user->image_url,
-            "mfa" => $user->mfa,
-            "salt" => $user->salt,
-            "public_key" => $user->public_key,
-            "mfa_end" => $user->mfa_end,
-            "created_at" => $user->created_at,
-            "updated_at" => $user->updated_at
-        ];
-    }
 }

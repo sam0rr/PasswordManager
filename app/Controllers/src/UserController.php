@@ -74,7 +74,7 @@ class UserController extends SecureController
         if (isset($result["errors"])) {
             return $this->render("secure/dashboard", [
                 "form" => $result["form"],
-                "user" => $this->userService->getCurrentUserEntity(),
+                "user" => $result["user"] ?? null,
                 "activeSection" => 'profile',
                 "tab" => 'info',
                 "isHtmx" => false
@@ -82,6 +82,20 @@ class UserController extends SecureController
         }
 
         return $this->redirect("/dashboard?section=profile");
+    }
+
+    #[Post('/upload-avatar')]
+    public function uploadAvatar(): Response
+    {
+        $result = $this->userService->uploadAvatar($this->request->getFiles());
+
+        if (isset($result['error'])) {
+            return $this->json(['error' => $result['error']]);
+        }
+
+        return $this->render("fragments/avatarPreview", [
+            'imageUrl' => $result['imageUrl']
+        ]);
     }
 
     #[Post('/password')]
@@ -101,7 +115,7 @@ class UserController extends SecureController
         if (isset($result["errors"])) {
             return $this->render("secure/dashboard", [
                 "form" => $result["form"],
-                "user" => $this->userService->getCurrentUserEntity(),
+                "user" => $result["user"] ?? null,
                 "activeSection" => 'profile',
                 "tab" => 'password',
                 "isHtmx" => false
@@ -116,18 +130,6 @@ class UserController extends SecureController
     {
         EncryptionService::destroySession();
         return $this->redirect("/login");
-    }
-
-    #[Get('/me')]
-    public function me(): Response
-    {
-        $user = $this->userService->getCurrentUser();
-
-        if (!$user) {
-            return $this->abortUnauthorized("Utilisateur introuvable.");
-        }
-
-        return $this->json($user);
     }
 
     private function getUserHistory(): array
