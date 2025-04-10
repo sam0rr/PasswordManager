@@ -38,19 +38,26 @@ class UserController extends SecureController
             return $this->abortNotFound("Utilisateur introuvable.");
         }
 
+        $params = $this->request->getParameters();
+        $section = $params['section'] ?? 'profile';
+        $tab = $params['tab'] ?? 'list';
+
+        $baseContext = [
+            'title' => "Tableau de bord",
+            'user' => $user,
+            'auth_history' => $this->getUserHistory(),
+            'activeSection' => $section,
+            'tab' => $tab
+        ];
+
         if (!SessionHelper::get("user")) {
-            SessionHelper::setContext([
-                'title' => "Tableau de bord",
-                'user' => $user,
-                'auth_history' => $this->getUserHistory(),
-                'activeSection' => SessionHelper::getActiveSection(),
-                'tab' => SessionHelper::getActiveTab()
-            ]);
+            $baseContext['passwordsUnlocked'] = ($section === 'passwords');
+            SessionHelper::setContext($baseContext);
         } else {
-            SessionHelper::appendContext([
-                'user' => $user,
-                'auth_history' => $this->getUserHistory()
-            ]);
+            if ($section !== 'passwords') {
+                $baseContext['passwordsUnlocked'] = false;
+            }
+            SessionHelper::appendContext($baseContext);
         }
 
         return $this->render("secure/dashboard", SessionHelper::getContext());

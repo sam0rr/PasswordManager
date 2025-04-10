@@ -17,10 +17,6 @@ class SharingValidator extends BaseValidator
             Rule::email("L’adresse courriel du destinataire est invalide.")
         ]);
 
-        $form->field("password", [
-            Rule::required("Le mot de passe maître est requis.")
-        ]);
-
         $recipientEmail = $form->getValue("email");
         $recipient = $userBroker->findByEmail($recipientEmail);
         $currentUser = $userBroker->findById($ownerId);
