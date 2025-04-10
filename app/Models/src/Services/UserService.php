@@ -40,8 +40,7 @@ class UserService extends BaseService
 
             if ($isHtmx) {
                 return [
-                    "form" => $form,
-                    "status" => 200
+                    "form" => $form
                 ];
             }
 
@@ -55,6 +54,35 @@ class UserService extends BaseService
                 'user' => $this->getCurrentUserEntity()
             ];
 
+        } catch (FormException) {
+            return $this->buildErrorResponse($form);
+        }
+    }
+
+    public function updatePassword(Form $form, bool $isHtmx): array
+    {
+        try {
+            UserValidator::assertUpdatePassword($form, $isHtmx);
+
+            $currentUser = $this->getCurrentUserEntity();
+            $currentPassword = $form->getValue('old');
+            $newPassword = $form->getValue('new');
+
+            if (!empty($currentPassword) && !$this->encryption->verifyPassword($currentPassword, $currentUser->password_hash)) {
+                $form->addError("old", "Mot de passe actuel invalide.");
+                throw new FormException($form);
+            }
+
+            if ($isHtmx) {
+                return [
+                    'form' => $form
+                ];
+            }
+
+            $this->sharing->acceptPendingShares();
+            $user = $this->rotateUserKey($currentUser, $newPassword);
+
+            return ["form" => $form, "user" => $user];
         } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
@@ -91,36 +119,6 @@ class UserService extends BaseService
             'form' => $form,
             'user' => $this->getCurrentUserEntity()
         ];
-    }
-
-    public function updatePassword(Form $form, bool $isHtmx): array
-    {
-        try {
-            UserValidator::assertUpdatePassword($form, $isHtmx);
-
-            $currentUser = $this->getCurrentUserEntity();
-            $currentPassword = $form->getValue('old');
-            $newPassword = $form->getValue('new');
-
-            if (!empty($currentPassword) && !$this->encryption->verifyPassword($currentPassword, $currentUser->password_hash)) {
-                $form->addError("old", "Mot de passe actuel invalide.");
-                throw new FormException($form);
-            }
-
-            if ($isHtmx) {
-                return [
-                    'form' => $form,
-                    'user' => $this->getCurrentUserEntity()
-                ];
-            }
-
-            $this->sharing->acceptPendingShares();
-            $user = $this->rotateUserKey($currentUser, $newPassword);
-
-            return ["form" => $form, "user" => $user];
-        } catch (FormException) {
-            return $this->buildErrorResponse($form);
-        }
     }
 
     // Helpers

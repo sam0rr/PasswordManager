@@ -30,6 +30,12 @@ class PasswordService extends BaseService
             PasswordValidator::assertPasswordVerification($form, $isHtmx);
             $user = $this->getVerifiedUser($form);
 
+            if ($isHtmx) {
+                return [
+                    "form" => $form
+                ];
+            }
+
             $passwords = $this->passwordBroker->findAllByUser($user->id, $this->auth['user_key']);
             return [
                 "form" => $form,
@@ -61,8 +67,7 @@ class PasswordService extends BaseService
 
             if ($isHtmx) {
                 return [
-                    "form" => $form,
-                    "status" => 200
+                    "form" => $form
                 ];
             }
 
@@ -87,8 +92,7 @@ class PasswordService extends BaseService
 
             if ($isHtmx) {
                 return [
-                    "form" => $form,
-                    "status" => 200
+                    "form" => $form
                 ];
             }
 

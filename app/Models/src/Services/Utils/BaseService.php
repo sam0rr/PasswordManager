@@ -25,7 +25,6 @@ abstract class BaseService
     protected function buildErrorResponse(Form $form): array
     {
         return [
-            "status" => 400,
             "errors" => $form->getErrorMessages(),
             "form" => $form
         ];
@@ -54,5 +53,5 @@ abstract class BaseService
 
         return $password;
     }
-    
+
 }

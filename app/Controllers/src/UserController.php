@@ -38,13 +38,20 @@ class UserController extends SecureController
             return $this->abortNotFound("Utilisateur introuvable.");
         }
 
-        SessionHelper::setContext([
-            'title' => "Tableau de bord",
-            'user' => $user,
-            'auth_history' => $this->getUserHistory(),
-            'activeSection' => SessionHelper::getActiveSection(),
-            'tab' => SessionHelper::getActiveTab()
-        ]);
+        if (!SessionHelper::get("user")) {
+            SessionHelper::setContext([
+                'title' => "Tableau de bord",
+                'user' => $user,
+                'auth_history' => $this->getUserHistory(),
+                'activeSection' => SessionHelper::getActiveSection(),
+                'tab' => SessionHelper::getActiveTab()
+            ]);
+        } else {
+            SessionHelper::appendContext([
+                'user' => $user,
+                'auth_history' => $this->getUserHistory()
+            ]);
+        }
 
         return $this->render("secure/dashboard", SessionHelper::getContext());
     }

@@ -6,7 +6,6 @@ use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\PasswordService;
 use Zephyrus\Network\Response;
-use Zephyrus\Network\Router\Delete;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
@@ -42,22 +41,13 @@ class PasswordController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-
         $result = $this->passwordService->getPasswords($form, $isHtmx);
 
         if ($isHtmx) {
-            if (isset($result['passwords'])) {
-                return $this->render("fragments/passwords/passwordListTable", [
-                    'passwords' => $result['passwords'],
-                    'passwordsUnlocked' => true,
-                    'isHtmx' => true
-                ]);
-            } else {
-                return $this->render("fragments/passwords/passwordUnlockForm", [
-                    'form' => $result['form'],
-                    'isHtmx' => true
-                ]);
-            }
+            return $this->render("fragments/passwords/passwordUnlockForm", [
+                'form' => $result['form'],
+                'isHtmx' => true
+            ]);
         }
 
         if (isset($result['errors'])) {
@@ -71,7 +61,7 @@ class PasswordController extends SecureController
         }
 
         SessionHelper::appendContext([
-            'passwords' => $result['passwords'] ?? [],
+            'passwords' => $result['passwords'],
             'passwordsUnlocked' => true,
             'activeSection' => 'passwords',
             'tab' => 'list'
@@ -146,7 +136,7 @@ class PasswordController extends SecureController
         return $this->redirect("/dashboard?section=passwords");
     }
 
-    #[Delete('/password/{id}/delete')]
+    #[Post('/password/{id}/delete')]
     public function deletePassword(string $id): Response
     {
         $form = $this->buildForm();

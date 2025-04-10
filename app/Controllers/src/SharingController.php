@@ -5,7 +5,6 @@ namespace Controllers\src;
 use Controllers\SecureController;
 use Models\src\Services\SharingService;
 use Zephyrus\Network\Response;
-use Zephyrus\Network\Router\Delete;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
@@ -41,7 +40,7 @@ class SharingController extends SecureController
         return $this->json($result);
     }
 
-    #[Delete('/share/{id}/delete')]
+    #[Post('/share/{id}/delete')]
     public function deleteShare(string $id): Response
     {
         $result = $this->service->deleteShare($id);
