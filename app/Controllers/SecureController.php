@@ -2,6 +2,7 @@
 
 namespace Controllers;
 
+use Models\src\Services\AuthHistoryService;
 use Zephyrus\Network\Response;
 use Models\src\Services\EncryptionService;
 
@@ -18,12 +19,18 @@ abstract class SecureController extends Controller
     public function before(): ?Response
     {
         $encryptionService = new EncryptionService();
+        $authHistoryService = new AuthHistoryService($this->getAuth());
 
         $this->currentUserKey = $encryptionService->getUserKeyFromContext();
         $this->currentUserId = $encryptionService->getUserIdFromContext();
 
         if (is_null($this->currentUserKey) || is_null($this->currentUserId)) {
             return $this->redirect("/login");
+        }
+
+        if ($authHistoryService->hasTooManyAttempts($this->currentUserId)) {
+            EncryptionService::destroySession();
+            return $this->redirect("/login?error=too_many_attempts");
         }
 
         return parent::before();

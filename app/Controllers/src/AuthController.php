@@ -21,8 +21,13 @@ class AuthController extends Controller
     #[Get('/login')]
     public function showLoginForm(): Response
     {
+        $form = new Form();
+        if ($this->request->getParameter('error') === 'too_many_attempts') {
+            $form->addError('global', "Trop de tentatives échouées récemment. Veuillez réessayer plus tard.");
+        }
+
         return $this->render("auth/login", [
-            "form" => new Form(),
+            "form" => $form,
             "title" => "Connexion"
         ]);
     }
@@ -36,7 +41,7 @@ class AuthController extends Controller
         $result = $this->authService->login($form, $isHtmx);
 
         if ($isHtmx) {
-            return $this->render("fragments/loginForm", [
+            return $this->render("fragments/auth/loginForm", [
                 "form" => $result["form"],
                 "isHtmx" => true
             ]);
@@ -71,7 +76,7 @@ class AuthController extends Controller
         $result = $this->authService->register($form, $isHtmx);
 
             if ($isHtmx) {
-                return $this->render("fragments/registerForm", [
+                return $this->render("fragments/auth/registerForm", [
                     "form" => $result["form"],
                 ]);
             }

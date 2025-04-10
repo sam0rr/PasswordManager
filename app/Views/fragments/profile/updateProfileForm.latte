@@ -8,7 +8,7 @@
           hx-preserve="true"
           novalidate>
 
-        {include '../components/formField.latte',
+        {include '../../components/formField.latte',
         name => 'first_name',
         label => 'Prénom',
         icon => 'person',
@@ -16,7 +16,7 @@
         value => $user->first_name
         }
 
-        {include '../components/formField.latte',
+        {include '../../components/formField.latte',
         name => 'last_name',
         label => 'Nom',
         icon => 'person-badge',
@@ -24,7 +24,7 @@
         value => $user->last_name
         }
 
-        {include '../components/formField.latte',
+        {include '../../components/formField.latte',
         name => 'email',
         label => 'Adresse courriel',
         icon => 'envelope',
@@ -32,7 +32,7 @@
         value => $user->email
         }
 
-        {include '../components/formField.latte',
+        {include '../../components/formField.latte',
         name => 'phone',
         label => 'Téléphone',
         icon => 'telephone',

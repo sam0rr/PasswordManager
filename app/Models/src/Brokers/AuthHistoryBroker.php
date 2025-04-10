@@ -39,4 +39,16 @@ class AuthHistoryBroker extends DatabaseBroker
 
         return array_map(fn($row) => AuthHistory::build($row), $rows);
     }
+
+    public function countRecentFailures(string $userId, int $minutes): int
+    {
+        $sql = "SELECT COUNT(*) AS attempt_count 
+            FROM auth_history
+            WHERE user_id = ? 
+              AND result = 'fail'
+              AND auth_timestamp > NOW() - INTERVAL '$minutes minutes'";
+
+        return (int) $this->selectSingle($sql, [$userId])->attempt_count;
+    }
+
 }

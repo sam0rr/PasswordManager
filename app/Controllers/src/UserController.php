@@ -65,7 +65,7 @@ class UserController extends SecureController
         $result = $this->userService->updateUser($form, $isHtmx);
 
         if ($isHtmx) {
-            return $this->render("fragments/updateProfileForm", [
+            return $this->render("fragments/profile/updateProfileForm", [
                 "form" => $result["form"],
                 "user" => $result["user"] ?? null,
                 "isHtmx" => true
@@ -116,7 +116,7 @@ class UserController extends SecureController
         $result = $this->userService->updatePassword($form, $isHtmx);
 
         if ($isHtmx) {
-            return $this->render("fragments/updatePasswordForm", [
+            return $this->render("fragments/profile/updatePasswordForm", [
                 "form" => $result["form"],
                 "isHtmx" => true
             ]);

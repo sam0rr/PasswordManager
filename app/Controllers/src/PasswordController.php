@@ -7,7 +7,6 @@ use Models\src\Services\PasswordService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Delete;
 use Zephyrus\Network\Router\Post;
-use Zephyrus\Network\Router\Put;
 
 class PasswordController extends SecureController
 {
@@ -41,7 +40,7 @@ class PasswordController extends SecureController
         return $this->json($result);
     }
 
-    #[Put('/password/{id}')]
+    #[Post('/password/{id}')]
     public function updatePassword(string $id): Response
     {
         $form = $this->buildForm();

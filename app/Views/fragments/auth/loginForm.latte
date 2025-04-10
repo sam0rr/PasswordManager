@@ -16,9 +16,9 @@
             </div>
         {/if}
 
-        {include '../components/formField.latte', name => 'email', label => 'Adresse courriel', icon => 'envelope'
+        {include '../../components/formField.latte', name => 'email', label => 'Adresse courriel', icon => 'envelope'
         }
-        {include '../components/formField.latte', name => 'password', label => 'Mot de passe', icon => 'lock', type => 'password'}
+        {include '../../components/formField.latte', name => 'password', label => 'Mot de passe', icon => 'lock', type => 'password'}
 
         <div class="d-grid gap-2 mt-4">
             <input type="hidden" name="submit" value="true" />

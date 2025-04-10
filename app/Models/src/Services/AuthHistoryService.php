@@ -29,6 +29,11 @@ class AuthHistoryService extends BaseService
         return $this->authHistoryBroker->getHistoryForUser($userId);
     }
 
+    public function hasTooManyAttempts(string $userId, int $minutes = 10, int $maxAttempts = 5): bool
+    {
+        return $this->authHistoryBroker->countRecentFailures($userId, $minutes) >= $maxAttempts;
+    }
+
     // Helpers
 
     public function logSuccess(User $user): void
