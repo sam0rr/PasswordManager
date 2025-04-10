@@ -11,21 +11,25 @@ use Zephyrus\Application\Rule;
 
 class PasswordValidator extends BaseValidator
 {
-    public static function assertAdd(Form $form, PasswordBroker $broker, string $userId): void
+    public static function assertAdd(Form $form, PasswordBroker $broker, string $userId, bool $isHtmx): void
     {
-        $form->field("description", [
+        $descField = $form->field("description", [
             Rule::required("La description est requise."),
             Rule::minLength(2, "La description doit contenir au moins 2 caractères.")
         ]);
+        self::optionalIf($descField, $isHtmx);
 
-        $form->field("note", [
+        $noteField = $form->field("note", [
             Rule::required("La note est requise."),
             Rule::minLength(2, "La note doit contenir au moins 2 caractères.")
         ]);
+        self::optionalIf($noteField, $isHtmx);
 
-        $form->field("password", [
-            Rule::required("Le mot de passe est requis.")
+        $passwordField = $form->field("password", [
+            Rule::required("Le mot de passe est requis."),
+            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
         ]);
+        self::optionalIf($passwordField, $isHtmx);
 
         $form->verify();
 
@@ -39,12 +43,13 @@ class PasswordValidator extends BaseValidator
         }
     }
 
-    public static function assertPasswordVerification(Form $form): void
+    public static function assertPasswordVerification(Form $form, bool $isHtmx): void
     {
-        $form->field("password", [
+        $field = $form->field("password", [
             Rule::required("Le mot de passe est requis."),
             Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
         ]);
+        self::optionalIf($field, $isHtmx);
 
         $form->verify();
 
@@ -72,8 +77,8 @@ class PasswordValidator extends BaseValidator
         ])->optional();
 
         $newDescription = $form->getValue("description");
-        if (!empty($newDescription) && $broker->descriptionExistsForUser($userId, $newDescription)
-            && $newDescription !== $currentPassword->description) {
+        if (!empty($newDescription) && $newDescription !== $currentPassword->description
+            && $broker->descriptionExistsForUser($userId, $newDescription)) {
             $form->addError("description", "Cette description est déjà utilisée.");
         }
 

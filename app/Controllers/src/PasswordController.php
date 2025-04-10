@@ -3,6 +3,7 @@
 namespace Controllers\src;
 
 use Controllers\SecureController;
+use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\PasswordService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Delete;
@@ -27,32 +28,54 @@ class PasswordController extends SecureController
     #[Post('/passwords')]
     public function getPasswords(): Response
     {
+        $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->passwordService->getPasswords($form);
+
+        $result = $this->passwordService->getPasswords($form, $isHtmx);
+
+        SessionHelper::appendContext(['passwords' => $result]);
         return $this->json($result);
     }
 
     #[Post('/addpassword')]
     public function addPassword(): Response
     {
+        $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->passwordService->addPassword($form);
+
+        $result = $this->passwordService->addPassword($form, $isHtmx);
+
+        $updated = $this->passwordService->getAllUserPasswords($form);
+        SessionHelper::appendContext(['passwords' => $updated]);
+
         return $this->json($result);
     }
 
     #[Post('/password/{id}')]
     public function updatePassword(string $id): Response
     {
+        $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->passwordService->updatePassword($form, $id);
+
+        $result = $this->passwordService->updatePassword($form, $id, $isHtmx);
+
+        $updated = $this->passwordService->getAllUserPasswords($form);
+        SessionHelper::appendContext(['passwords' => $updated]);
+
         return $this->json($result);
     }
 
     #[Delete('/password/{id}/delete')]
     public function deletePassword(string $id): Response
     {
+        $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->passwordService->deletePassword($form, $id);
+
+        $result = $this->passwordService->deletePassword($form, $id, $isHtmx);
+
+        $updated = $this->passwordService->getAllUserPasswords($form);
+        SessionHelper::appendContext(['passwords' => $updated]);
+
         return $this->json($result);
     }
 }

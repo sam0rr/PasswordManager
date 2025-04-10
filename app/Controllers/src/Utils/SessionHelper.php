@@ -42,6 +42,13 @@ class SessionHelper
         ];
     }
 
+    public static function appendContext(array $data): void
+    {
+        foreach ($data as $key => $value) {
+            Session::set($key, $value);
+        }
+    }
+
     public static function clearContext(): void
     {
         Session::removeAll([
