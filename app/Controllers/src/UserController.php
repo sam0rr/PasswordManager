@@ -3,10 +3,10 @@
 namespace Controllers\src;
 
 use Controllers\SecureController;
+use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\AuthHistoryService;
-use Models\src\Services\UserService;
 use Models\src\Services\EncryptionService;
-use Zephyrus\Application\Form;
+use Models\src\Services\UserService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
@@ -41,19 +41,14 @@ class UserController extends SecureController
         $activeSection = $this->request->getParameter('section') ?? 'profile';
         $tab = $this->request->getParameter('tab') ?? 'info';
 
-        return $this->render("secure/dashboard", [
-            "user" => $user,
-            "title" => "Tableau de bord",
-            "stats" => [],
-            "passwords" => [],
-            "shared_passwords" => [],
-            "auth_history" => $this->getUserHistory(),
-            "shared_credentials" => [],
-            "passwordsUnlocked" => false,
-            "activeSection" => $activeSection,
-            "tab" => $tab,
-            "form" => new Form()
+        SessionHelper::setContext([
+            'user' => $user,
+            'auth_history' => $this->getUserHistory(),
+            'activeSection' => $activeSection,
+            'tab' => $tab
         ]);
+
+        return $this->render("secure/dashboard", SessionHelper::getContext());
     }
 
     #[Post('/update')]
@@ -138,6 +133,7 @@ class UserController extends SecureController
     #[Get('/logout')]
     public function logout(): Response
     {
+        SessionHelper::clearContext();
         EncryptionService::destroySession();
         return $this->redirect("/login");
     }
