@@ -59,10 +59,6 @@ class SharingService extends BaseService
 
     public function deleteShare(string $shareId): array
     {
-        if (!$this->isValidUuid($shareId)) {
-            return $this->buildStatusResponse(400, 'UUID de partage invalide.');
-        }
-
         $share = $this->sharingBroker->findById($shareId);
 
         if (!$share) {
@@ -87,8 +83,7 @@ class SharingService extends BaseService
     {
         try {
             $ownerId = $this->auth['user_id'];
-
-            $this->assertValidPasswordId($passwordId, $form);
+            
             SharingValidator::assertShare($form, $this->userBroker, $ownerId);
 
             $password = $this->getPassword($passwordId, $form);

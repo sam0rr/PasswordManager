@@ -43,16 +43,6 @@ abstract class BaseService
         return $user;
     }
 
-    protected function verifyTempKey(string $password, string $salt, Form $form): void
-    {
-        $derivedKey = $this->encryption->deriveUserKey($password, $salt);
-
-        if (!hash_equals($derivedKey, $this->auth['user_key'])) {
-            $form->addError("global", "La clé dérivée ne correspond pas au contexte actif.");
-            throw new FormException($form);
-        }
-    }
-
     protected function getPassword(string $passwordId, Form $form): UserPassword
     {
         $password = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
@@ -64,17 +54,5 @@ abstract class BaseService
 
         return $password;
     }
-
-    protected function assertValidPasswordId(string $passwordId, Form $form): void
-    {
-        if (!$this->isValidUuid($passwordId)) {
-            $form->addError("global", "Identifiant de mot de passe invalide.");
-            throw new FormException($form);
-        }
-    }
-
-    protected function isValidUuid(string $uuid): bool
-    {
-        return preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
-    }
+    
 }

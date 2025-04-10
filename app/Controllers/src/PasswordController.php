@@ -29,11 +29,12 @@ class PasswordController extends SecureController
     #[Get('/passwords')]
     public function showPasswords(): Response
     {
-        return $this->render("components/dashboard-sections/passwords", [
-            'form' => $this->buildForm(),
-            'passwords' => SessionHelper::get('passwords', []),
-            'passwordsUnlocked' => SessionHelper::get('passwordsUnlocked', false)
+        SessionHelper::appendContext([
+            'activeSection' => 'passwords',
+            'tab' => 'list'
         ]);
+
+        return $this->render("secure/dashboard", SessionHelper::getContext());
     }
 
     #[Post('/passwords')]
@@ -43,18 +44,40 @@ class PasswordController extends SecureController
         $form = $this->buildForm();
 
         $result = $this->passwordService->getPasswords($form, $isHtmx);
-        $passwords = $result['passwords'] ?? [];
+
+        if ($isHtmx) {
+            if (isset($result['passwords'])) {
+                return $this->render("fragments/passwords/passwordListTable", [
+                    'passwords' => $result['passwords'],
+                    'passwordsUnlocked' => true,
+                    'isHtmx' => true
+                ]);
+            } else {
+                return $this->render("fragments/passwords/passwordUnlockForm", [
+                    'form' => $result['form'],
+                    'isHtmx' => true
+                ]);
+            }
+        }
+
+        if (isset($result['errors'])) {
+            return $this->render("secure/dashboard", [
+                'form' => $result['form'],
+                'passwords' => [],
+                'passwordsUnlocked' => false,
+                'activeSection' => 'passwords',
+                'tab' => 'list'
+            ]);
+        }
 
         SessionHelper::appendContext([
-            'passwords' => $passwords,
-            'passwordsUnlocked' => true
+            'passwords' => $result['passwords'] ?? [],
+            'passwordsUnlocked' => true,
+            'activeSection' => 'passwords',
+            'tab' => 'list'
         ]);
 
-        return $this->render("components/dashboard-sections/passwords", [
-            'form' => $form,
-            'passwords' => $passwords,
-            'passwordsUnlocked' => true
-        ]);
+        return $this->redirect("/dashboard?section=passwords");
     }
 
     #[Post('/addpassword')]
@@ -62,13 +85,32 @@ class PasswordController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-
         $result = $this->passwordService->addPassword($form, $isHtmx);
 
-        $updated = $this->passwordService->getAllUserPasswords($form);
-        SessionHelper::appendContext(['passwords' => $updated]);
+        if ($isHtmx) {
+            return $this->render("fragments/passwords/passwordAddForm", [
+                'form' => $result['form'],
+                'isHtmx' => true
+            ]);
+        }
 
-        return $this->json($result);
+        if (isset($result['errors'])) {
+            SessionHelper::appendContext([
+                'form' => $result['form'],
+                'activeSection' => 'passwords',
+                'tab' => 'add'
+            ]);
+            return $this->render("secure/dashboard", SessionHelper::getContext());
+        }
+
+        SessionHelper::appendContext([
+            'passwords' => $result['passwords'],
+            'passwordsUnlocked' => true,
+            'activeSection' => 'passwords',
+            'tab' => 'list'
+        ]);
+
+        return $this->redirect("/dashboard?section=passwords");
     }
 
     #[Post('/password/{id}')]
@@ -76,26 +118,48 @@ class PasswordController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-
         $result = $this->passwordService->updatePassword($form, $id, $isHtmx);
 
-        $updated = $this->passwordService->getAllUserPasswords($form);
-        SessionHelper::appendContext(['passwords' => $updated]);
+        if ($isHtmx) {
+            return $this->render("fragments/passwords/passwordUpdateForm", [
+                'form' => $result['form'],
+                'isHtmx' => true
+            ]);
+        }
 
-        return $this->json($result);
+        if (isset($result['errors'])) {
+            SessionHelper::appendContext([
+                'form' => $result['form'],
+                'activeSection' => 'passwords',
+                'tab' => 'list'
+            ]);
+            return $this->render("secure/dashboard", SessionHelper::getContext());
+        }
+
+        SessionHelper::appendContext([
+            'passwords' => $result['passwords'],
+            'passwordsUnlocked' => true,
+            'activeSection' => 'passwords',
+            'tab' => 'list'
+        ]);
+
+        return $this->redirect("/dashboard?section=passwords");
     }
 
     #[Delete('/password/{id}/delete')]
     public function deletePassword(string $id): Response
     {
-        $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
+        $result = $this->passwordService->deletePassword($form, $id);
 
-        $result = $this->passwordService->deletePassword($form, $id, $isHtmx);
+        SessionHelper::appendContext([
+            'passwords' => $result['passwords'],
+            'passwordsUnlocked' => true,
+            'activeSection' => 'passwords',
+            'tab' => 'list'
+        ]);
 
-        $updated = $this->passwordService->getAllUserPasswords($form);
-        SessionHelper::appendContext(['passwords' => $updated]);
-
-        return $this->json($result);
+        return $this->redirect("/dashboard?section=passwords");
     }
+
 }

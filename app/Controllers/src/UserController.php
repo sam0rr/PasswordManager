@@ -38,15 +38,12 @@ class UserController extends SecureController
             return $this->abortNotFound("Utilisateur introuvable.");
         }
 
-        $activeSection = SessionHelper::getActiveSection();
-        $tab = SessionHelper::getActiveTab();
-
         SessionHelper::setContext([
             'title' => "Tableau de bord",
             'user' => $user,
             'auth_history' => $this->getUserHistory(),
-            'activeSection' => $activeSection,
-            'tab' => $tab
+            'activeSection' => SessionHelper::getActiveSection(),
+            'tab' => SessionHelper::getActiveTab()
         ]);
 
         return $this->render("secure/dashboard", SessionHelper::getContext());
@@ -57,28 +54,27 @@ class UserController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-
         $result = $this->userService->updateUser($form, $isHtmx);
 
         if ($isHtmx) {
             return $this->render("fragments/profile/updateProfileForm", [
-                "form" => $result["form"],
-                "user" => $result["user"] ?? null,
-                "isHtmx" => true
+                'form' => $result['form'],
+                'user' => $result['user'] ?? null,
+                'isHtmx' => true
             ]);
         }
 
         if (isset($result["errors"])) {
-            return $this->render("secure/dashboard", [
-                "form" => $result["form"],
-                "user" => $result["user"] ?? null,
-                "activeSection" => 'profile',
-                "tab" => 'info',
-                "isHtmx" => false
+            SessionHelper::appendContext([
+                'form' => $result["form"],
+                'user' => $result["user"] ?? null,
+                'activeSection' => 'profile',
+                'tab' => 'info'
             ]);
+            return $this->render("secure/dashboard", SessionHelper::getContext());
         }
 
-        return $this->redirect("/dashboard?section=profile");
+        return $this->redirect("/dashboard?section=profile&tab=info");
     }
 
     #[Post('/update-avatar')]
@@ -91,18 +87,18 @@ class UserController extends SecureController
         $result = $this->userService->updateAvatar($form, $avatarFile);
 
         if (isset($result["errors"])) {
-            return $this->render("secure/dashboard", [
-                "form" => $result["form"],
-                "user" => $this->userService->getCurrentUserEntity(),
-                "activeSection" => 'profile',
-                "tab" => 'info',
-                "avatarError" => true
+            SessionHelper::appendContext([
+                'form' => $result["form"],
+                'user' => $this->userService->getCurrentUserEntity(),
+                'activeSection' => 'profile',
+                'tab' => 'info',
+                'avatarError' => true
             ]);
+            return $this->render("secure/dashboard", SessionHelper::getContext());
         }
 
-        return $this->redirect("/dashboard?section=profile");
+        return $this->redirect("/dashboard?section=profile&tab=info");
     }
-
 
     #[Post('/password')]
     public function updatePassword(): Response
@@ -113,19 +109,19 @@ class UserController extends SecureController
 
         if ($isHtmx) {
             return $this->render("fragments/profile/updatePasswordForm", [
-                "form" => $result["form"],
-                "isHtmx" => true
+                'form' => $result["form"],
+                'isHtmx' => true
             ]);
         }
 
         if (isset($result["errors"])) {
-            return $this->render("secure/dashboard", [
-                "form" => $result["form"],
-                "user" => $result["user"] ?? null,
-                "activeSection" => 'profile',
-                "tab" => 'password',
-                "isHtmx" => false
+            SessionHelper::appendContext([
+                'form' => $result["form"],
+                'user' => $result["user"] ?? null,
+                'activeSection' => 'profile',
+                'tab' => 'password'
             ]);
+            return $this->render("secure/dashboard", SessionHelper::getContext());
         }
 
         return $this->redirect("/dashboard?section=profile&tab=password");

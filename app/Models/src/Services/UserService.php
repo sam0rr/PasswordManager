@@ -49,9 +49,12 @@ class UserService extends BaseService
 
             $updates = $this->buildEncryptedUpdateData($form);
             $this->userBroker->updateUser($this->auth['user_id'], $updates);
-            $user = $this->getCurrentUserEntity();
 
-            return ["form" => $form, "user" => $user];
+            return [
+                'form' => $form,
+                'user' => $this->getCurrentUserEntity()
+            ];
+
         } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
@@ -85,7 +88,6 @@ class UserService extends BaseService
         $this->userBroker->updateUser($this->auth['user_id'], ['image_url' => $encryptedImageUrl]);
 
         return [
-            'success' => true,
             'form' => $form,
             'user' => $this->getCurrentUserEntity()
         ];
@@ -107,8 +109,8 @@ class UserService extends BaseService
 
             if ($isHtmx) {
                 return [
-                    "form" => $form,
-                    "status" => 200
+                    'form' => $form,
+                    'user' => $this->getCurrentUserEntity()
                 ];
             }
 
