@@ -40,11 +40,6 @@
         value => $user->phone
         }
 
-        {include 'avatarPreview.latte', imageUrl => $user->image_url }
-
-        <input type="hidden" name="image_url" id="image_url" value="{$user->image_url}">
-        <input type="hidden" name="temp_avatar_url" id="temp_avatar_url" value="">
-
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="bi bi-save me-2"></i> Enregistrer

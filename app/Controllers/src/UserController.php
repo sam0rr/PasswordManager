@@ -5,7 +5,6 @@ namespace Controllers\src;
 use Controllers\SecureController;
 use Models\src\Services\AuthHistoryService;
 use Models\src\Services\UserService;
-use Models\src\Services\Utils\AvatarService;
 use Models\src\Services\EncryptionService;
 use Zephyrus\Application\Form;
 use Zephyrus\Network\Response;
@@ -16,7 +15,6 @@ class UserController extends SecureController
 {
     private ?UserService $userService = null;
     private ?AuthHistoryService $authHistoryService = null;
-    private ?AvatarService $avatarService = null;
 
     public function before(): ?Response
     {
@@ -28,9 +26,7 @@ class UserController extends SecureController
         $auth = $this->getAuth();
         $this->userService = new UserService($auth);
         $this->authHistoryService = new AuthHistoryService($auth);
-        $this->avatarService = new AvatarService();
 
-        $this->avatarService->cleanupTempFiles();
         return null;
     }
 
@@ -65,6 +61,7 @@ class UserController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
+
         $result = $this->userService->updateUser($form, $isHtmx);
 
         if ($isHtmx) {
@@ -88,23 +85,28 @@ class UserController extends SecureController
         return $this->redirect("/dashboard?section=profile");
     }
 
-    #[Post('/upload-avatar-temp')]
-    public function uploadAvatarTemp(): Response
+    #[Post('/update-avatar')]
+    public function updateAvatar(): Response
     {
-        $file = $this->request->getFiles()['avatar'] ?? [];
+        $form = $this->buildForm();
+        $files = $this->request->getFiles();
+        $avatarFile = $files['avatar'] ?? null;
 
-        $result = $this->avatarService->uploadTemp($file);
+        $result = $this->userService->updateAvatar($form, $avatarFile);
 
-        if (isset($result['error'])) {
-            return $this->json(['error' => $result['error']]);
+        if (isset($result["errors"])) {
+            return $this->render("secure/dashboard", [
+                "form" => $result["form"],
+                "user" => $this->userService->getCurrentUserEntity(),
+                "activeSection" => 'profile',
+                "tab" => 'info',
+                "avatarError" => true
+            ]);
         }
 
-        return $this->render("fragments/avatarPreview", [
-            'imageUrl' => $result['publicUrl'],
-            'tempUrl' => $result['publicUrl'],
-            'isTemp' => true
-        ]);
+        return $this->redirect("/dashboard?section=profile");
     }
+
 
     #[Post('/password')]
     public function updatePassword(): Response

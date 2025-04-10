@@ -13,6 +13,10 @@ use Zephyrus\Application\Form;
 class UserService extends BaseService
 {
     protected PasswordService $passwordService;
+    protected UserBroker $userBroker;
+    protected EncryptionService $encryption;
+    protected SharingService $sharing;
+    protected AvatarService $avatar;
 
     public function __construct(array $auth)
     {
@@ -29,7 +33,7 @@ class UserService extends BaseService
         return $this->userBroker->findById($this->auth['user_id'], $this->auth['user_key']);
     }
 
-    public function updateUser(Form $form, $isHtmx): array
+    public function updateUser(Form $form, bool $isHtmx): array
     {
         try {
             UserValidator::assertUpdate($form, $this->userBroker, $this->auth['user_id']);
@@ -40,8 +44,6 @@ class UserService extends BaseService
                     "status" => 200
                 ];
             }
-
-            $this->handleTempAvatar($form);
 
             $form->removeField('password');
 
@@ -55,7 +57,41 @@ class UserService extends BaseService
         }
     }
 
-    public function updatePassword(Form $form, $isHtmx): array
+    public function updateAvatar(Form $form, ?array $avatarFile): array
+    {
+        if (empty($avatarFile) || $avatarFile['error'] !== UPLOAD_ERR_OK) {
+            $form->addError('avatar', "Veuillez sélectionner une image valide à uploader.");
+            return $this->buildErrorResponse($form);
+        }
+
+        $this->processAvatarUpload($form, $avatarFile);
+
+        if ($form->hasError()) {
+            return $this->buildErrorResponse($form);
+        }
+
+        $imageUrl = $form->getValue('image_url');
+
+        if (empty($imageUrl)) {
+            $form->addError('avatar', "Une erreur s'est produite lors de l'upload de l'image.");
+            return $this->buildErrorResponse($form);
+        }
+
+        $encryptedImageUrl = $this->encryption->encryptWithUserKey(
+            $imageUrl,
+            $this->auth['user_key']
+        );
+
+        $this->userBroker->updateUser($this->auth['user_id'], ['image_url' => $encryptedImageUrl]);
+
+        return [
+            'success' => true,
+            'form' => $form,
+            'user' => $this->getCurrentUserEntity()
+        ];
+    }
+
+    public function updatePassword(Form $form, bool $isHtmx): array
     {
         try {
             UserValidator::assertUpdatePassword($form, $isHtmx);
@@ -64,7 +100,7 @@ class UserService extends BaseService
             $currentPassword = $form->getValue('old');
             $newPassword = $form->getValue('new');
 
-            if (!$this->encryption->verifyPassword($currentPassword, $currentUser->password_hash)) {
+            if (!empty($currentPassword) && !$this->encryption->verifyPassword($currentPassword, $currentUser->password_hash)) {
                 $form->addError("old", "Mot de passe actuel invalide.");
                 throw new FormException($form);
             }
@@ -76,9 +112,7 @@ class UserService extends BaseService
                 ];
             }
 
-            // Accepter avant la rotation des clés
             $this->sharing->acceptPendingShares();
-
             $user = $this->rotateUserKey($currentUser, $newPassword);
 
             return ["form" => $form, "user" => $user];
@@ -95,15 +129,23 @@ class UserService extends BaseService
         $this->auth['user_key'] = $userKey;
     }
 
-    private function handleTempAvatar(Form $form): void
+    private function processAvatarUpload(Form $form, ?array $avatarFile): void
     {
-        $tempAvatarUrl = $form->getValue('temp_avatar_url');
-        if ($tempAvatarUrl) {
-            $result = $this->avatar->moveFromTemp($tempAvatarUrl);
-            if (!isset($result['error'])) {
+        if (!empty($avatarFile) && $avatarFile['error'] === UPLOAD_ERR_OK) {
+            $result = $this->handleAvatarUpload($avatarFile);
+
+            if (isset($result['publicUrl'])) {
                 $form->addField('image_url', $result['publicUrl']);
+            } elseif (isset($result['error'])) {
+                $form->addError('avatar', $result['error']);
+                throw new FormException($form);
             }
         }
+    }
+
+    private function handleAvatarUpload(array $avatarFile): array
+    {
+        return $this->avatar->upload($avatarFile);
     }
 
     private function buildEncryptedUpdateData(Form $form): array
@@ -112,10 +154,11 @@ class UserService extends BaseService
         $key = $this->auth['user_key'];
 
         foreach (['first_name', 'last_name', 'email', 'phone', 'image_url'] as $field) {
-            if ($form->getValue($field)) {
-                $data[$field] = $this->encryption->encryptWithUserKey($form->getValue($field), $key);
+            $value = $form->getValue($field);
+            if (!empty($value)) {
+                $data[$field] = $this->encryption->encryptWithUserKey($value, $key);
                 if ($field === 'email') {
-                    $data['email_hash'] = $this->encryption->hash256($form->getValue('email'));
+                    $data['email_hash'] = $this->encryption->hash256($value);
                 }
             }
         }

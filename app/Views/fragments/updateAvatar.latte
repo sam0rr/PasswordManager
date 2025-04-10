@@ -1,0 +1,29 @@
+<div id="avatar-form-wrapper" class="mt-4">
+    <form method="post" action="/update-avatar" enctype="multipart/form-data" novalidate>
+        <div class="mb-4">
+            <label class="form-label">Photo de profil</label>
+            <div class="d-flex align-items-center">
+                <div class="avatar-preview me-3">
+                    <img id="avatar-preview"
+                         src="{$user->image_url ?? '/assets/images/default-avatar.png'}"
+                         alt="Avatar"
+                         class="rounded-circle"
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                </div>
+                <div>
+                    <input type="file"
+                           id="avatar-input"
+                           name="avatar"
+                           class="form-control mb-2"
+                           accept="image/jpeg,image/png,image/gif,image/webp">
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-upload me-2"></i> Mettre à jour la photo
+            </button>
+        </div>
+    </form>
+</div>
