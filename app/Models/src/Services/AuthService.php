@@ -98,7 +98,7 @@ class AuthService extends BaseService
             'last_name'     => $this->encryption->encryptWithUserKey($form->getValue("last_name"), $userKey),
             'email'         => $this->encryption->encryptWithUserKey($form->getValue("email"), $userKey),
             'phone'         => $this->encryption->encryptWithUserKey($form->getValue("phone"), $userKey),
-            'image_url'     => $this->encryption->encryptWithUserKey($form->getValue("image_url") ?? "", $userKey),
+            'image_url'     => $this->encryption->encryptWithUserKey($form->getValue("image_url") ?? "/assets/images/default-avatar.png", $userKey),
             'email_hash'    => $this->encryption->hash256($form->getValue("email")),
             'password_hash' => $hashedPassword,
             'salt'          => $salt,
