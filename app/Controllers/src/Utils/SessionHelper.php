@@ -26,9 +26,15 @@ class SessionHelper
         Session::setAll(array_merge($defaults, $data));
     }
 
+    public static function get(string $key, mixed $default = null): mixed
+    {
+        return Session::get($key, $default);
+    }
+
     public static function getContext(): array
     {
         return [
+            "title" => Session::get("title"),
             "user" => Session::get("user"),
             "form" => Session::get("form"),
             "passwords" => Session::get("passwords", []),
@@ -56,5 +62,15 @@ class SessionHelper
             "auth_history", "shared_credentials", "passwordsUnlocked",
             "activeSection", "tab"
         ]);
+    }
+
+    public static function getActiveSection(): string
+    {
+        return $_GET['section'] ?? Session::get('activeSection', 'profile');
+    }
+
+    public static function getActiveTab(): string
+    {
+        return $_GET['tab'] ?? Session::get('tab', 'info');
     }
 }

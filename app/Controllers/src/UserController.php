@@ -38,10 +38,11 @@ class UserController extends SecureController
             return $this->abortNotFound("Utilisateur introuvable.");
         }
 
-        $activeSection = $this->request->getParameter('section') ?? 'profile';
-        $tab = $this->request->getParameter('tab') ?? 'info';
+        $activeSection = SessionHelper::getActiveSection();
+        $tab = SessionHelper::getActiveTab();
 
         SessionHelper::setContext([
+            'title' => "Tableau de bord",
             'user' => $user,
             'auth_history' => $this->getUserHistory(),
             'activeSection' => $activeSection,

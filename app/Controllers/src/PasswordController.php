@@ -7,6 +7,7 @@ use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\PasswordService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Delete;
+use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
 class PasswordController extends SecureController
@@ -25,6 +26,16 @@ class PasswordController extends SecureController
         return null;
     }
 
+    #[Get('/passwords')]
+    public function showPasswords(): Response
+    {
+        return $this->render("components/dashboard-sections/passwords", [
+            'form' => $this->buildForm(),
+            'passwords' => SessionHelper::get('passwords', []),
+            'passwordsUnlocked' => SessionHelper::get('passwordsUnlocked', false)
+        ]);
+    }
+
     #[Post('/passwords')]
     public function getPasswords(): Response
     {
@@ -32,9 +43,18 @@ class PasswordController extends SecureController
         $form = $this->buildForm();
 
         $result = $this->passwordService->getPasswords($form, $isHtmx);
+        $passwords = $result['passwords'] ?? [];
 
-        SessionHelper::appendContext(['passwords' => $result]);
-        return $this->json($result);
+        SessionHelper::appendContext([
+            'passwords' => $passwords,
+            'passwordsUnlocked' => true
+        ]);
+
+        return $this->render("components/dashboard-sections/passwords", [
+            'form' => $form,
+            'passwords' => $passwords,
+            'passwordsUnlocked' => true
+        ]);
     }
 
     #[Post('/addpassword')]
