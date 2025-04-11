@@ -19,8 +19,6 @@ class SessionHelper
             "auth_history" => [],
             "shared_credentials" => [],
             "passwordsUnlocked" => false,
-            "activeSection" => "profile",
-            "tab" => "info"
         ];
 
         Session::setAll(array_merge($defaults, $data));
@@ -44,7 +42,7 @@ class SessionHelper
             "auth_history" => Session::get("auth_history", []),
             "stats" => Session::get("stats", []),
             "activeSection" => $_GET['section'] ?? Session::get('activeSection', 'profile'),
-            "tab" => $_GET['tab'] ?? Session::get('tab', 'info')
+            "tab" => $_GET['tab'] ?? Session::get('tab')
         ];
     }
 

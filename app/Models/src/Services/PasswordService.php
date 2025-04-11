@@ -93,7 +93,7 @@ class PasswordService extends BaseService
             if ($isHtmx) {
                 return [
                     "form" => $form,
-                    "passwords" => $this->getAllUserPasswords($form)
+                    "password" => $password
                 ];
             }
 

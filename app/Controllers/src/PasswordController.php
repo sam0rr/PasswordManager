@@ -6,7 +6,6 @@ use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\PasswordService;
 use Zephyrus\Network\Response;
-use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
 class PasswordController extends SecureController
@@ -75,12 +74,12 @@ class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::appendContext([
+            return $this->render("secure/dashboard", [
                 'form' => $result['form'],
+                'passwordsUnlocked' => false,
                 'activeSection' => 'passwords',
                 'tab' => 'add'
             ]);
-            return $this->render("secure/dashboard", SessionHelper::getContext());
         }
 
         SessionHelper::appendContext([
@@ -109,12 +108,13 @@ class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::appendContext([
+            return $this->render("secure/dashboard", [
                 'form' => $result['form'],
+                'passwords' => [],
+                'passwordsUnlocked' => true,
                 'activeSection' => 'passwords',
                 'tab' => 'list'
             ]);
-            return $this->render("secure/dashboard", SessionHelper::getContext());
         }
 
         SessionHelper::appendContext([
@@ -142,5 +142,4 @@ class PasswordController extends SecureController
 
         return $this->redirect("/dashboard?section=passwords");
     }
-
 }
