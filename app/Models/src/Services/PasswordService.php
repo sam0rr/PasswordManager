@@ -92,7 +92,8 @@ class PasswordService extends BaseService
 
             if ($isHtmx) {
                 return [
-                    "form" => $form
+                    "form" => $form,
+                    "passwords" => $this->getAllUserPasswords($form)
                 ];
             }
 
@@ -166,9 +167,7 @@ class PasswordService extends BaseService
             }
         }
 
-        if (!is_null($form->getValue('verified'))) {
-            $updates['verified'] = filter_var($form->getValue('verified'), FILTER_VALIDATE_BOOLEAN);
-        }
+        $updates['verified'] = $form->getValue('verified') === '1';
 
         return $updates;
     }

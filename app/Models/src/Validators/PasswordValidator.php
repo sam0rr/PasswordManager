@@ -72,19 +72,10 @@ class PasswordValidator extends BaseValidator
             Rule::minLength(2, "La note doit contenir au moins 2 caractères.")
         ])->optional();
 
-        $form->field("verified", [
-            Rule::boolean("Le champ 'verified' doit être un booléen.")
-        ])->optional();
-
         $newDescription = $form->getValue("description");
         if (!empty($newDescription) && $newDescription !== $currentPassword->description
             && $broker->descriptionExistsForUser($userId, $newDescription)) {
             $form->addError("description", "Cette description est déjà utilisée.");
-        }
-
-        $newPassword = $form->getValue("password");
-        if (!empty($newPassword) && $newPassword === $currentPassword->password) {
-            $form->addError("password", "Le nouveau mot de passe doit être différent de l'ancien.");
         }
 
         $form->verify();

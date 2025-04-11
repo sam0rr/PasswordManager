@@ -6,6 +6,7 @@ use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\PasswordService;
 use Zephyrus\Network\Response;
+use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
 class PasswordController extends SecureController
@@ -102,6 +103,7 @@ class PasswordController extends SecureController
         if ($isHtmx) {
             return $this->render("fragments/passwords/passwordUpdateForm", [
                 'form' => $result['form'],
+                'password' => $result['password'],
                 'isHtmx' => true
             ]);
         }
