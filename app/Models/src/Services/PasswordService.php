@@ -28,13 +28,14 @@ class PasswordService extends BaseService
     {
         try {
             PasswordValidator::assertPasswordVerification($form, $isHtmx);
-            $user = $this->getVerifiedUser($form);
 
             if ($isHtmx) {
                 return [
                     "form" => $form
                 ];
             }
+
+            $user = $this->getVerifiedUser($form);
 
             $passwords = $this->passwordBroker->findAllByUser($user->id, $this->auth['user_key']);
             return [
