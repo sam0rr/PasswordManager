@@ -40,13 +40,14 @@ class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            return $this->render("secure/dashboard", [
+            SessionHelper::appendContext([
                 'form' => $result['form'],
                 'passwords' => [],
                 'passwordsUnlocked' => false,
                 'activeSection' => 'passwords',
                 'tab' => 'list'
             ]);
+            return $this->redirect("/dashboard?section=passwords&tab=list");
         }
 
         SessionHelper::appendContext([
@@ -56,7 +57,7 @@ class PasswordController extends SecureController
             'tab' => 'list'
         ]);
 
-        return $this->redirect("/dashboard?section=passwords");
+        return $this->redirect("/dashboard?section=passwords&tab=list");
     }
 
     #[Post('/addpassword')]
@@ -74,12 +75,13 @@ class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            return $this->render("secure/dashboard", [
+            SessionHelper::appendContext([
                 'form' => $result['form'],
                 'passwordsUnlocked' => false,
                 'activeSection' => 'passwords',
                 'tab' => 'add'
             ]);
+            return $this->redirect("/dashboard?section=passwords&tab=add");
         }
 
         SessionHelper::appendContext([
@@ -89,7 +91,7 @@ class PasswordController extends SecureController
             'tab' => 'list'
         ]);
 
-        return $this->redirect("/dashboard?section=passwords");
+        return $this->redirect("/dashboard?section=passwords&tab=list");
     }
 
     #[Post('/password/{id}')]
@@ -108,13 +110,15 @@ class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            return $this->render("secure/dashboard", [
+            SessionHelper::appendContext([
                 'form' => $result['form'],
-                'passwords' => [],
+                'passwords' => $result['passwords'] ?? [],
                 'passwordsUnlocked' => true,
+                'password' => $result['password'] ?? null,
                 'activeSection' => 'passwords',
                 'tab' => 'list'
             ]);
+            return $this->redirect("/dashboard?section=passwords&tab=list");
         }
 
         SessionHelper::appendContext([
@@ -124,7 +128,7 @@ class PasswordController extends SecureController
             'tab' => 'list'
         ]);
 
-        return $this->redirect("/dashboard?section=passwords");
+        return $this->redirect("/dashboard?section=passwords&tab=list");
     }
 
     #[Post('/password/{id}/delete')]
@@ -140,6 +144,6 @@ class PasswordController extends SecureController
             'tab' => 'list'
         ]);
 
-        return $this->redirect("/dashboard?section=passwords");
+        return $this->redirect("/dashboard?section=passwords&tab=list");
     }
 }

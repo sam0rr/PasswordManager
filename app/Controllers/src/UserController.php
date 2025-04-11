@@ -74,12 +74,13 @@ class UserController extends SecureController
         }
 
         if (isset($result["errors"])) {
-            return $this->render("secure/dashboard", [
+            SessionHelper::appendContext([
                 'form' => $result["form"],
                 'user' => $result["user"] ?? null,
                 'activeSection' => 'profile',
                 'tab' => 'info'
             ]);
+            return $this->redirect("/dashboard?section=profile&tab=info");
         }
 
         return $this->redirect("/dashboard?section=profile&tab=info");
@@ -95,13 +96,14 @@ class UserController extends SecureController
         $result = $this->userService->updateAvatar($form, $avatarFile);
 
         if (isset($result["errors"])) {
-            return $this->render("secure/dashboard", [
+            SessionHelper::appendContext([
                 'form' => $result["form"],
                 'user' => $this->userService->getCurrentUserEntity(),
                 'activeSection' => 'profile',
                 'tab' => 'info',
                 'avatarError' => true
             ]);
+            return $this->redirect("/dashboard?section=profile&tab=info");
         }
 
         return $this->redirect("/dashboard?section=profile&tab=info");
@@ -122,12 +124,13 @@ class UserController extends SecureController
         }
 
         if (isset($result["errors"])) {
-            return $this->render("secure/dashboard", [
+            SessionHelper::appendContext([
                 'form' => $result["form"],
                 'user' => $result["user"] ?? null,
                 'activeSection' => 'profile',
                 'tab' => 'password'
             ]);
+            return $this->redirect("/dashboard?section=profile&tab=password");
         }
 
         return $this->redirect("/dashboard?section=profile&tab=password");

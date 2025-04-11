@@ -11,7 +11,7 @@ class SessionHelper
     {
         $defaults = [
             "user" => null,
-            "form" => new Form(),
+            "form" => self::getActiveForm(),
             "title" => "Tableau de bord",
             "stats" => [],
             "passwords" => [],
@@ -19,6 +19,8 @@ class SessionHelper
             "auth_history" => [],
             "shared_credentials" => [],
             "passwordsUnlocked" => false,
+            "activeSection" => "profile",
+            "tab" => "info"
         ];
 
         Session::setAll(array_merge($defaults, $data));
@@ -42,7 +44,7 @@ class SessionHelper
             "auth_history" => Session::get("auth_history", []),
             "stats" => Session::get("stats", []),
             "activeSection" => $_GET['section'] ?? Session::get('activeSection', 'profile'),
-            "tab" => $_GET['tab'] ?? Session::get('tab')
+            "tab" => $_GET['tab'] ?? Session::get('tab', 'info')
         ];
     }
 
@@ -70,5 +72,17 @@ class SessionHelper
     public static function getActiveTab(): string
     {
         return $_GET['tab'] ?? Session::get('tab', 'info');
+    }
+
+    public static function getActiveForm(): Form
+    {
+        $form = Session::get("form");
+
+        if (!$form instanceof Form) {
+            $form = new Form();
+            Session::set("form", $form);
+        }
+
+        return $form;
     }
 }
