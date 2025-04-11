@@ -29,6 +29,7 @@ class UserController extends SecureController
 
         return null;
     }
+
     #[Get('/dashboard')]
     public function dashboard(): Response
     {
@@ -69,6 +70,8 @@ class UserController extends SecureController
         $form = $this->buildForm();
         $result = $this->userService->updateUser($form, $isHtmx);
 
+        SessionHelper::setForm('user_update', $result['form']);
+
         if ($isHtmx) {
             return $this->render("fragments/profile/updateProfileForm", [
                 'form' => $result['form'],
@@ -79,7 +82,6 @@ class UserController extends SecureController
 
         if (isset($result["errors"])) {
             SessionHelper::appendContext([
-                'form' => $result["form"],
                 'user' => $result["user"] ?? null,
                 'activeSection' => 'profile',
                 'tab' => 'info'
@@ -87,6 +89,7 @@ class UserController extends SecureController
             return $this->redirect("/dashboard?section=profile&tab=info");
         }
 
+        SessionHelper::clearForm('user_update');
         return $this->redirect("/dashboard?section=profile&tab=info");
     }
 
@@ -99,9 +102,10 @@ class UserController extends SecureController
 
         $result = $this->userService->updateAvatar($form, $avatarFile);
 
+        SessionHelper::setForm('user_avatar', $result['form']);
+
         if (isset($result["errors"])) {
             SessionHelper::appendContext([
-                'form' => $result["form"],
                 'user' => $this->userService->getCurrentUserEntity(),
                 'activeSection' => 'profile',
                 'tab' => 'info',
@@ -110,6 +114,7 @@ class UserController extends SecureController
             return $this->redirect("/dashboard?section=profile&tab=info");
         }
 
+        SessionHelper::clearForm('user_avatar');
         return $this->redirect("/dashboard?section=profile&tab=info");
     }
 
@@ -120,6 +125,8 @@ class UserController extends SecureController
         $form = $this->buildForm();
         $result = $this->userService->updatePassword($form, $isHtmx);
 
+        SessionHelper::setForm('user_password', $result['form']);
+
         if ($isHtmx) {
             return $this->render("fragments/profile/updatePasswordForm", [
                 'form' => $result["form"],
@@ -129,7 +136,6 @@ class UserController extends SecureController
 
         if (isset($result["errors"])) {
             SessionHelper::appendContext([
-                'form' => $result["form"],
                 'user' => $result["user"] ?? null,
                 'activeSection' => 'profile',
                 'tab' => 'password'
@@ -137,6 +143,7 @@ class UserController extends SecureController
             return $this->redirect("/dashboard?section=profile&tab=password");
         }
 
+        SessionHelper::clearForm('user_password');
         return $this->redirect("/dashboard?section=profile&tab=password");
     }
 

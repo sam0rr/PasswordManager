@@ -1,3 +1,5 @@
+{var $form = Controllers\src\Utils\SessionHelper::getForm('user_avatar')}
+
 <div id="avatar-form-wrapper" class="mt-4">
     <form method="post" action="/update-avatar" enctype="multipart/form-data" novalidate>
         <div class="mb-4">
@@ -14,11 +16,22 @@
                     <input type="file"
                            id="avatar-input"
                            name="avatar"
-                           class="form-control mb-2"
+                           class="form-control mb-2 {if $form->hasError('avatar')} is-invalid {/if}"
                            accept="image/jpeg,image/png,image/gif,image/webp">
+                    {if $form->hasError('avatar')}
+                        <div class="invalid-feedback">
+                            {=getErrorMessage('avatar', $form)}
+                        </div>
+                    {/if}
                 </div>
             </div>
         </div>
+
+        {if $form->hasError('global')}
+            <div class="alert alert-danger mt-3">
+                {=getErrorMessage('global', $form)}
+            </div>
+        {/if}
 
         <div class="d-grid gap-2 mt-2">
             <button type="submit" class="btn btn-primary btn-lg">

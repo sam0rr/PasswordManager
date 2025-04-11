@@ -11,7 +11,6 @@ class SessionHelper
     {
         $defaults = [
             "user" => null,
-            "form" => self::getActiveForm(),
             "title" => "Tableau de bord",
             "stats" => [],
             "passwords" => [],
@@ -20,7 +19,7 @@ class SessionHelper
             "shared_credentials" => [],
             "passwordsUnlocked" => false,
             "activeSection" => "profile",
-            "tab" => "info"
+            "tab" => "info",
         ];
 
         Session::setAll(array_merge($defaults, $data));
@@ -36,7 +35,7 @@ class SessionHelper
         return [
             "title" => Session::get("title"),
             "user" => Session::get("user"),
-            "form" => Session::get("form"),
+            "form" => new Form(),
             "passwords" => Session::get("passwords", []),
             "passwordsUnlocked" => Session::get("passwordsUnlocked", false),
             "shared_credentials" => Session::get("shared_credentials", []),
@@ -58,10 +57,16 @@ class SessionHelper
     public static function clearContext(): void
     {
         Session::removeAll([
-            "user", "form", "title", "stats", "passwords", "shared_passwords",
+            "user", "title", "stats", "passwords", "shared_passwords",
             "auth_history", "shared_credentials", "passwordsUnlocked",
             "activeSection", "tab"
         ]);
+
+        foreach (array_keys($_SESSION) as $key) {
+            if (str_starts_with($key, 'form__')) {
+                Session::remove($key);
+            }
+        }
     }
 
     public static function getActiveSection(): string
@@ -74,15 +79,42 @@ class SessionHelper
         return $_GET['tab'] ?? Session::get('tab', 'info');
     }
 
-    public static function getActiveForm(): Form
+    public static function setForm(string $key, Form $form): void
     {
-        $form = Session::get("form");
+        Session::set("form__{$key}", [
+            'values' => $form->getFields(),
+            'errors' => $form->getErrors()
+        ]);
+    }
 
-        if (!$form instanceof Form) {
-            $form = new Form();
-            Session::set("form", $form);
+    public static function getForm(?string $key = null): Form
+    {
+        $form = new Form();
+
+        if (is_null($key)) {
+            return $form;
+        }
+
+        $stored = Session::get("form__{$key}");
+        if (!is_array($stored)) {
+            return $form;
+        }
+
+        foreach ($stored['values'] ?? [] as $field => $value) {
+            $form->addField($field, $value);
+        }
+
+        foreach ($stored['errors'] ?? [] as $field => $messages) {
+            foreach ((array) $messages as $message) {
+                $form->addError($field, $message);
+            }
         }
 
         return $form;
+    }
+
+    public static function clearForm(string $key): void
+    {
+        Session::remove("form__{$key}");
     }
 }

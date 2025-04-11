@@ -1,3 +1,5 @@
+{var $form = Controllers\src\Utils\SessionHelper::getForm('user_update')}
+
 <div id="profile-form-wrapper">
     <form method="post"
           action="/user/update"
@@ -13,7 +15,7 @@
         label => 'Prénom',
         icon => 'person',
         form => $form,
-        value => $user->first_name
+        value => $form->getValue('first_name') ?: $user->first_name
         }
 
         {include '../../components/formField.latte',
@@ -21,7 +23,7 @@
         label => 'Nom',
         icon => 'person-badge',
         form => $form,
-        value => $user->last_name
+        value => $form->getValue('last_name') ?: $user->last_name
         }
 
         {include '../../components/formField.latte',
@@ -29,7 +31,7 @@
         label => 'Adresse courriel',
         icon => 'envelope',
         form => $form,
-        value => $user->email
+        value => $form->getValue('email') ?: $user->email
         }
 
         {include '../../components/formField.latte',
@@ -37,7 +39,7 @@
         label => 'Téléphone',
         icon => 'telephone',
         form => $form,
-        value => $user->phone
+        value => $form->getValue('phone') ?: $user->phone
         }
 
         <div class="d-grid gap-2 mt-4">
