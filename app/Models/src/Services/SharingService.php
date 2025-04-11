@@ -43,48 +43,51 @@ class SharingService extends BaseService
                 $this->sharingBroker->markAsSuccess($share->id);
             } catch (ThrowableAlias $e) {
                 $this->sharingBroker->markAsFailed($share->id);
-                error_log("Échec du partage #{$share->id} : " . $e->getMessage());
+                error_log("Échec du partage #$share->id : " . $e->getMessage());
             }
         }
     }
 
-    public function getShares(?string $status = null): array
+    public function getAllShares($form): array
     {
-        $shares = $this->sharingBroker->findAllSharesByOwner($this->auth['user_id'], $status);
+        try {
+            return $this->sharingBroker->findAllSharesByOwner($this->auth['user_id']);
 
-        return [
-            'shares' => array_map(fn(PasswordSharing $share) => $this->buildShareResponse($share), $shares)
-        ];
+        } catch (FormException) {
+            $form->addError("global", "Erreur lors du fetch des shares.");
+            throw new FormException($form);
+        }
     }
 
-    public function deleteShare(string $shareId): array
+    public function deleteShare(string $shareId, $form): array
     {
-        $share = $this->sharingBroker->findById($shareId);
+        try {
+            $share = $this->sharingBroker->findById($shareId);
+            $this->sharingBroker->deleteShare($share->id);
 
-        if (!$share) {
-            return $this->buildStatusResponse(404, 'Partage inexistant.');
+            return [
+                "form" => $form
+            ];
+
+        } catch (FormException) {
+            $form->addError("global", "Erreur lors de la suppression.");
+            throw new FormException($form);
         }
-
-        if ($share->owner_id !== $this->auth['user_id']) {
-            return $this->buildStatusResponse(403, 'Vous ne pouvez pas supprimer ce partage.');
-        }
-
-        $deleted = $this->sharingBroker->deleteShare($shareId);
-
-        return [
-            'success' => $deleted,
-            'message' => $deleted
-                ? 'Partage supprimé avec succès.'
-                : 'Une erreur est survenue lors de la suppression.'
-        ];
     }
 
-    public function sharePassword(Form $form, string $passwordId): array
+    public function sharePassword(Form $form, string $passwordId, $isHtmx): array
     {
         try {
             $ownerId = $this->auth['user_id'];
             
-            SharingValidator::assertShare($form, $this->userBroker, $ownerId);
+            SharingValidator::assertShare($form, $this->userBroker, $ownerId, $isHtmx);
+
+
+            if ($isHtmx) {
+                return [
+                    "form" => $form
+                ];
+            }
 
             $password = $this->getPassword($passwordId, $form);
             $recipient = $this->fetchRecipient($form);
@@ -98,7 +101,10 @@ class SharingService extends BaseService
 
             $this->insertSharingRecord($recipient->id, $encPassword, $encDescription, $encEmailFrom);
 
-            return $this->buildSuccessResponse();
+            return [
+                "form" => $form
+            ];
+
         } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
@@ -140,19 +146,6 @@ class SharingService extends BaseService
             'status'                => 'pending',
             'expires_at'            => date('Y-m-d H:i:s', strtotime('+7 days'))
         ]);
-    }
-
-    private function buildShareResponse(PasswordSharing $share): array
-    {
-        return [
-            'id' => $share->id,
-            'status' => $share->status,
-            'shared_id' => $share->shared_id,
-            'owner_id' => $share->owner_id,
-            'expires_at' => $share->expires_at,
-            'created_at' => $share->created_at,
-            'updated_at' => $share->updated_at
-        ];
     }
 
     private function isExpired(PasswordSharing $share): bool
@@ -198,21 +191,5 @@ class SharingService extends BaseService
             'password'         => $this->encryption->encryptWithUserKey($password, $userKey),
             'verified'         => false
         ], $userKey);
-    }
-
-    private function buildSuccessResponse(): array
-    {
-        return [
-            "success" => true,
-            "message" => "Mot de passe partagé avec succès."
-        ];
-    }
-
-    private function buildStatusResponse(int $status, string $message): array
-    {
-        return [
-            'status' => $status,
-            'error' => $message
-        ];
     }
 }

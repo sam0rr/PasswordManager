@@ -3,14 +3,15 @@
 namespace Controllers\src;
 
 use Controllers\SecureController;
+use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\SharingService;
 use Zephyrus\Network\Response;
-use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
+use Zephyrus\Network\Router\Get;
 
 class SharingController extends SecureController
 {
-    private SharingService $service;
+    private ?SharingService $sharingService = null;
 
     public function before(): ?Response
     {
@@ -20,32 +21,70 @@ class SharingController extends SecureController
         }
 
         $auth = $this->getAuth();
-        $this->service = new SharingService($auth);
+        $this->sharingService = new SharingService($auth);
         return null;
     }
 
     #[Post('/share/{id}')]
     public function sharePassword(string $id): Response
     {
+        $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->service->sharePassword($form, $id);
-        return $this->json($result);
-    }
+        $result = $this->sharingService->sharePassword($form, $id, $isHtmx);
 
-    #[Get('/shares')]
-    public function listShares(): Response
-    {
-        $status = $this->request->getParameter('status');
-        $result = $this->service->getShares($status);
-        return $this->json($result);
+        SessionHelper::setForm("share_$id", $result['form']);
+
+        if ($isHtmx) {
+            return $this->render("fragments/sharing/shareForm", [
+                'form' => $result['form'],
+                'passwordId' => $id,
+                'isHtmx' => true
+            ]);
+        }
+
+        if (isset($result['errors'])) {
+            SessionHelper::appendContext([
+                'activeSection' => 'shares',
+                'tab' => 'send'
+            ]);
+            return $this->redirect("/dashboard?section=shares&tab=send");
+        }
+
+        $shares = $this->sharingService->getAllShares($form);
+        $this->setSharingContext($shares);
+        SessionHelper::clearForm("share_$id");
+        return $this->redirect("/dashboard?section=shares&tab=list");
     }
 
     #[Post('/share/{id}/delete')]
     public function deleteShare(string $id): Response
     {
-        $result = $this->service->deleteShare($id);
-        return $this->json($result);
+        $form = $this->buildForm();
+        $result = $this->sharingService->deleteShare($id, $form);
+
+        SessionHelper::setForm("share_delete_$id", $result['form']);
+        $shares = $this->sharingService->getAllShares($form);
+        $this->setSharingContext($shares);
+        SessionHelper::clearForm("share_delete_$id");
+        return $this->redirect("/dashboard?section=shares&tab=list");
     }
 
+    #[Get('/shares')]
+    public function listShares(): Response
+    {
+        $form = $this->buildForm();
 
+        $shares = $this->sharingService->getAllShares($form);
+        $this->setSharingContext($shares);
+        return $this->redirect("/dashboard?section=shares&tab=list");
+    }
+
+    private function setSharingContext(array $shares): void
+    {
+        SessionHelper::appendContext([
+            'shared_credentials' => $shares,
+            'activeSection' => 'shares',
+            'tab' => 'list'
+        ]);
+    }
 }

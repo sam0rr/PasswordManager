@@ -64,7 +64,9 @@ class PasswordService extends BaseService
     public function addPassword(Form $form, bool $isHtmx): array
     {
         try {
-            PasswordValidator::assertAdd($form, $this->passwordBroker, $this->auth['user_id'], $isHtmx);
+            $userId = $this->auth['user_id'];
+
+            PasswordValidator::assertAdd($form, $this->passwordBroker, $userId, $isHtmx);
 
             if ($isHtmx) {
                 return [
@@ -120,6 +122,7 @@ class PasswordService extends BaseService
         try {
             $password = $this->getPassword($id, $form);
             $this->passwordBroker->deletePassword($password->id);
+
             return [
                 "form" => $form
             ];

@@ -63,15 +63,10 @@ class SharingBroker extends DatabaseBroker
         return array_map(fn($row) => PasswordSharing::build($row), $rows);
     }
 
-    public function findAllSharesByOwner(string $ownerId, ?string $status = null): array
+    public function findAllSharesByOwner(string $ownerId): array
     {
-        if ($status !== null) {
-            $sql = "SELECT * FROM password_sharing WHERE owner_id = ? AND status = ? ORDER BY created_at DESC";
-            $rows = $this->select($sql, [$ownerId, $status]);
-        } else {
-            $sql = "SELECT * FROM password_sharing WHERE owner_id = ? ORDER BY created_at DESC";
-            $rows = $this->select($sql, [$ownerId]);
-        }
+        $sql = "SELECT * FROM password_sharing WHERE owner_id = ? ORDER BY created_at DESC";
+        $rows = $this->select($sql, [$ownerId]);
 
         return array_map(fn($row) => PasswordSharing::build($row), $rows);
     }
