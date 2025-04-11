@@ -47,13 +47,13 @@ class SharingController extends SecureController
                 'activeSection' => 'shares',
                 'tab' => 'send'
             ]);
-            return $this->redirect("/dashboard?section=shares&tab=send");
+            return $this->redirect("/dashboard?section=shares");
         }
 
         $shares = $this->sharingService->getAllShares($form);
         $this->setSharingContext($shares);
         SessionHelper::clearForm("share_$id");
-        return $this->redirect("/dashboard?section=shares&tab=list");
+        return $this->redirect("/dashboard?section=shares");
     }
 
     #[Post('/share/{id}/delete')]
@@ -64,17 +64,7 @@ class SharingController extends SecureController
 
         $shares = $this->sharingService->getAllShares($form);
         $this->setSharingContext($shares);
-        return $this->redirect("/dashboard?section=shares&tab=list");
-    }
-
-    #[Get('/shares')]
-    public function listShares(): Response
-    {
-        $form = $this->buildForm();
-
-        $shares = $this->sharingService->getAllShares($form);
-        $this->setSharingContext($shares);
-        return $this->redirect("/dashboard?section=shares&tab=list");
+        return $this->redirect("/dashboard?section=shares");
     }
 
     private function setSharingContext(array $shares): void
