@@ -76,8 +76,7 @@ class PasswordService extends BaseService
             $this->passwordBroker->createPassword($data, $this->auth['user_key']);
 
             return [
-                "form" => $form,
-                "passwords" => $this->getAllUserPasswords($form)
+                "form" => $form
             ];
 
         } catch (FormException) {
@@ -104,12 +103,15 @@ class PasswordService extends BaseService
             }
 
             return [
-                "form" => $form,
-                "passwords" => $this->getAllUserPasswords($form)
+                "form" => $form
             ];
 
         } catch (FormException) {
-            return $this->buildErrorResponse($form);
+            $password = $this->passwordBroker->findById($id, $this->auth['user_key']);
+            return array_merge(
+                $this->buildErrorResponse($form),
+                ['password' => $password]
+            );
         }
     }
 
@@ -119,8 +121,7 @@ class PasswordService extends BaseService
             $password = $this->getPassword($id, $form);
             $this->passwordBroker->deletePassword($password->id);
             return [
-                "form" => $form,
-                "passwords" => $this->getAllUserPasswords($form)
+                "form" => $form
             ];
         } catch (FormException) {
             $form->addError("global", "Erreur lors de la suppression.");

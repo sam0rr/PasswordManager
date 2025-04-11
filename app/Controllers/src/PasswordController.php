@@ -76,7 +76,8 @@ class PasswordController extends SecureController
             return $this->redirect("/dashboard?section=passwords&tab=add");
         }
 
-        $this->setPasswordContext($result['passwords']);
+        $passwords = $this->passwordService->getAllUserPasswords($form);
+        $this->setPasswordContext($passwords);
         SessionHelper::clearForm('password_add');
         return $this->redirect("/dashboard?section=passwords&tab=list");
     }
@@ -88,7 +89,7 @@ class PasswordController extends SecureController
         $form = $this->buildForm();
         $result = $this->passwordService->updatePassword($form, $id, $isHtmx);
 
-        SessionHelper::setForm('password_update', $result['form']);
+        SessionHelper::setForm("password_update_$id", $result['form']);
 
         if ($isHtmx) {
             return $this->render("fragments/passwords/passwordUpdateForm", [
@@ -100,7 +101,6 @@ class PasswordController extends SecureController
 
         if (isset($result['errors'])) {
             SessionHelper::appendContext([
-                'passwords' => $result['passwords'] ?? [],
                 'passwordsUnlocked' => true,
                 'password' => $result['password'] ?? null,
                 'activeSection' => 'passwords',
@@ -109,8 +109,9 @@ class PasswordController extends SecureController
             return $this->redirect("/dashboard?section=passwords&tab=list");
         }
 
-        $this->setPasswordContext($result['passwords']);
-        SessionHelper::clearForm('password_update');
+        $passwords = $this->passwordService->getAllUserPasswords($form);
+        $this->setPasswordContext($passwords);
+        SessionHelper::clearForm("password_update_$id");
         return $this->redirect("/dashboard?section=passwords&tab=list");
     }
 
@@ -121,7 +122,8 @@ class PasswordController extends SecureController
         $result = $this->passwordService->deletePassword($form, $id);
 
         SessionHelper::setForm('password_delete', $result['form']);
-        $this->setPasswordContext($result['passwords']);
+        $passwords = $this->passwordService->getAllUserPasswords($form);
+        $this->setPasswordContext($passwords);
         SessionHelper::clearForm('password_delete');
         return $this->redirect("/dashboard?section=passwords&tab=list");
     }

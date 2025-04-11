@@ -2,7 +2,6 @@
 
 namespace Models\src\Services;
 
-use Controllers\src\Utils\SessionHelper;
 use InvalidArgumentException;
 use Models\src\Services\Utils\BaseService;
 use RuntimeException;
