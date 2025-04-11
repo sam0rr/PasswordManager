@@ -41,21 +41,25 @@ class UserController extends SecureController
         $section = $params['section'] ?? 'profile';
         $tab = $params['tab'] ?? 'list';
 
-        $existingContext = SessionHelper::getContext();
-
-        $computedContext = [
+        $baseContext = [
             'title' => "Tableau de bord",
             'user' => $user,
             'auth_history' => $this->getUserHistory(),
             'activeSection' => $section,
-            'tab' => $tab,
-            'passwordsUnlocked' => ($section === 'passwords')
+            'tab' => $tab
         ];
-        $finalContext = array_merge($computedContext, $existingContext);
 
-        SessionHelper::setContext($finalContext);
+        if (!SessionHelper::get("user")) {
+            $baseContext['passwordsUnlocked'] = ($section === 'passwords');
+            SessionHelper::setContext($baseContext);
+        } else {
+            if ($section !== 'passwords') {
+                $baseContext['passwordsUnlocked'] = false;
+            }
+            SessionHelper::appendContext($baseContext);
+        }
 
-        return $this->render("secure/dashboard", $finalContext);
+        return $this->render("secure/dashboard", SessionHelper::getContext());
     }
 
     #[Post('/user/update')]
