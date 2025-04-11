@@ -35,9 +35,9 @@ class SharingController extends SecureController
         SessionHelper::setForm("share_$id", $result['form']);
 
         if ($isHtmx) {
-            return $this->render("fragments/sharing/shareForm", [
+            return $this->render("fragments/passwords/passwordShareForm", [
                 'form' => $result['form'],
-                'passwordId' => $id,
+                'password' => $result['password'],
                 'isHtmx' => true
             ]);
         }

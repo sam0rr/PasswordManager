@@ -79,13 +79,14 @@ class SharingService extends BaseService
     {
         try {
             $ownerId = $this->auth['user_id'];
-            
-            SharingValidator::assertShare($form, $this->userBroker, $ownerId, $isHtmx);
 
+            $password = $this->getPassword($passwordId, $form);
+            SharingValidator::assertShare($form, $this->userBroker, $ownerId, $isHtmx);
 
             if ($isHtmx) {
                 return [
-                    "form" => $form
+                    "form" => $form,
+                    "password" => $password
                 ];
             }
 
@@ -93,7 +94,6 @@ class SharingService extends BaseService
             $recipient = $this->fetchRecipient($form);
 
             $this->assertNotAlreadyShared($form, $ownerId, $recipient->id, $password->description_hash);
-            $this->getAuthenticatedUser($form->getValue("password"), $form);
 
             $encPassword = $this->encryptFromPublicKey($password->password, $recipient->public_key);
             $encDescription = $this->encryptFromPublicKey($password->description, $recipient->public_key);
@@ -106,7 +106,11 @@ class SharingService extends BaseService
             ];
 
         } catch (FormException) {
-            return $this->buildErrorResponse($form);
+            $password = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
+            return array_merge(
+                $this->buildErrorResponse($form),
+                ['password' => $password]
+            );
         }
     }
 

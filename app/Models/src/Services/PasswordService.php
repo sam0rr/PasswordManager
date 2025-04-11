@@ -89,8 +89,10 @@ class PasswordService extends BaseService
     public function updatePassword(Form $form, string $id, bool $isHtmx): array
     {
         try {
+            $userId = $this->auth['user_id'];
+
             $password = $this->getPassword($id, $form);
-            PasswordValidator::assertUpdate($form, $this->passwordBroker, $this->auth['user_id'], $password);
+            PasswordValidator::assertUpdate($form, $this->passwordBroker, $userId, $password);
 
             if ($isHtmx) {
                 return [
