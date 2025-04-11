@@ -60,12 +60,10 @@ class SharingController extends SecureController
     public function deleteShare(string $id): Response
     {
         $form = $this->buildForm();
-        $result = $this->sharingService->deleteShare($id, $form);
+        $this->sharingService->deleteShare($id, $form);
 
-        SessionHelper::setForm("share_delete_$id", $result['form']);
         $shares = $this->sharingService->getAllShares($form);
         $this->setSharingContext($shares);
-        SessionHelper::clearForm("share_delete_$id");
         return $this->redirect("/dashboard?section=shares&tab=list");
     }
 

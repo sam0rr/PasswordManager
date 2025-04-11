@@ -119,12 +119,10 @@ class PasswordController extends SecureController
     public function deletePassword(string $id): Response
     {
         $form = $this->buildForm();
-        $result = $this->passwordService->deletePassword($form, $id);
+        $this->passwordService->deletePassword($form, $id);
 
-        SessionHelper::setForm('password_delete', $result['form']);
         $passwords = $this->passwordService->getAllUserPasswords($form);
         $this->setPasswordContext($passwords);
-        SessionHelper::clearForm('password_delete');
         return $this->redirect("/dashboard?section=passwords&tab=list");
     }
 
