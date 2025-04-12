@@ -7,7 +7,6 @@ use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\SharingService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Post;
-use Zephyrus\Network\Router\Get;
 
 class SharingController extends SecureController
 {

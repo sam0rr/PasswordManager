@@ -7,6 +7,8 @@ use Controllers\src\Utils\SessionHelper;
 use Models\src\Entities\User;
 use Models\src\Services\AuthHistoryService;
 use Models\src\Services\EncryptionService;
+use Models\src\Services\PasswordService;
+use Models\src\Services\SecurityService;
 use Models\src\Services\SharingService;
 use Models\src\Services\UserService;
 use Zephyrus\Application\Form;
@@ -19,6 +21,8 @@ class UserController extends SecureController
     private ?UserService $userService = null;
     private ?AuthHistoryService $authHistoryService = null;
     private ?SharingService $sharingService = null;
+    private ?PasswordService $passwordService = null;
+    private ?SecurityService $securityService = null;
 
     public function before(): ?Response
     {
@@ -31,6 +35,8 @@ class UserController extends SecureController
         $this->userService = new UserService($auth);
         $this->authHistoryService = new AuthHistoryService($auth);
         $this->sharingService = new SharingService($auth);
+        $this->passwordService = new PasswordService($auth);
+        $this->securityService = new SecurityService();
 
         return null;
     }
@@ -153,6 +159,7 @@ class UserController extends SecureController
         if (!SessionHelper::get("user")) {
             $baseContext['passwordsUnlocked'] = ($section === 'passwords');
             $baseContext['shared_credentials'] = $this->getInitialSharesIfNeeded();
+            $baseContext['passwords'] = $this->getInitialPasswordsIfNeeded();
             SessionHelper::setContext($baseContext);
         } else {
             if ($section !== 'passwords') {
@@ -161,8 +168,16 @@ class UserController extends SecureController
             SessionHelper::appendContext($baseContext);
         }
 
+        if ($section === 'security' && SessionHelper::get('passwordsUnlocked')) {
+            $baseContext['security_analysis'] = SecurityService::analyzeSecurity(
+                SessionHelper::get('passwords', [])
+            );
+            SessionHelper::appendContext(['security_analysis' => $baseContext['security_analysis']]);
+        }
+
         return SessionHelper::getContext();
     }
+
 
     private function getDashboardUser(): User
     {
@@ -191,6 +206,11 @@ class UserController extends SecureController
     private function getInitialSharesIfNeeded(): array
     {
         return $this->sharingService->getAllShares(new Form());
+    }
+
+    private function getInitialPasswordsIfNeeded(): array
+    {
+        return $this->passwordService->getAllUserPasswords(new Form());
     }
 
 }

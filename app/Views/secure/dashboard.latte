@@ -8,6 +8,7 @@
                 <option value="?section=passwords" {$activeSection == 'passwords' ? 'selected' : ''}>Mots de passe</option>
                 <option value="?section=history" {$activeSection == 'history' ? 'selected' : ''}>Historique</option>
                 <option value="?section=shares" {$activeSection == 'shares' ? 'selected' : ''}>Partages</option>
+                <option value="?section=security" {$activeSection == 'security' ? 'selected' : ''}>Sécurité</option>
             </select>
         </div>
 
@@ -24,6 +25,9 @@
             <li class="nav-item">
                 <a class="nav-link {$activeSection == 'shares' ? 'active' : ''}" href="?section=shares">Partages</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {$activeSection == 'security' ? 'active' : ''}" href="?section=security">Sécurité</a>
+            </li>
         </ul>
 
         {if $activeSection == 'profile'}
@@ -34,6 +38,8 @@
             {include '../components/dashboard-sections/history.latte', auth_history => $auth_history}
         {elseif $activeSection == 'shares'}
             {include '../components/dashboard-sections/shares.latte', shared_credentials => $shared_credentials, user => $user}
+        {elseif $activeSection == 'security'}
+            {include '../components/dashboard-sections/security.latte', passwords => $passwords}
         {/if}
     </div>
 
