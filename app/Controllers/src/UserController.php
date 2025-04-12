@@ -127,7 +127,7 @@ class UserController extends SecureController
         }
 
         SessionHelper::clearForm('user_password');
-        return $this->redirect("/dashboard?section=profile&tab=password");
+        return $this->redirect("/dashboard?section=profile&tab=info");
     }
 
     #[Get('/logout')]
