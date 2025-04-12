@@ -1,18 +1,45 @@
 {import 'sharingCard.latte'}
 
+{var $pendingShares = array_filter($shared_credentials, fn($s) => $s->status == 'pending')}
+{var $successShares = array_filter($shared_credentials, fn($s) => $s->status == 'success')}
+{var $failedShares = array_filter($shared_credentials, fn($s) => $s->status == 'fail')}
+
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white">
         <h5 class="mb-0">Partages</h5>
     </div>
     <div class="card-body">
-        {if count($shared_credentials) > 0}
-            <div class="row">
-                {foreach $shared_credentials as $share}
+
+        {if count($successShares) > 0}
+            <h6 class="text-success mb-3 mt-2"><i class="bi bi-check-circle me-1"></i> Partages réussis</h6>
+            <div class="row g-3 mb-4">
+                {foreach $successShares as $share}
                     {include #sharingCard, share => $share, user => $user}
                 {/foreach}
             </div>
-        {else}
-            <p class="text-muted">Aucun partage pour le moment.</p>
         {/if}
+
+        {if count($pendingShares) > 0}
+            <h6 class="text-warning mb-3"><i class="bi bi-hourglass-split me-1"></i> En attente</h6>
+            <div class="row g-3 mb-4">
+                {foreach $pendingShares as $share}
+                    {include #sharingCard, share => $share, user => $user}
+                {/foreach}
+            </div>
+        {/if}
+
+        {if count($failedShares) > 0}
+            <h6 class="text-danger mb-3"><i class="bi bi-x-circle me-1"></i> Échecs de partage</h6>
+            <div class="row g-3 mb-4">
+                {foreach $failedShares as $share}
+                    {include #sharingCard, share => $share, user => $user}
+                {/foreach}
+            </div>
+        {/if}
+
+        {if count($shared_credentials) == 0}
+            <p class="text-muted mb-0">Aucun partage pour le moment.</p>
+        {/if}
+
     </div>
 </div>

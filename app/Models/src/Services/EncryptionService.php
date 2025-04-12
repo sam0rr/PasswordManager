@@ -28,18 +28,13 @@ class EncryptionService extends BaseService
         Session::set(self::CONTEXT_KEY, $encryptedPayload);
     }
 
-    public function getUserKeyFromContext(): ?string
+    public static function isAuthenticated(): bool
     {
-        $payload = Session::get(self::CONTEXT_KEY);
-        if (is_null($payload)) {
-            return null;
-        }
-
-        $data = json_decode(Cryptography::decrypt($payload), true);
-        return $data['key'] ?? null;
+        return !is_null(EncryptionService::getUserIdFromContext()) &&
+            !is_null(EncryptionService::getUserKeyFromContext());
     }
 
-    public function getUserIdFromContext(): ?string
+    public static function getUserIdFromContext(): ?string
     {
         $payload = Session::get(self::CONTEXT_KEY);
         if (is_null($payload)) {
@@ -48,6 +43,17 @@ class EncryptionService extends BaseService
 
         $data = json_decode(Cryptography::decrypt($payload), true);
         return $data['user_id'] ?? null;
+    }
+
+    public static function getUserKeyFromContext(): ?string
+    {
+        $payload = Session::get(self::CONTEXT_KEY);
+        if (is_null($payload)) {
+            return null;
+        }
+
+        $data = json_decode(Cryptography::decrypt($payload), true);
+        return $data['key'] ?? null;
     }
 
     public function encryptWithUserKey(string $data, string $userKey): string

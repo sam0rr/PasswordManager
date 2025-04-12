@@ -129,7 +129,6 @@ class UserController extends SecureController
     #[Get('/logout')]
     public function logout(): Response
     {
-        SessionHelper::clearContext();
         EncryptionService::destroySession();
         return $this->redirect("/login");
     }

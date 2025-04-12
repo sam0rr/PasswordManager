@@ -18,11 +18,10 @@ abstract class SecureController extends Controller
 
     public function before(): ?Response
     {
-        $encryptionService = new EncryptionService();
         $authHistoryService = new AuthHistoryService($this->getAuth());
 
-        $this->currentUserKey = $encryptionService->getUserKeyFromContext();
-        $this->currentUserId = $encryptionService->getUserIdFromContext();
+        $this->currentUserKey = EncryptionService::getUserKeyFromContext();
+        $this->currentUserId = EncryptionService::getUserIdFromContext();
 
         if (is_null($this->currentUserKey) || is_null($this->currentUserId)) {
             return $this->redirect("/login");
@@ -35,4 +34,5 @@ abstract class SecureController extends Controller
 
         return parent::before();
     }
+
 }

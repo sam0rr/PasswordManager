@@ -52,31 +52,6 @@ class SessionHelper
         }
     }
 
-    public static function clearContext(): void
-    {
-        Session::removeAll([
-            "user", "title", "stats", "passwords", "shared_passwords",
-            "auth_history", "shared_credentials", "passwordsUnlocked",
-            "activeSection", "tab"
-        ]);
-
-        foreach (array_keys($_SESSION) as $key) {
-            if (str_starts_with($key, 'form__')) {
-                Session::remove($key);
-            }
-        }
-    }
-
-    public static function getActiveSection(): string
-    {
-        return $_GET['section'] ?? Session::get('activeSection', 'profile');
-    }
-
-    public static function getActiveTab(): string
-    {
-        return $_GET['tab'] ?? Session::get('tab', 'info');
-    }
-
     public static function setForm(string $key, Form $form): void
     {
         Session::set("form__{$key}", [

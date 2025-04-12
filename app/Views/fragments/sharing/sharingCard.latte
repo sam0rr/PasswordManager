@@ -17,17 +17,21 @@
                 </div>
 
                 <div class="mb-3">
-                    {if $share->status == 'active'}
+                    {if $share->status == 'success'}
                         <span class="badge bg-success">
-                            <i class="bi bi-check-circle me-1"></i> Actif
+                            <i class="bi bi-check-circle me-1"></i> Accepté
                         </span>
                     {elseif $share->status == 'pending'}
                         <span class="badge bg-warning text-dark">
                             <i class="bi bi-hourglass-split me-1"></i> En attente
                         </span>
-                    {else}
+                    {elseif $share->status == 'fail'}
                         <span class="badge bg-danger">
                             <i class="bi bi-x-circle me-1"></i> Échoué
+                        </span>
+                    {else}
+                        <span class="badge bg-secondary">
+                            <i class="bi bi-question-circle me-1"></i> Inconnu
                         </span>
                     {/if}
                 </div>
