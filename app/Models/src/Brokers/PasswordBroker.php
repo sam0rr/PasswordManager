@@ -97,6 +97,12 @@ class PasswordBroker extends DatabaseBroker
         return (bool) $this->selectSingle($sql, [$userId, $hash]);
     }
 
+    public function descriptionHashExistsForUser(string $userId, string $descriptionHash): bool
+    {
+        $sql = "SELECT 1 FROM user_password WHERE user_id = ? AND description_hash = ?";
+        return $this->selectSingle($sql, [$userId, $descriptionHash]) !== null;
+    }
+
     private function decryptPassword(UserPassword $password, string $userKey): UserPassword
     {
         $password->description = $this->encryption->decryptWithUserKey($password->description, $userKey);

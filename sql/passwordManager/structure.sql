@@ -84,6 +84,7 @@ CREATE TABLE password_sharing (
     encrypted_email_from TEXT NOT NULL,
     encrypted_password TEXT NOT NULL,
     encrypted_description TEXT NOT NULL,
+    description_hash TEXT NOT NULL,
     status share_status NOT NULL DEFAULT 'pending',
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

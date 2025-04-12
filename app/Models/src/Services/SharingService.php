@@ -83,6 +83,12 @@ class SharingService extends BaseService
             $password = $this->getPassword($passwordId, $form);
             SharingValidator::assertShare($form, $this->userBroker, $ownerId, $isHtmx);
 
+            $recipient = $this->fetchRecipient($form);
+
+            $this->assertRecipientHasNotThisDescription($form, $recipient->id, $password->description_hash);
+
+            $this->assertNotAlreadyShared($form, $ownerId, $recipient->id, $password->description_hash);
+
             if ($isHtmx) {
                 return [
                     "form" => $form,
@@ -90,16 +96,17 @@ class SharingService extends BaseService
                 ];
             }
 
-            $password = $this->getPassword($passwordId, $form);
-            $recipient = $this->fetchRecipient($form);
-
-            $this->assertNotAlreadyShared($form, $ownerId, $recipient->id, $password->description_hash);
-
             $encPassword = $this->encryptFromPublicKey($password->password, $recipient->public_key);
             $encDescription = $this->encryptFromPublicKey($password->description, $recipient->public_key);
             $encEmailFrom = $this->encryptFromPublicKey($password->email_from, $recipient->public_key);
 
-            $this->insertSharingRecord($recipient->id, $encPassword, $encDescription, $encEmailFrom);
+            $this->insertSharingRecord(
+                $recipient->id,
+                $encPassword,
+                $encDescription,
+                $encEmailFrom,
+                $password->description_hash
+            );
 
             return [
                 "form" => $form
@@ -121,14 +128,6 @@ class SharingService extends BaseService
         return $this->userBroker->findByEmail($form->getValue("email"));
     }
 
-    private function assertNotAlreadyShared(Form $form, string $ownerId, string $recipientId, string $descriptionHash): void
-    {
-        if ($this->sharingBroker->isAlreadyShared($ownerId, $recipientId, $descriptionHash)) {
-            $form->addError("email", "Ce mot de passe est déjà partagé avec cet utilisateur.");
-            throw new FormException($form);
-        }
-    }
-
     private function encryptFromPublicKey(string $value, string $recipientPublicKey): string
     {
         return $this->encryption->encryptWithPublicKey($value, $recipientPublicKey);
@@ -139,12 +138,18 @@ class SharingService extends BaseService
         return $this->encryption->decryptFromPublicKey($encrypted, $publicKey, $userKey);
     }
 
-    private function insertSharingRecord(string $recipientId, string $encPassword, string $encDescription, string $encryptedEmailFrom): void
-    {
+    private function insertSharingRecord(
+        string $recipientId,
+        string $encPassword,
+        string $encDescription,
+        string $encEmailFrom,
+        string $descriptionHash
+    ): void {
         $this->sharingBroker->insertSharing([
             'encrypted_password'    => $encPassword,
             'encrypted_description' => $encDescription,
-            'encrypted_email_from'  => $encryptedEmailFrom,
+            'encrypted_email_from'  => $encEmailFrom,
+            'description_hash'      => $descriptionHash,
             'owner_id'              => $this->auth['user_id'],
             'shared_id'             => $recipientId,
             'status'                => 'pending',
@@ -165,7 +170,7 @@ class SharingService extends BaseService
         $password = $this->decryptFromPublicKey($share->encrypted_password, $publicKey, $userKey);
         $emailFrom = $this->decryptFromPublicKey($share->encrypted_email_from, $publicKey, $userKey);
 
-        $this->assertUniqueDescription($description);
+        $this->assertUniqueDescription($share->description_hash);
 
         $this->storeSharedPassword($description, $password, $emailFrom, $userKey);
     }
@@ -175,9 +180,25 @@ class SharingService extends BaseService
         return $this->userBroker->findById($this->auth['user_id'])->public_key;
     }
 
-    private function assertUniqueDescription(string $description): void
+    private function assertRecipientHasNotThisDescription(Form $form, string $recipientId, string $descriptionHash): void
     {
-        if ($this->passwordBroker->descriptionExistsForUser($this->auth['user_id'], $description)) {
+        if ($this->passwordBroker->descriptionHashExistsForUser($recipientId, $descriptionHash)) {
+            $form->addError("email", "L'utilisateur possède déjà ce mot de passe.");
+            throw new FormException($form);
+        }
+    }
+
+    private function assertNotAlreadyShared(Form $form, string $ownerId, string $recipientId, string $descriptionHash): void
+    {
+        if ($this->sharingBroker->isAlreadyShared($ownerId, $recipientId, $descriptionHash)) {
+            $form->addError("email", "Ce mot de passe est déjà partagé avec cet utilisateur.");
+            throw new FormException($form);
+        }
+    }
+
+    private function assertUniqueDescription(string $descriptionHash): void
+    {
+        if ($this->passwordBroker->descriptionHashExistsForUser($this->auth['user_id'], $descriptionHash)) {
             throw new RuntimeException("Conflit : un mot de passe avec cette description existe déjà.");
         }
     }
