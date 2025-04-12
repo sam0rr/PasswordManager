@@ -81,6 +81,7 @@ class SecurityService
             $analysis = self::calculatePasswordStrength($pwd->password);
             $results[] = [
                 'description' => $pwd->description,
+                'note' => $pwd->note ?? null,
                 'entropy' => $analysis['entropy'],
                 'strength' => $analysis['strength']
             ];

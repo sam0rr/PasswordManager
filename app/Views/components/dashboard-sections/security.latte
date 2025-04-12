@@ -1,8 +1,52 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white">
-        <h5 class="mb-0">Paramètres de sécurité</h5>
+        <h5 class="mb-0">
+            <i class="bi bi-shield-lock me-2"></i>Analyse de sécurité des mots de passe
+        </h5>
     </div>
-    <div class="card-body text-muted">
-        <i class="bi bi-info-circle me-2"></i>Cette section n’est pas encore implémentée.
+    <div class="card-body">
+        {if count($security_analysis) > 0}
+            <div class="list-group list-group-flush">
+                {foreach $security_analysis as $entry}
+                    <div class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
+                        <div class="mb-2 mb-md-0 w-100 w-md-50">
+                            <div class="fw-bold text-dark">
+                                <i class="bi bi-lock-fill me-2"></i>{$entry['description']}
+                            </div>
+                            <div class="text-muted small fst-italic">
+                                {$entry['note'] ?? 'Aucune note'}
+                            </div>
+                            <div class="text-muted small mt-1">
+                                Entropie : <code>{$entry['entropy']}</code>
+                            </div>
+                        </div>
+                        <div class="text-end w-100 w-md-50">
+                            <div class="mb-1">
+                                {if $entry['strength'] == 'Strong'}
+                                    <span class="badge bg-success"><i class="bi bi-bar-chart-fill me-1"></i>Fort</span>
+                                {elseif $entry['strength'] == 'Medium'}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-bar-chart-fill me-1"></i>Moyen</span>
+                                {else}
+                                    <span class="badge bg-danger"><i class="bi bi-bar-chart-fill me-1"></i>Faible</span>
+                                {/if}
+                            </div>
+                            <div>
+                                {if $entry['breach_count'] > 0}
+                                    <span class="text-danger fw-bold">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>{$entry['breach_count']} fuite(s)
+                                    </span>
+                                {else}
+                                    <span class="text-success">
+                                        <i class="bi bi-shield-check me-1"></i>Aucune fuite
+                                    </span>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                {/foreach}
+            </div>
+        {else}
+            <p class="text-muted mb-0">Aucune donnée de sécurité disponible.</p>
+        {/if}
     </div>
 </div>

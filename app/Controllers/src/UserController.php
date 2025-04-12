@@ -22,7 +22,6 @@ class UserController extends SecureController
     private ?AuthHistoryService $authHistoryService = null;
     private ?SharingService $sharingService = null;
     private ?PasswordService $passwordService = null;
-    private ?SecurityService $securityService = null;
 
     public function before(): ?Response
     {
@@ -36,7 +35,6 @@ class UserController extends SecureController
         $this->authHistoryService = new AuthHistoryService($auth);
         $this->sharingService = new SharingService($auth);
         $this->passwordService = new PasswordService($auth);
-        $this->securityService = new SecurityService();
 
         return null;
     }
@@ -146,38 +144,68 @@ class UserController extends SecureController
         $user = $this->getDashboardUser();
         $section = $this->getDashboardSection();
         $tab = $this->getDashboardTab();
-        $history = $this->getDashboardHistory();
 
-        $baseContext = [
-            'title' => "Tableau de bord",
-            'user' => $user,
-            'auth_history' => $history,
-            'activeSection' => $section,
-            'tab' => $tab
-        ];
-
-        if (!SessionHelper::get("user")) {
-            $baseContext['passwordsUnlocked'] = ($section === 'passwords');
-            $baseContext['shared_credentials'] = $this->getInitialSharesIfNeeded();
-            $baseContext['passwords'] = $this->getInitialPasswordsIfNeeded();
-            SessionHelper::setContext($baseContext);
-        } else {
-            if ($section !== 'passwords') {
-                $baseContext['passwordsUnlocked'] = false;
-            }
-            SessionHelper::appendContext($baseContext);
-        }
-
-        if ($section === 'security' && SessionHelper::get('passwordsUnlocked')) {
-            $baseContext['security_analysis'] = SecurityService::analyzeSecurity(
-                SessionHelper::get('passwords', [])
-            );
-            SessionHelper::appendContext(['security_analysis' => $baseContext['security_analysis']]);
-        }
+        $context = $this->initializeBaseContext($user, $section, $tab);
+        $this->injectDataIfNeeded($context, $section);
+        $this->appendSecurityAnalysisIfNeeded($context, $section);
 
         return SessionHelper::getContext();
     }
 
+    private function initializeBaseContext(User $user, string $section, string $tab): array
+    {
+        return [
+            'title' => "Tableau de bord",
+            'user' => $user,
+            'auth_history' => $this->getDashboardHistory(),
+            'activeSection' => $section,
+            'tab' => $tab
+        ];
+    }
+
+    private function injectDataIfNeeded(array &$context, string $section): void
+    {
+        if (!SessionHelper::get("user")) {
+            $context['passwordsUnlocked'] = ($section === 'passwords');
+            $context['shared_credentials'] = $this->getInitialSharesIfNeeded();
+            $context['passwords'] = $this->getInitialPasswordsIfNeeded();
+            SessionHelper::setContext($context);
+        } else {
+            if ($section !== 'passwords') {
+                $context['passwordsUnlocked'] = false;
+            }
+            SessionHelper::appendContext($context);
+        }
+    }
+
+    private function appendSecurityAnalysisIfNeeded(array &$context, string $section): void
+    {
+        if ($section !== 'security') {
+            return;
+        }
+
+        $passwords = SessionHelper::get('passwords', []);
+        $currentFingerprint = $this->generatePasswordFingerprint($passwords);
+        $lastFingerprint = SessionHelper::get('security_password_fingerprint', []);
+
+        if ($currentFingerprint !== $lastFingerprint) {
+            $analysis = SecurityService::analyzeSecurity($passwords);
+            SessionHelper::appendContext([
+                'security_analysis' => $analysis,
+                'security_password_fingerprint' => $currentFingerprint
+            ]);
+        }
+
+        $context['security_analysis'] = SessionHelper::get('security_analysis', []);
+    }
+
+    private function generatePasswordFingerprint(array $passwords): array
+    {
+        return array_map(fn($pwd) =>
+        md5($pwd->description . '::' . ($pwd->note ?? '') . '::' . $pwd->password),
+            $passwords
+        );
+    }
 
     private function getDashboardUser(): User
     {

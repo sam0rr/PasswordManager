@@ -12,10 +12,11 @@ class SessionHelper
         $defaults = [
             "user" => null,
             "title" => "Tableau de bord",
-            "stats" => [],
             "passwords" => [],
             "shared_credentials" => [],
             "auth_history" => [],
+            "security_analysis" => [],
+            "security_password_fingerprint" => [],
             "passwordsUnlocked" => false,
             "activeSection" => "profile",
             "tab" => "info",
@@ -39,7 +40,8 @@ class SessionHelper
             "passwordsUnlocked" => Session::get("passwordsUnlocked", false),
             "shared_credentials" => Session::get("shared_credentials", []),
             "auth_history" => Session::get("auth_history", []),
-            "stats" => Session::get("stats", []),
+            "security_analysis" => Session::get("security_analysis", []),
+            "security_password_fingerprint" => Session::get("security_password_fingerprint", []),
             "activeSection" => $_GET['section'] ?? Session::get('activeSection', 'profile'),
             "tab" => $_GET['tab'] ?? Session::get('tab', 'info')
         ];
