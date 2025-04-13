@@ -95,7 +95,7 @@ class UserBroker extends DatabaseBroker
 
     public function emailExists(string $email): bool
     {
-        $emailHash = $this->encryptionService->hash256($email);
+        $emailHash = $this->encryptionService->hash256(strtolower($email));
         return (bool) $this->selectSingle("SELECT 1 FROM users WHERE email_hash = ?", [$emailHash]);
     }
 
