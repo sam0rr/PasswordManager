@@ -74,7 +74,7 @@ class UserBroker extends DatabaseBroker
 
     public function findByEmail(string $email, ?string $userKey = null): ?User
     {
-        $emailHash = $this->encryptionService->hash256($email);
+        $emailHash = $this->encryptionService->hash256(strtolower($email));
         $result = $this->selectSingle("SELECT * FROM users WHERE email_hash = ?", [$emailHash]);
 
         if (!$result) return null;

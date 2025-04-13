@@ -158,7 +158,7 @@ class UserService extends BaseService
             if (!empty($value)) {
                 $data[$field] = $this->encryption->encryptWithUserKey($value, $key);
                 if ($field === 'email') {
-                    $data['email_hash'] = $this->encryption->hash256($value);
+                    $data['email_hash'] = $this->encryption->hash256(strtolower($value));
                 }
             }
         }
@@ -200,7 +200,7 @@ class UserService extends BaseService
             'email'         => $this->encryption->encryptWithUserKey($user->email, $newKey),
             'phone'         => $this->encryption->encryptWithUserKey($user->phone, $newKey),
             'image_url'     => $this->encryption->encryptWithUserKey($user->image_url, $newKey),
-            'email_hash'    => $this->encryption->hash256($user->email),
+            'email_hash'    => $this->encryption->hash256(strtolower($user->email)),
             'password_hash' => $newHash,
             'salt'          => $newSalt,
             'public_key'    => $newPublicKey,

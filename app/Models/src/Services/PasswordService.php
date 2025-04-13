@@ -151,7 +151,7 @@ class PasswordService extends BaseService
         return [
             'user_id' => $this->auth['user_id'],
             'description' => $this->encryption->encryptWithUserKey($description, $key),
-            'description_hash' => $this->encryption->hash256($description),
+            'description_hash' => $this->encryption->hash256(strtolower($description)),
             'email_from' => $this->encryption->encryptWithUserKey($user->email, $key),
             'note' => $this->encryption->encryptWithUserKey($form->getValue('note'), $key),
             'password' => $this->encryption->encryptWithUserKey($form->getValue('password'), $key),
@@ -169,7 +169,7 @@ class PasswordService extends BaseService
             if (!empty($value)) {
                 $updates[$field] = $this->encryption->encryptWithUserKey($value, $key);
                 if ($field === 'description') {
-                    $updates['description_hash'] = $this->encryption->hash256($value);
+                    $updates['description_hash'] = $this->encryption->hash256(strtolower($value));
                 }
             }
         }
@@ -186,7 +186,7 @@ class PasswordService extends BaseService
         foreach ($passwords as $p) {
             $this->passwordBroker->updatePassword($p->id, [
                 'description' => $this->encryption->encryptWithUserKey($p->description, $newKey),
-                'description_hash' => $this->encryption->hash256($p->description),
+                'description_hash' => $this->encryption->hash256(strtolower($p->description)),
                 'email_from' => $this->encryption->encryptWithUserKey($p->email_from, $newKey),
                 'note' => $this->encryption->encryptWithUserKey($p->note, $newKey),
                 'password' => $this->encryption->encryptWithUserKey($p->password, $newKey)
