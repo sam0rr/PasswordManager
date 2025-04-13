@@ -1,5 +1,37 @@
 :root {
-    --bs-primary: #808c9c; /* replace with your custom color */
+    --bs-primary: #4a90e2;
+    --bs-primary-rgb: 74, 144, 226;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: #357ABD;
+    --bs-btn-hover-border-color: #357ABD;
+    --bs-btn-active-bg: #2c639b;
+    --bs-btn-active-border-color: #2c639b;
+    --bs-btn-disabled-bg: #a2c6f4;
+    --bs-btn-disabled-border-color: #a2c6f4;
+    --bs-btn-color: #fff;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-color: #fff;
+    --bs-btn-disabled-color: #f1f1f1;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--bs-primary);
+    border-color: var(--bs-primary) var(--bs-primary) transparent;
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link {
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--bs-primary);
 }
 
 body {
