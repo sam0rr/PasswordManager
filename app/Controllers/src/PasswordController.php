@@ -10,7 +10,7 @@ use Zephyrus\Network\Router\Post;
 
 class PasswordController extends SecureController
 {
-    private ?PasswordService $passwordService = null;
+    private PasswordService $passwordService;
 
     public function before(): ?Response
     {

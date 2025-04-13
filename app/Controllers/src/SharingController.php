@@ -10,7 +10,7 @@ use Zephyrus\Network\Router\Post;
 
 class SharingController extends SecureController
 {
-    private ?SharingService $sharingService = null;
+    private SharingService $sharingService;
 
     public function before(): ?Response
     {

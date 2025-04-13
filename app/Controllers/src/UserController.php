@@ -4,24 +4,15 @@ namespace Controllers\src;
 
 use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
-use Models\src\Entities\User;
-use Models\src\Services\AuthHistoryService;
 use Models\src\Services\EncryptionService;
-use Models\src\Services\PasswordService;
-use Models\src\Services\SecurityService;
-use Models\src\Services\SharingService;
 use Models\src\Services\UserService;
-use Zephyrus\Application\Form;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
 class UserController extends SecureController
 {
-    private ?UserService $userService = null;
-    private ?AuthHistoryService $authHistoryService = null;
-    private ?SharingService $sharingService = null;
-    private ?PasswordService $passwordService = null;
+    private UserService $userService;
 
     public function before(): ?Response
     {
@@ -32,18 +23,8 @@ class UserController extends SecureController
 
         $auth = $this->getAuth();
         $this->userService = new UserService($auth);
-        $this->authHistoryService = new AuthHistoryService($auth);
-        $this->sharingService = new SharingService($auth);
-        $this->passwordService = new PasswordService($auth);
 
         return null;
-    }
-
-    #[Get('/dashboard')]
-    public function dashboard(): Response
-    {
-        $context = $this->buildDashboardContext();
-        return $this->render("secure/dashboard", $context);
     }
 
     #[Post('/user/update')]
@@ -135,101 +116,6 @@ class UserController extends SecureController
     {
         EncryptionService::destroySession();
         return $this->redirect("/login");
-    }
-
-    // Helpers
-
-    private function buildDashboardContext(): array
-    {
-        $user = $this->getDashboardUser();
-        $section = $this->getDashboardSection();
-        $tab = $this->getDashboardTab();
-
-        $context = $this->initializeBaseContext($user, $section, $tab);
-        $this->injectDataIfNeeded($context, $section);
-        $this->appendSecurityAnalysisIfNeeded($context, $section);
-
-        return SessionHelper::getContext();
-    }
-
-    private function initializeBaseContext(User $user, string $section, string $tab): array
-    {
-        return [
-            'title' => "Tableau de bord",
-            'user' => $user,
-            'auth_history' => $this->getDashboardHistory(),
-            'activeSection' => $section,
-            'tab' => $tab
-        ];
-    }
-
-    private function injectDataIfNeeded(array &$context, string $section): void
-    {
-        if (!SessionHelper::get("user")) {
-            $context['passwordsUnlocked'] = ($section === 'passwords');
-            $context['shared_credentials'] = $this->getInitialSharesIfNeeded();
-            $context['passwords'] = $this->getInitialPasswordsIfNeeded();
-            SessionHelper::setContext($context);
-        } else {
-            if ($section !== 'passwords') {
-                $context['passwordsUnlocked'] = false;
-            }
-            SessionHelper::appendContext($context);
-        }
-    }
-
-    private function appendSecurityAnalysisIfNeeded(array &$context, string $section): void
-    {
-        if ($section !== 'security') {
-            return;
-        }
-
-        $passwords = SessionHelper::get('passwords', []);
-        $lastMap = SessionHelper::get('security_password_fingerprint', []);
-        $existingAnalysis = SessionHelper::get('security_analysis', []);
-
-        $result = SecurityService::analyzeIfChanged($passwords, $lastMap, $existingAnalysis);
-
-        SessionHelper::appendContext([
-            'security_analysis' => $result['analysis'],
-            'security_password_fingerprint' => $result['fingerprintMap']
-        ]);
-
-        $context['security_analysis'] = $result['analysis'];
-    }
-
-    private function getDashboardUser(): User
-    {
-        $user = $this->userService->getCurrentUserEntity();
-        if (!$user) {
-            $this->abortNotFound("Utilisateur introuvable.");
-        }
-        return $user;
-    }
-
-    private function getDashboardSection(): string
-    {
-        return $this->request->getParameter('section') ?? 'profile';
-    }
-
-    private function getDashboardTab(): string
-    {
-        return $this->request->getParameter('tab') ?? 'list';
-    }
-
-    private function getDashboardHistory(): array
-    {
-        return $this->authHistoryService->getHistoryForUser();
-    }
-
-    private function getInitialSharesIfNeeded(): array
-    {
-        return $this->sharingService->getAllShares(new Form());
-    }
-
-    private function getInitialPasswordsIfNeeded(): array
-    {
-        return $this->passwordService->getAllUserPasswords(new Form());
     }
 
 }

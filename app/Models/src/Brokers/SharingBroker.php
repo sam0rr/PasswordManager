@@ -93,4 +93,5 @@ class SharingBroker extends DatabaseBroker
         $rowCount = $this->selectSingle($sql, [$shareId]);
         return $rowCount > 0;
     }
+
 }
