@@ -86,8 +86,8 @@ class PasswordBroker extends DatabaseBroker
     public function deletePassword(string $passwordId): bool
     {
         $sql = "DELETE FROM user_password WHERE id = ?";
-        $rowCount = $this->selectSingle($sql, [$passwordId]);
-        return $rowCount > 0;
+        $this->rawQuery($sql, [$passwordId]);
+        return $this->getLastAffectedCount() > 0;
     }
 
     public function descriptionExistsForUser(string $userId, string $description): bool

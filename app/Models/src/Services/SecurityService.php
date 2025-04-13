@@ -33,7 +33,7 @@ class SecurityService
         $httpRequester->addHeader('Add-Padding', 'true');
         $httpRequester->addHeader('User-Agent', 'JoltSecure/1.0');
 
-        usleep(1500000); // Respect rate limiting
+        usleep(1500000);
 
         $response = $httpRequester->execute();
         if ($response->getHttpCode() == 404) {

@@ -90,8 +90,8 @@ class SharingBroker extends DatabaseBroker
     public function deleteShare(string $shareId): bool
     {
         $sql = "DELETE FROM password_sharing WHERE id = ?";
-        $rowCount = $this->selectSingle($sql, [$shareId]);
-        return $rowCount > 0;
+        $this->rawQuery($sql, [$shareId]);
+        return $this->getLastAffectedCount() > 0;
     }
 
 }
