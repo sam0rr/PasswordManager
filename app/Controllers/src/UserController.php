@@ -185,26 +185,17 @@ class UserController extends SecureController
         }
 
         $passwords = SessionHelper::get('passwords', []);
-        $currentFingerprint = $this->generatePasswordFingerprint($passwords);
-        $lastFingerprint = SessionHelper::get('security_password_fingerprint', []);
+        $lastMap = SessionHelper::get('security_password_fingerprint', []);
+        $existingAnalysis = SessionHelper::get('security_analysis', []);
 
-        if ($currentFingerprint !== $lastFingerprint) {
-            $analysis = SecurityService::analyzeSecurity($passwords);
-            SessionHelper::appendContext([
-                'security_analysis' => $analysis,
-                'security_password_fingerprint' => $currentFingerprint
-            ]);
-        }
+        $result = SecurityService::analyzeIfChanged($passwords, $lastMap, $existingAnalysis);
 
-        $context['security_analysis'] = SessionHelper::get('security_analysis', []);
-    }
+        SessionHelper::appendContext([
+            'security_analysis' => $result['analysis'],
+            'security_password_fingerprint' => $result['fingerprintMap']
+        ]);
 
-    private function generatePasswordFingerprint(array $passwords): array
-    {
-        return array_map(fn($pwd) =>
-        md5($pwd->description . '::' . ($pwd->note ?? '') . '::' . $pwd->password),
-            $passwords
-        );
+        $context['security_analysis'] = $result['analysis'];
     }
 
     private function getDashboardUser(): User

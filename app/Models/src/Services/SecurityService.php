@@ -4,7 +4,6 @@ namespace Models\src\Services;
 
 use Zephyrus\Network\HttpRequester;
 
-//Code William T1willi merci
 class SecurityService
 {
     private static function calculatePasswordStrength(string $password): array
@@ -19,16 +18,8 @@ class SecurityService
 
         $entropy = $length * ($charset > 0 ? log($charset, 2) : 0);
 
-        if ($entropy >= 85) {
-            $strength = 'Strong';
-        } elseif ($entropy >= 75) {
-            $strength = 'Medium';
-        } else {
-            $strength = 'Weak';
-        }
-
         return [
-            'strength' => $strength,
+            'strength' => $entropy >= 85 ? 'Strong' : ($entropy >= 75 ? 'Medium' : 'Weak'),
             'entropy' => round($entropy, 2)
         ];
     }
@@ -40,83 +31,115 @@ class SecurityService
 
         $httpRequester = new HttpRequester("GET", "https://api.pwnedpasswords.com/range/{$sha1Prefix}");
         $httpRequester->addHeader('Add-Padding', 'true');
-        $httpRequester->addHeader('User-Agent', 'JoltSecure/1.0 (Password Manager Security Check)');
+        $httpRequester->addHeader('User-Agent', 'JoltSecure/1.0');
 
-        usleep(1500000); // Respect API pacing
+        usleep(1500000); // Respect rate limiting
 
-        $httpResponse = $httpRequester->execute();
-        if ($httpResponse->getHttpCode() == 404) {
+        $response = $httpRequester->execute();
+        if ($response->getHttpCode() == 404) {
             return 0;
         }
 
-        $breaches = self::formatBreachResponse($httpResponse->getResponse(), $sha1Prefix);
+        $breaches = self::formatBreachResponse($response->getResponse(), $sha1Prefix);
         return $breaches[$sha1Hash] ?? 0;
     }
 
     private static function formatBreachResponse(string $rawResponse, string $sha1Prefix): array
     {
-        $input = trim($rawResponse);
-        if (empty($input)) {
-            return [];
-        }
+        $lines = explode("\n", trim($rawResponse));
+        $map = [];
 
-        $results = explode("\n", $input);
-        $breaches = [];
-        foreach ($results as $result) {
-            $parts = explode(":", trim($result));
-            if (count($parts) !== 2) {
-                continue;
+        foreach ($lines as $line) {
+            [$hashSuffix, $count] = array_pad(explode(":", trim($line)), 2, null);
+            if ($hashSuffix && is_numeric($count)) {
+                $map[$sha1Prefix . $hashSuffix] = (int) $count;
             }
-            list($hashSuffix, $count) = $parts;
-            $breaches[$sha1Prefix . $hashSuffix] = (int) $count;
         }
 
-        return $breaches;
+        return $map;
     }
 
     private function analyzePasswords(array $passwords): array
     {
-        $results = [];
-        foreach ($passwords as $pwd) {
-            $analysis = self::calculatePasswordStrength($pwd->password);
-            $results[] = [
-                'description' => $pwd->description,
-                'note' => $pwd->note ?? null,
-                'entropy' => $analysis['entropy'],
-                'strength' => $analysis['strength']
-            ];
-        }
-        return $results;
+        return array_map(fn($pwd) => [
+            'description' => $pwd->description,
+            'note' => $pwd->note ?? null,
+            'entropy' => self::calculatePasswordStrength($pwd->password)['entropy'],
+            'strength' => self::calculatePasswordStrength($pwd->password)['strength']
+        ], $passwords);
     }
 
     private function analyzeBreaches(array $passwords): array
     {
         $results = [];
         foreach ($passwords as $pwd) {
-            $count = self::findBreachCount($pwd->password);
-            $results[] = [
-                'description' => $pwd->description,
-                'breaches' => $count
-            ];
+            $results[$pwd->description] = self::findBreachCount($pwd->password);
         }
         return $results;
     }
 
     public static function analyzeSecurity(array $passwords): array
     {
-        $service = new SecurityService();
-        $basic = $service->analyzePasswords($passwords);
+        $service = new self();
+        $analysis = $service->analyzePasswords($passwords);
         $breaches = $service->analyzeBreaches($passwords);
 
-        foreach ($basic as &$entry) {
-            foreach ($breaches as $b) {
-                if ($entry['description'] === $b['description']) {
-                    $entry['breach_count'] = $b['breaches'];
-                    break;
-                }
+        foreach ($analysis as &$entry) {
+            $entry['breach_count'] = $breaches[$entry['description']] ?? 0;
+        }
+
+        return $analysis;
+    }
+
+    public static function analyzeIfChanged(array $passwords, array $previousMap, array $existingAnalysis = []): array
+    {
+        $newMap = self::generateFingerprintMap($passwords);
+
+        $passwordMap = [];
+        foreach ($passwords as $pwd) {
+            $passwordMap[$pwd->id] = $pwd;
+        }
+
+        $toAnalyze = [];
+        foreach ($newMap as $id => $hash) {
+            if (!isset($previousMap[$id]) || $previousMap[$id] !== $hash) {
+                $toAnalyze[] = $passwordMap[$id];
             }
         }
 
-        return $basic;
+        if (empty($toAnalyze)) {
+            return [
+                'analysis' => $existingAnalysis,
+                'fingerprintMap' => $previousMap
+            ];
+        }
+
+        $newAnalysis = self::analyzeSecurity($toAnalyze);
+        $merged = self::mergeAnalysis($existingAnalysis, $newAnalysis);
+
+        return [
+            'analysis' => $merged,
+            'fingerprintMap' => $newMap
+        ];
+    }
+
+    public static function mergeAnalysis(array $existing, array $new): array
+    {
+        $map = [];
+        foreach ($existing as $entry) {
+            $map[$entry['description']] = $entry;
+        }
+        foreach ($new as $entry) {
+            $map[$entry['description']] = $entry;
+        }
+        return array_values($map);
+    }
+
+    public static function generateFingerprintMap(array $passwords): array
+    {
+        return array_reduce($passwords, function ($map, $pwd) {
+            $map[$pwd->id] = md5($pwd->description . '::' . ($pwd->note ?? '') . '::' . $pwd->password);
+            return $map;
+        }, []);
     }
 }

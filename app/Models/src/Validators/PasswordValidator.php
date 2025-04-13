@@ -27,7 +27,7 @@ class PasswordValidator extends BaseValidator
 
         $passwordField = $form->field("password", [
             Rule::required("Le mot de passe est requis."),
-            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
+            Rule::minLength(2, "Le mot de passe doit contenir au moins 2 caractères.")
         ]);
         self::optionalIf($passwordField, $isHtmx);
 
