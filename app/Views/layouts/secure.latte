@@ -2,7 +2,7 @@
 
 {block content}
     <div class="container-fluid p-0">
-        <div class="d-flex justify-content-between align-items-center border-bottom shadow-sm px-4 py-3 bg-primary text-white">
+        <div class="dashboard-header d-flex justify-content-between align-items-center px-4 py-3 bg-primary text-white mt-3 border border-primary border-bottom-0 rounded-top">
             <div>
                 <h4 class="mb-0">{$pageName ?? 'Tableau de bord'}</h4>
             </div>
@@ -28,6 +28,4 @@
             <div n:inner-block="pageContent"></div>
         </div>
     </div>
-
 {/block}
-

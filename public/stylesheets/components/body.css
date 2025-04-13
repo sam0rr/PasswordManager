@@ -24,6 +24,10 @@ input, textarea, select, button {
     font-family: 'Roboto Slab', serif;
 }
 
+.dashboard-header .dropdown-menu {
+    font-family: 'Roboto Slab', serif;
+}
+
 .btn-primary {
     --bs-btn-bg: var(--bs-primary);
     --bs-btn-border-color: var(--bs-primary);
@@ -43,7 +47,6 @@ input, textarea, select, button {
     color: var(--bs-primary);
     border-color: var(--bs-primary) var(--bs-primary) transparent;
     background-color: #f8f9fa;
-    font-weight: 500;
 }
 
 .nav-tabs .nav-link {
