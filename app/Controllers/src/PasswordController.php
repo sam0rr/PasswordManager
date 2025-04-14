@@ -24,33 +24,6 @@ class PasswordController extends SecureController
         return null;
     }
 
-    #[Post('/passwords')]
-    public function getPasswords(): Response
-    {
-        $isHtmx = $this->isHtmx();
-        $form = $this->buildForm();
-        $result = $this->passwordService->getPasswords($form, $isHtmx);
-
-        SessionHelper::setForm('password_unlock', $result['form']);
-
-        if ($isHtmx) {
-            return $this->render("fragments/passwords/passwordUnlockForm", [
-                'form' => $result['form'],
-                'isHtmx' => true,
-                'passwordsUnlocked' => false
-            ]);
-        }
-
-        if (isset($result['errors'])) {
-            $this->setPasswordContext([], false);
-            return $this->redirect("/dashboard?section=passwords&tab=list");
-        }
-
-        $this->setPasswordContext($result['passwords']);
-        SessionHelper::clearForm('password_unlock');
-        return $this->redirect("/dashboard?section=passwords&tab=list");
-    }
-
     #[Post('/addpassword')]
     public function addPassword(): Response
     {
@@ -69,7 +42,6 @@ class PasswordController extends SecureController
 
         if (isset($result['errors'])) {
             SessionHelper::appendContext([
-                'passwordsUnlocked' => false,
                 'activeSection' => 'passwords',
                 'tab' => 'add'
             ]);
@@ -101,7 +73,6 @@ class PasswordController extends SecureController
 
         if (isset($result['errors'])) {
             SessionHelper::appendContext([
-                'passwordsUnlocked' => true,
                 'password' => $result['password'] ?? null,
                 'activeSection' => 'passwords',
                 'tab' => 'list'
@@ -126,13 +97,13 @@ class PasswordController extends SecureController
         return $this->redirect("/dashboard?section=passwords&tab=list");
     }
 
-    private function setPasswordContext(array $passwords, bool $unlocked = true): void
+    private function setPasswordContext(array $passwords): void
     {
         SessionHelper::appendContext([
             'passwords' => $passwords,
-            'passwordsUnlocked' => $unlocked,
             'activeSection' => 'passwords',
             'tab' => 'list'
         ]);
     }
+
 }

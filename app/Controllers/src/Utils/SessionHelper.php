@@ -17,7 +17,6 @@ class SessionHelper
             "auth_history" => [],
             "security_analysis" => [],
             "security_password_fingerprint" => [],
-            "passwordsUnlocked" => false,
             "activeSection" => "profile",
             "tab" => "info",
         ];
@@ -37,7 +36,6 @@ class SessionHelper
             "user" => Session::get("user"),
             "form" => new Form(),
             "passwords" => Session::get("passwords", []),
-            "passwordsUnlocked" => Session::get("passwordsUnlocked", false),
             "shared_credentials" => Session::get("shared_credentials", []),
             "auth_history" => Session::get("auth_history", []),
             "security_analysis" => Session::get("security_analysis", []),
@@ -92,4 +90,5 @@ class SessionHelper
     {
         Session::remove("form__{$key}");
     }
+
 }

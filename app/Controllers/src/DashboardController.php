@@ -49,7 +49,7 @@ class DashboardController extends SecureController
         $tab = $this->getDashboardTab();
 
         $context = $this->initializeBaseContext($user, $section, $tab);
-        $this->injectDataIfNeeded($context, $section);
+        $this->injectDataIfNeeded($context);
         $this->appendSecurityAnalysisIfNeeded($context, $section);
 
         return SessionHelper::getContext();
@@ -66,17 +66,13 @@ class DashboardController extends SecureController
         ];
     }
 
-    private function injectDataIfNeeded(array &$context, string $section): void
+    private function injectDataIfNeeded(array &$context): void
     {
         if (!SessionHelper::get("user")) {
-            $context['passwordsUnlocked'] = ($section === 'passwords');
             $context['shared_credentials'] = $this->sharingService->getAllShares(new Form());
             $context['passwords'] = $this->passwordService->getAllUserPasswords(new Form());
             SessionHelper::setContext($context);
         } else {
-            if ($section !== 'passwords') {
-                $context['passwordsUnlocked'] = false;
-            }
             SessionHelper::appendContext($context);
         }
     }
@@ -117,4 +113,5 @@ class DashboardController extends SecureController
     {
         return $this->request->getParameter('tab') ?? 'list';
     }
+
 }

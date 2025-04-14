@@ -43,21 +43,6 @@ class PasswordValidator extends BaseValidator
         }
     }
 
-    public static function assertPasswordVerification(Form $form, bool $isHtmx): void
-    {
-        $field = $form->field("password", [
-            Rule::required("Le mot de passe est requis."),
-            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
-        ]);
-        self::optionalIf($field, $isHtmx);
-
-        $form->verify();
-
-        if ($form->hasError()) {
-            throw new FormException($form);
-        }
-    }
-
     public static function assertUpdate(Form $form, PasswordBroker $broker, string $userId, UserPassword $currentPassword): void
     {
         $form->field("password", [

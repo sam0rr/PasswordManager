@@ -33,7 +33,7 @@
         {if $activeSection == 'profile'}
             {include '../components/dashboard-sections/profile.latte', user => $user}
         {elseif $activeSection == 'passwords'}
-            {include '../components/dashboard-sections/passwords.latte', passwords => $passwords, passwordsUnlocked => $passwordsUnlocked}
+            {include '../components/dashboard-sections/passwords.latte', passwords => $passwords}
         {elseif $activeSection == 'history'}
             {include '../components/dashboard-sections/history.latte', auth_history => $auth_history}
         {elseif $activeSection == 'shares'}

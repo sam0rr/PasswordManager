@@ -74,4 +74,5 @@ class SharingController extends SecureController
             'tab' => 'list'
         ]);
     }
+
 }

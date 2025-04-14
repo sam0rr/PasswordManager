@@ -112,6 +112,4 @@ abstract class Controller extends BaseController
         return $this->request->getHeader('HX-Request') !== null;
     }
 
-
-
 }

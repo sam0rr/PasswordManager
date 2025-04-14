@@ -30,18 +30,6 @@ abstract class BaseService
         ];
     }
 
-    protected function getAuthenticatedUser(string $password, Form $form): User
-    {
-        $user = $this->userBroker->findById($this->auth['user_id']);
-
-        if (!$user || !$this->encryption->verifyPassword($password, $user->password_hash)) {
-            $form->addError("global", "Mot de passe invalide.");
-            throw new FormException($form);
-        }
-
-        return $user;
-    }
-
     protected function getPassword(string $passwordId, Form $form): UserPassword
     {
         $password = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);

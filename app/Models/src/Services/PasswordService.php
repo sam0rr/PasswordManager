@@ -5,7 +5,6 @@ namespace Models\src\Services;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\PasswordBroker;
 use Models\src\Brokers\UserBroker;
-use Models\src\Entities\User;
 use Models\src\Services\Utils\BaseService;
 use Models\src\Validators\PasswordValidator;
 use Zephyrus\Application\Form;
@@ -22,30 +21,6 @@ class PasswordService extends BaseService
         $this->encryption = new EncryptionService();
         $this->passwordBroker = new PasswordBroker();
         $this->userBroker = new UserBroker();
-    }
-
-    public function getPasswords(Form $form, $isHtmx): array
-    {
-        try {
-            PasswordValidator::assertPasswordVerification($form, $isHtmx);
-
-            if ($isHtmx) {
-                return [
-                    "form" => $form
-                ];
-            }
-
-            $user = $this->getVerifiedUser($form);
-
-            $passwords = $this->passwordBroker->findAllByUser($user->id, $this->auth['user_key']);
-            return [
-                "form" => $form,
-                "passwords" => $passwords
-            ];
-
-        } catch (FormException) {
-            return $this->buildErrorResponse($form);
-        }
     }
 
     public function getAllUserPasswords($form): array
@@ -135,12 +110,6 @@ class PasswordService extends BaseService
     }
 
     // Helpers
-
-    private function getVerifiedUser(Form $form): User
-    {
-        $submittedPassword = $form->getValue("password");
-        return $this->getAuthenticatedUser($submittedPassword, $form);
-    }
 
     private function buildEncryptedPasswordData(Form $form): array
     {
