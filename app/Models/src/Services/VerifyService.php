@@ -69,4 +69,34 @@ class VerifyService extends BaseService
         return $user->phone;
     }
 
+    public function isMethodVerified(UserVerify $method): bool
+    {
+        if (empty($method->last_verified)) {
+            return false;
+        }
+
+        $expirationDelay = 300;
+        $lastVerifiedTime = strtotime($method->last_verified);
+
+        return $lastVerifiedTime + $expirationDelay >= time();
+    }
+
+    public function getPendingMethods(): array
+    {
+        $pending = [];
+
+        foreach ($this->getActiveMethods() as $method) {
+            if (!$this->isMethodVerified($method)) {
+                $pending[] = $method->method;
+            }
+        }
+
+        return $pending;
+    }
+
+    public function areAllMethodsVerified(): bool
+    {
+        return count($this->getPendingMethods()) === 0;
+    }
+
 }
