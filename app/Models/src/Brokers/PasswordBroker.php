@@ -37,6 +37,20 @@ class PasswordBroker extends DatabaseBroker
         return $this->decryptPassword($password, $userKey);
     }
 
+    public function findByDescriptionForUser(string $userId, string $description, string $userKey): ?UserPassword
+    {
+        $hash = $this->encryption->hash256(strtolower($description));
+        $result = $this->selectSingle(
+            "SELECT * FROM user_password WHERE user_id = ? AND description_hash = ?",
+            [$userId, $hash]
+        );
+
+        if (!$result) return null;
+
+        $password = UserPassword::build($result);
+        return $this->decryptPassword($password, $userKey);
+    }
+
     public function createPassword(array $data, string $userKey): ?UserPassword
     {
         $sql = "

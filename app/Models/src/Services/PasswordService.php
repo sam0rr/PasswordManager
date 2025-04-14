@@ -65,9 +65,10 @@ class PasswordService extends BaseService
     {
         try {
             $userId = $this->auth['user_id'];
+            $userKey = $this->auth['user_key'];
 
             $password = $this->getPassword($id, $form);
-            PasswordValidator::assertUpdate($form, $this->passwordBroker, $userId, $password);
+            PasswordValidator::assertUpdate($form, $this->passwordBroker, $userId, $password, $userKey);
 
             if ($isHtmx) {
                 return [
