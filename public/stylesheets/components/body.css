@@ -43,6 +43,16 @@ input, textarea, select, button {
     --bs-btn-disabled-color: #f1f1f1;
 }
 
+.link-primary-style {
+    color: var(--bs-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.link-primary-style:hover {
+    color: #357ABD;
+}
+
 .nav-tabs .nav-link.active {
     color: var(--bs-primary);
     border-color: var(--bs-primary) var(--bs-primary) transparent;

@@ -10,6 +10,9 @@ use Zephyrus\Application\Form;
 
 class AuthService
 {
+    private ?string $currentUserId = null;
+    private ?string $currentUserKey = null;
+
     private ?UserBroker $userBroker = null {
         get {
             return $this->userBroker ??= new UserBroker($this->encryption);
@@ -25,9 +28,6 @@ class AuthService
             return $this->history ??= new AuthHistoryService($this->getAuth());
         }
     }
-
-    private ?string $currentUserId = null;
-    private ?string $currentUserKey = null;
 
     public function register(Form $form, bool $isHtmx): array
     {

@@ -63,7 +63,6 @@ class BaseService
             return $this->sharing ??= new SharingService($this->auth);
         }
     }
-
     public ?VerifyService $verify = null {
         get {
             return $this->verify ??= new VerifyService($this->auth);
