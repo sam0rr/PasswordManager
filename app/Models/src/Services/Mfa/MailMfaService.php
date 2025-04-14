@@ -78,4 +78,5 @@ class MailMfaService extends BaseService implements MfaServiceInterface
             throw new RuntimeException("Erreur lors de l’envoi du code par email : " . $e->getMessage());
         }
     }
+
 }

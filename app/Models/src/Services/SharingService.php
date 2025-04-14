@@ -210,4 +210,5 @@ class SharingService extends BaseService
             'verified'         => false
         ], $userKey);
     }
+
 }

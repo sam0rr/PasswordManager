@@ -71,4 +71,5 @@ class PasswordValidator extends BaseValidator
             throw new FormException($form);
         }
     }
+
 }

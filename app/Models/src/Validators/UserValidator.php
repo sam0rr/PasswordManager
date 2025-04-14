@@ -69,4 +69,5 @@ class UserValidator extends BaseValidator
             throw new FormException($form);
         }
     }
+
 }

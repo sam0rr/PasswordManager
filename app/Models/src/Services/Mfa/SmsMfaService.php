@@ -80,4 +80,5 @@ class SmsMfaService extends BaseService implements MfaServiceInterface
             throw new RuntimeExceptionAlias("Erreur lors de l'envoi du code par SMS : " . $e->getMessage());
         }
     }
+
 }

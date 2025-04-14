@@ -10,4 +10,5 @@ class BaseValidator
             $field->optional();
         }
     }
+
 }

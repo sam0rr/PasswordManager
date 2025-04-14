@@ -54,4 +54,5 @@ class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
 
         return $this->tfa->getQRCodeImageAsDataUri("KryptLok", $method->otp_secret);
     }
+
 }
