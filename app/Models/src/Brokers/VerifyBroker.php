@@ -39,10 +39,27 @@ class VerifyBroker extends DatabaseBroker
         return UserVerify::build($row);
     }
 
+    public function updateSecret(string $userId, string $method, string $otp): void
+    {
+        $this->query(
+            "UPDATE user_verify SET otp_secret = ? WHERE user_id = ? AND method = ?",
+            [$otp, $userId, $method]
+        );
+    }
+
     public function updateLastVerified(string $userId, string $method): ?UserVerify
     {
         $row = $this->selectSingle(
             "UPDATE user_verify SET last_verified = CURRENT_TIMESTAMP WHERE user_id = ? AND method = ? RETURNING *",
+            [$userId, $method]
+        );
+        return $row ? UserVerify::build($row) : null;
+    }
+
+    public function activate(string $userId, string $method): ?UserVerify
+    {
+        $row = $this->selectSingle(
+            "UPDATE user_verify SET is_active = true WHERE user_id = ? AND method = ? RETURNING *",
             [$userId, $method]
         );
         return $row ? UserVerify::build($row) : null;

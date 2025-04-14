@@ -1,6 +1,6 @@
 -- ENUM TYPES
 CREATE TYPE login_result AS ENUM ('success', 'fail');
-CREATE TYPE auth_method AS ENUM ('email', 'sms', 'authenticator');
+CREATE TYPE auth_method AS ENUM ('mail', 'sms', 'authenticator');
 CREATE TYPE share_status AS ENUM ('success', 'pending', 'fail');
 
 -- FUNCTION TO AUTO-UPDATE updated_at FIELD

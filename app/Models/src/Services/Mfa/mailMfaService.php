@@ -5,7 +5,7 @@ namespace Models\src\Services\Mfa;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class EmailMfaService extends BaseMfaService
+class mailMfaService extends BaseMfaService
 {
     private string $mailHost;
     private int $mailPort;
@@ -29,7 +29,7 @@ class EmailMfaService extends BaseMfaService
 
     public function verifyCode(string $userId, string $code): bool
     {
-        $method = $this->verifyService->getMethod('email');
+        $method = $this->verifyService->getMethod('mail');
 
         if (!$method || !$method->is_active) {
             return false;
@@ -40,7 +40,7 @@ class EmailMfaService extends BaseMfaService
 
     public function sendCode(string $userId): ?string
     {
-        $method = $this->verifyService->getMethod('email');
+        $method = $this->verifyService->getMethod('mail');
 
         if (!$method || !$method->is_active) {
             return null;
@@ -63,11 +63,11 @@ class EmailMfaService extends BaseMfaService
 
             $mailer->send();
 
-            $this->verifyService->registerMethod('email', $otp);
+            $this->verifyService->updateSecret($userId, 'mail', $otp);
+
             return $otp;
         } catch (Exception $e) {
             throw new \RuntimeException("Erreur lors de l’envoi du code par email : " . $e->getMessage());
         }
     }
-
 }

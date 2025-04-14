@@ -51,7 +51,6 @@ class SmsMfaService extends BaseMfaService
         }
 
         $otp = $this->generateSecret();
-
         $phone = $this->verifyService->getUserPhone();
 
         try {
@@ -63,11 +62,11 @@ class SmsMfaService extends BaseMfaService
                 ]
             );
 
-            $this->verifyService->registerMethod('sms', $otp);
+            $this->verifyService->updateSecret($userId, 'sms', $otp);
+
             return $otp;
         } catch (\Exception $e) {
             throw new \RuntimeException("Erreur lors de l’envoi du code par SMS : " . $e->getMessage());
         }
     }
-
 }
