@@ -17,6 +17,7 @@ class SessionHelper
             "auth_history" => [],
             "security_analysis" => [],
             "security_password_fingerprint" => [],
+            "mfa" => [],
             "activeSection" => "profile",
             "tab" => "info",
         ];
@@ -40,6 +41,7 @@ class SessionHelper
             "auth_history" => Session::get("auth_history", []),
             "security_analysis" => Session::get("security_analysis", []),
             "security_password_fingerprint" => Session::get("security_password_fingerprint", []),
+            "mfa" => Session::get("mfa", []),
             "activeSection" => $_GET['section'] ?? Session::get('activeSection', 'profile'),
             "tab" => $_GET['tab'] ?? Session::get('tab', 'info')
         ];
@@ -90,5 +92,4 @@ class SessionHelper
     {
         Session::remove("form__{$key}");
     }
-
 }

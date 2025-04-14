@@ -3,7 +3,6 @@
 namespace Models\src\Services;
 
 use Models\Exceptions\FormException;
-use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\AvatarService;
 use Models\src\Services\Utils\BaseService;
@@ -12,20 +11,10 @@ use Zephyrus\Application\Form;
 
 class UserService extends BaseService
 {
-    protected PasswordService $passwordService;
-    protected UserBroker $userBroker;
-    protected EncryptionService $encryption;
-    protected SharingService $sharing;
-    protected AvatarService $avatar;
-
-    public function __construct(array $auth)
-    {
-        $this->auth = $auth;
-        $this->userBroker = new UserBroker();
-        $this->encryption = new EncryptionService();
-        $this->passwordService = new PasswordService($auth);
-        $this->sharing = new SharingService($auth);
-        $this->avatar = new AvatarService();
+    private ?AvatarService $avatar = null {
+        get {
+            return $this->avatar ??= new AvatarService($this->auth);
+        }
     }
 
     public function getCurrentUserEntity(): ?User

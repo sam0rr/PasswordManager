@@ -1,6 +1,6 @@
 <?php
 
-namespace Models\src\Services;
+namespace Models\src\Services\Utils;
 
 use Zephyrus\Network\HttpRequester;
 

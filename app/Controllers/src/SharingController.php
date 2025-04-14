@@ -4,32 +4,17 @@ namespace Controllers\src;
 
 use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
-use Models\src\Services\SharingService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Post;
 
 class SharingController extends SecureController
 {
-    private SharingService $sharingService;
-
-    public function before(): ?Response
-    {
-        $parentResponse = parent::before();
-        if (!is_null($parentResponse)) {
-            return $parentResponse;
-        }
-
-        $auth = $this->getAuth();
-        $this->sharingService = new SharingService($auth);
-        return null;
-    }
-
     #[Post('/share/{id}')]
     public function sharePassword(string $id): Response
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->sharingService->sharePassword($form, $id, $isHtmx);
+        $result = $this->getService()->sharing->sharePassword($form, $id, $isHtmx);
 
         SessionHelper::setForm("share_$id", $result['form']);
 
@@ -49,7 +34,7 @@ class SharingController extends SecureController
             return $this->redirect("/dashboard?section=shares");
         }
 
-        $shares = $this->sharingService->getAllShares($form);
+        $shares = $this->getService()->sharing->getAllShares($form);
         $this->setSharingContext($shares);
         SessionHelper::clearForm("share_$id");
         return $this->redirect("/dashboard?section=shares");
@@ -59,9 +44,9 @@ class SharingController extends SecureController
     public function deleteShare(string $id): Response
     {
         $form = $this->buildForm();
-        $this->sharingService->deleteShare($id, $form);
+        $this->getService()->sharing->deleteShare($id, $form);
 
-        $shares = $this->sharingService->getAllShares($form);
+        $shares = $this->getService()->sharing->getAllShares($form);
         $this->setSharingContext($shares);
         return $this->redirect("/dashboard?section=shares");
     }

@@ -2,25 +2,29 @@
 
 namespace Models\src\Services\Mfa;
 
+use Models\src\Services\Utils\BaseService;
 use RobThree\Auth\Providers\Qr\BaconQrCodeProvider;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\TwoFactorAuthException;
+use RuntimeException as RuntimeExceptionAlias;
 
-class AuthenticatorMfaService extends BaseMfaService
+class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
 {
-    private TwoFactorAuth $tfa;
+    private ?TwoFactorAuth $tfa = null {
+        get{
+            return $this->tfa ??= $this->createTfa();
+        }
+    }
 
-    public function __construct(array $auth)
+    private function createTfa(): TwoFactorAuth
     {
-        parent::__construct($auth);
-
         try {
-            $this->tfa = new TwoFactorAuth(
+            return new TwoFactorAuth(
                 new BaconQrCodeProvider(),
                 'KryptLok'
             );
         } catch (TwoFactorAuthException $e) {
-            throw new \RuntimeException("Error initializing 2FA: " . $e->getMessage());
+            throw new RuntimeExceptionAlias("Error initializing 2FA: " . $e->getMessage());
         }
     }
 
@@ -31,7 +35,7 @@ class AuthenticatorMfaService extends BaseMfaService
 
     public function verifyCode(string $userId, string $code): bool
     {
-        $method = $this->verifyService->getMethod('authenticator');
+        $method = $this->verify->getMethod('authenticator');
 
         if (!$method || !$method->is_active) {
             return false;
@@ -42,7 +46,7 @@ class AuthenticatorMfaService extends BaseMfaService
 
     public function sendCode(string $userId): ?string
     {
-        $method = $this->verifyService->getMethod('authenticator');
+        $method = $this->verify->getMethod('authenticator');
 
         if (!$method || !$method->is_active) {
             return null;
@@ -50,5 +54,4 @@ class AuthenticatorMfaService extends BaseMfaService
 
         return $this->tfa->getQRCodeImageAsDataUri("KryptLok", $method->otp_secret);
     }
-
 }

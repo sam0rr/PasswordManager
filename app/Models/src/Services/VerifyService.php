@@ -3,22 +3,27 @@
 namespace Models\src\Services;
 
 use Models\Exceptions\FormException;
-use Models\src\Brokers\UserBroker;
 use Models\src\Brokers\VerifyBroker;
 use Models\src\Entities\UserVerify;
+use Models\src\Services\Mfa\AuthenticatorMfaService;
 use Models\src\Services\Utils\BaseService;
+use RuntimeException as RuntimeExceptionAlias;
 use Zephyrus\Application\Form;
 
 class VerifyService extends BaseService
 {
-    private VerifyBroker $verifyBroker;
-
-    public function __construct(array $auth)
-    {
-        $this->auth = $auth;
-        $this->verifyBroker = new VerifyBroker();
-        $this->userBroker = new UserBroker();
+    private ?VerifyBroker $verifyBroker = null {
+        get {
+            return $this->verifyBroker ??= new VerifyBroker($this->encryption);
+        }
     }
+    private ?AuthenticatorMfaService $authenticatorMfaService = null {
+        get {
+            return $this->authenticatorMfaService ??= new AuthenticatorMfaService($this->auth);
+        }
+    }
+
+    private const int MFA_EXPIRATION_SECONDS = 300;
 
     public function handleActivation(Form $form): UserVerify
     {
@@ -34,19 +39,17 @@ class VerifyService extends BaseService
 
     public function activateMethod(string $method): UserVerify
     {
-        $existing = $this->verifyBroker->findByMethod($this->auth['user_id'], $method);
+        $userId = $this->auth['user_id'];
+        $userKey = $this->auth['user_key'];
+        $existing = $this->verifyBroker->findByMethod($userId, $method, $userKey);
 
         if (!$existing) {
-            $verify = $this->verifyBroker->createMethod([
-                'user_id' => $this->auth['user_id'],
-                'method' => $method,
-                'otp_secret' => '000000',
-                'last_verified' => date('Y-m-d H:i:s', strtotime('-10 minutes')),
-                'is_active' => true
-            ]);
+            $verify = $this->verifyBroker->createMethod(
+                $this->buildEncryptedVerifyData($userId, $method), $userKey
+            );
         } else {
-            $this->verifyBroker->activate($this->auth['user_id'], $method);
-            $verify = $this->verifyBroker->findByMethod($this->auth['user_id'], $method);
+            $this->verifyBroker->activate($userId, $method, $userKey);
+            $verify = $this->verifyBroker->findByMethod($userId, $method, $userKey);
         }
 
         $this->updateMfaCount();
@@ -55,44 +58,58 @@ class VerifyService extends BaseService
 
     public function disableMethod(string $method): void
     {
-        $this->verifyBroker->deactivate($this->auth['user_id'], $method);
-        $this->updateMfaCount();
-    }
+        $userId = $this->auth['user_id'];
+        $userKey = $this->auth['user_key'];
 
-    public function getActiveMethods(): array
-    {
-        return $this->verifyBroker->findActiveByUser($this->auth['user_id']);
-    }
-
-    public function getMethod(string $method): ?UserVerify
-    {
-        return $this->verifyBroker->findByMethod($this->auth['user_id'], $method);
-    }
-
-    public function getPendingMethods(): array
-    {
-        $pending = [];
-
-        foreach ($this->getActiveMethods() as $method) {
-            if (!$this->isMethodVerified($method)) {
-                $pending[] = $method->method;
-            }
+        if ($userId) {
+            $this->verifyBroker->deactivate($userId, $method, $userKey);
+            $this->updateMfaCount();
         }
+    }
 
-        return $pending;
+    public function updateSecret(string $userId, string $method, string $otp): void
+    {
+        $encryptedOtp = $this->encryption->encryptWithUserKey($otp, $this->auth['user_key']);
+        $this->verifyBroker->updateSecret($userId, $method, $encryptedOtp);
+    }
+
+    public function markVerified(string $method): void
+    {
+        $userKey = $this->auth['user_key'];
+        $userId = $this->auth['user_id'];
+
+        if ($userId) {
+            $this->verifyBroker->updateLastVerified($userId, $method, $userKey);
+        }
+    }
+
+    public function getAllMethods(): array
+    {
+        $userKey = $this->auth['user_key'];
+        $userId = $this->auth['user_id'];
+
+        return $this->verifyBroker->findAllByUser($userId, $userKey);
     }
 
     public function areAllMethodsVerified(): bool
     {
-        return empty($this->getPendingMethods());
+        $methods = $this->getAllMethods();
+        return array_all($methods, fn($method) => !$method->is_active || $this->isMethodVerified($method));
     }
 
-    // Helpers
-
-    private function updateMfaCount(): void
+    public function getPendingMethods(): array
     {
-        $count = count($this->getActiveMethods());
-        $this->userBroker->updateMfaCount($this->auth['user_id'], $count);
+        return array_filter($this->getAllMethods(), function (UserVerify $method) {
+            return $method->is_active && !$this->isMethodVerified($method);
+        });
+    }
+
+    public function getMethod(string $method): ?UserVerify
+    {
+        $userKey = $this->auth['user_key'];
+        $userId = $this->auth['user_id'];
+
+        return $userId ? $this->verifyBroker->findByMethod($userId, $method, $userKey) : null;
     }
 
     public function isMethodVerified(UserVerify $method): bool
@@ -101,37 +118,62 @@ class VerifyService extends BaseService
             return false;
         }
 
-        $expirationDelay = 300;
-        $lastVerifiedTime = strtotime($method->last_verified);
-
-        return ($lastVerifiedTime + $expirationDelay) >= time();
-    }
-
-    public function updateSecret(string $userId, string $method, string $otp): void
-    {
-        $this->verifyBroker->updateSecret($userId, $method, $otp);
+        $lastVerified = strtotime($method->last_verified);
+        return ($lastVerified + self::MFA_EXPIRATION_SECONDS) >= time();
     }
 
     public function getUserEmail(): string
     {
-        $user = $this->userBroker->findById($this->auth['user_id'], $this->auth['user_key']);
-        return $user->email;
+        return $this->userBroker
+            ->findById($this->auth['user_id'], $this->auth['user_key'])
+            ->email;
     }
 
     public function getUserPhone(): string
     {
-        $user = $this->userBroker->findById($this->auth['user_id'], $this->auth['user_key']);
-        return $user->phone;
+        return $this->userBroker
+            ->findById($this->auth['user_id'], $this->auth['user_key'])
+            ->phone;
     }
+
+    // Helpers
 
     private function extractMethodOrFail(Form $form): string
     {
         $method = $form->getValue('method');
         if (empty($method)) {
-            $form->addError("method", "La méthode est requise.");
+            $form->addError("global", "La méthode est requise.");
             throw new FormException($form);
         }
         return $method;
+    }
+
+    private function updateMfaCount(): void
+    {
+        $count = count(array_filter($this->getAllMethods(), fn($m) => $m->is_active));
+        $this->userBroker->updateMfaCount($this->auth['user_id'], $count);
+    }
+
+    private function buildEncryptedVerifyData(string $userId, string $method): array
+    {
+        $otp = $this->getOtpForMethod($method);
+
+        return [
+            'user_id' => $userId,
+            'method' => $method,
+            'otp_secret' => $this->encryption->encryptWithUserKey($otp, $this->auth['user_key']),
+            'last_verified' => date('Y-m-d H:i:s', strtotime('-1 day')),
+            'is_active' => true
+        ];
+    }
+
+    private function getOtpForMethod(string $method): string
+    {
+        return match ($method) {
+            'authenticator' => $this->authenticatorMfaService->generateSecret(),
+            'mail', 'sms' => '000000',
+            default => throw new RuntimeExceptionAlias("Méthode MFA inconnue: $method")
+        };
     }
 
 }

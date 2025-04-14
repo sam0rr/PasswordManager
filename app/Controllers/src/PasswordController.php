@@ -4,33 +4,18 @@ namespace Controllers\src;
 
 use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
-use Models\src\Services\PasswordService;
-use Models\src\Services\SecurityService;
+use Models\src\Services\Utils\SecurityService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Post;
 
 class PasswordController extends SecureController
 {
-    private PasswordService $passwordService;
-
-    public function before(): ?Response
-    {
-        $parentResponse = parent::before();
-        if (!is_null($parentResponse)) {
-            return $parentResponse;
-        }
-
-        $auth = $this->getAuth();
-        $this->passwordService = new PasswordService($auth);
-        return null;
-    }
-
     #[Post('/addpassword')]
     public function addPassword(): Response
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->passwordService->addPassword($form, $isHtmx);
+        $result = $this->getService()->passwordService->addPassword($form, $isHtmx);
 
         SessionHelper::setForm('password_add', $result['form']);
 
@@ -49,7 +34,7 @@ class PasswordController extends SecureController
             return $this->redirect("/dashboard?section=passwords&tab=add");
         }
 
-        $passwords = $this->passwordService->getAllUserPasswords($form);
+        $passwords = $this->getService()->passwordService->getAllUserPasswords($form);
         $this->setPasswordContext($passwords);
         SessionHelper::clearForm('password_add');
         return $this->redirect("/dashboard?section=passwords&tab=list");
@@ -60,7 +45,7 @@ class PasswordController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->passwordService->updatePassword($form, $id, $isHtmx);
+        $result = $this->getService()->passwordService->updatePassword($form, $id, $isHtmx);
 
         SessionHelper::setForm("password_update_$id", $result['form']);
 
@@ -81,7 +66,7 @@ class PasswordController extends SecureController
             return $this->redirect("/dashboard?section=passwords&tab=list");
         }
 
-        $passwords = $this->passwordService->getAllUserPasswords($form);
+        $passwords = $this->getService()->passwordService->getAllUserPasswords($form);
         $this->setPasswordContext($passwords);
         SessionHelper::clearForm("password_update_$id");
         return $this->redirect("/dashboard?section=passwords&tab=list");
@@ -91,9 +76,9 @@ class PasswordController extends SecureController
     public function deletePassword(string $id): Response
     {
         $form = $this->buildForm();
-        $this->passwordService->deletePassword($form, $id);
+        $this->getService()->passwordService->deletePassword($form, $id);
 
-        $passwords = $this->passwordService->getAllUserPasswords($form);
+        $passwords = $this->getService()->passwordService->getAllUserPasswords($form);
         $this->setPasswordContext($passwords);
 
         $analysis = SessionHelper::get('security_analysis', []);

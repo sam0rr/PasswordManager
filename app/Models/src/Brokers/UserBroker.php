@@ -9,12 +9,12 @@ use Zephyrus\Database\DatabaseBroker;
 
 class UserBroker extends DatabaseBroker
 {
-    private EncryptionService $encryptionService;
+    private EncryptionService $encryption;
 
-    public function __construct()
+    public function __construct(EncryptionService $encryption)
     {
         parent::__construct();
-        $this->encryptionService = new EncryptionService();
+        $this->encryption = $encryption;
     }
 
     public function createUser(array $data): ?User
@@ -74,7 +74,7 @@ class UserBroker extends DatabaseBroker
 
     public function findByEmail(string $email, ?string $userKey = null): ?User
     {
-        $emailHash = $this->encryptionService->hash256(strtolower($email));
+        $emailHash = $this->encryption->hash256(strtolower($email));
         $result = $this->selectSingle("SELECT * FROM users WHERE email_hash = ?", [$emailHash]);
 
         if (!$result) return null;
@@ -95,7 +95,7 @@ class UserBroker extends DatabaseBroker
 
     public function emailExists(string $email): bool
     {
-        $emailHash = $this->encryptionService->hash256(strtolower($email));
+        $emailHash = $this->encryption->hash256(strtolower($email));
         return (bool) $this->selectSingle("SELECT 1 FROM users WHERE email_hash = ?", [$emailHash]);
     }
 
@@ -106,11 +106,11 @@ class UserBroker extends DatabaseBroker
 
     private function decryptUser(User $user, string $userKey): User
     {
-        $user->first_name = $this->encryptionService->decryptWithUserKey($user->first_name, $userKey);
-        $user->last_name = $this->encryptionService->decryptWithUserKey($user->last_name, $userKey);
-        $user->email = $this->encryptionService->decryptWithUserKey($user->email, $userKey);
-        $user->phone = $this->encryptionService->decryptWithUserKey($user->phone, $userKey);
-        $user->image_url = $this->encryptionService->decryptWithUserKey($user->image_url, $userKey);
+        $user->first_name = $this->encryption->decryptWithUserKey($user->first_name, $userKey);
+        $user->last_name = $this->encryption->decryptWithUserKey($user->last_name, $userKey);
+        $user->email = $this->encryption->decryptWithUserKey($user->email, $userKey);
+        $user->phone = $this->encryption->decryptWithUserKey($user->phone, $userKey);
+        $user->image_url = $this->encryption->decryptWithUserKey($user->image_url, $userKey);
 
         return $user;
     }

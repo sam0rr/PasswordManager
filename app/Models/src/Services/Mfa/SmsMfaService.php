@@ -2,28 +2,40 @@
 
 namespace Models\src\Services\Mfa;
 
+use Exception;
+use Models\src\Services\Utils\BaseService;
+use RuntimeException as RuntimeExceptionAlias;
 use Twilio\Rest\Client;
 
-class SmsMfaService extends BaseMfaService
+class SmsMfaService extends BaseService implements MfaServiceInterface
 {
-    private Client $twilioClient;
-    private string $accountSid;
-    private string $fromPhone;
-    private string $authToken;
-
-    public function __construct(array $auth)
-    {
-        $this->accountSid = getenv('TWILIO_ACCOUNT_SID');
-        $this->authToken = getenv('TWILIO_AUTH_TOKEN');
-        $this->fromPhone = getenv('TWILIO_PHONE_FROM');
-
-        parent::__construct($auth);
-
-        if (!$this->accountSid || !$this->authToken) {
-            throw new \RuntimeException("Twilio credentials are missing.");
+    private ?Client $twilioClient = null {
+        get {
+            return $this->twilioClient ??= $this->createTwilioClient();
         }
+    }
 
-        $this->twilioClient = new Client($this->accountSid, $this->authToken);
+    private ?string $fromPhone = null {
+        get {
+            return $this->fromPhone ??= getenv('TWILIO_PHONE_FROM') ?: '000000000';
+        }
+    }
+
+    private function createTwilioClient(): Client
+    {
+        try {
+            $accountSid = getenv('TWILIO_ACCOUNT_SID');
+            $authToken = getenv('TWILIO_AUTH_TOKEN');
+
+            if (!$accountSid || !$authToken) {
+                throw new RuntimeExceptionAlias("Twilio credentials are missing.");
+            }
+
+            return new Client($accountSid, $authToken);
+        }
+        catch (Exception $e) {
+            throw new RuntimeExceptionAlias("Error initializing 2FA: " . $e->getMessage());
+        }
     }
 
     public function generateSecret(): string
@@ -33,7 +45,7 @@ class SmsMfaService extends BaseMfaService
 
     public function verifyCode(string $userId, string $code): bool
     {
-        $method = $this->verifyService->getMethod('sms');
+        $method = $this->verify->getMethod('sms');
 
         if (!$method || !$method->is_active) {
             return false;
@@ -44,14 +56,14 @@ class SmsMfaService extends BaseMfaService
 
     public function sendCode(string $userId): ?string
     {
-        $method = $this->verifyService->getMethod('sms');
+        $method = $this->verify->getMethod('sms');
 
         if (!$method || !$method->is_active) {
             return null;
         }
 
         $otp = $this->generateSecret();
-        $phone = $this->verifyService->getUserPhone();
+        $phone = $this->verify->getUserPhone();
 
         try {
             $this->twilioClient->messages->create(
@@ -62,11 +74,10 @@ class SmsMfaService extends BaseMfaService
                 ]
             );
 
-            $this->verifyService->updateSecret($userId, 'sms', $otp);
-
+            $this->verify->updateSecret($userId, 'sms', $otp);
             return $otp;
-        } catch (\Exception $e) {
-            throw new \RuntimeException("Erreur lors de l’envoi du code par SMS : " . $e->getMessage());
+        } catch (Exception $e) {
+            throw new RuntimeExceptionAlias("Erreur lors de l'envoi du code par SMS : " . $e->getMessage());
         }
     }
 }

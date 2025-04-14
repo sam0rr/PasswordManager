@@ -3,19 +3,15 @@
 namespace Models\src\Services;
 
 use Models\src\Brokers\AuthHistoryBroker;
-use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\BaseService;
 
 class AuthHistoryService extends BaseService
 {
-    private AuthHistoryBroker $authHistoryBroker;
-
-    public function __construct(array $auth = [])
-    {
-        $this->auth = $auth;
-        $this->authHistoryBroker = new AuthHistoryBroker();
-        $this->userBroker = new UserBroker();
+    private ?AuthHistoryBroker $authHistoryBroker = null {
+        get {
+            return $this->authHistoryBroker ??= new AuthHistoryBroker();
+        }
     }
 
     public function getHistoryForUser(): array

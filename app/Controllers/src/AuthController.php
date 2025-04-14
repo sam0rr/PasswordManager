@@ -11,11 +11,10 @@ use Zephyrus\Network\Router\Post;
 
 class AuthController extends Controller
 {
-    private AuthService $authService;
-
-    public function __construct()
-    {
-        $this->authService = new AuthService();
+    private ?AuthService $authService = null {
+        get {
+            return $this->authService ??= new AuthService();
+        }
     }
 
     #[Get('/login')]

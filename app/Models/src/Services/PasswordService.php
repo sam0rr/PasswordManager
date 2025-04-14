@@ -3,26 +3,12 @@
 namespace Models\src\Services;
 
 use Models\Exceptions\FormException;
-use Models\src\Brokers\PasswordBroker;
-use Models\src\Brokers\UserBroker;
 use Models\src\Services\Utils\BaseService;
 use Models\src\Validators\PasswordValidator;
 use Zephyrus\Application\Form;
 
 class PasswordService extends BaseService
 {
-    protected PasswordBroker $passwordBroker;
-    protected UserBroker $userBroker;
-    protected EncryptionService $encryption;
-
-    public function __construct(array $auth)
-    {
-        $this->auth = $auth;
-        $this->encryption = new EncryptionService();
-        $this->passwordBroker = new PasswordBroker();
-        $this->userBroker = new UserBroker();
-    }
-
     public function getAllUserPasswords($form): array
     {
         try {

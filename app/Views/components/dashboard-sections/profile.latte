@@ -7,12 +7,15 @@
 
     <div class="card-body">
         <div class="d-md-none mb-3">
-            <select class="form-select" id="profile-tab-selector">
+            <select class="form-select" id="profile-tab-selector" onchange="location.href=this.value;">
                 <option value="?section=profile&tab=info" {$profileTab == 'info' ? 'selected' : ''}>
                     Modifier mes informations
                 </option>
                 <option value="?section=profile&tab=password" {$profileTab == 'password' ? 'selected' : ''}>
                     Changer mon mot de passe
+                </option>
+                <option value="?section=profile&tab=mfa" {$profileTab == 'mfa' ? 'selected' : ''}>
+                    Double authentification
                 </option>
             </select>
         </div>
@@ -28,12 +31,19 @@
                     Changer mon mot de passe
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {$profileTab == 'mfa' ? 'active' : ''}" href="?section=profile&tab=mfa">
+                    Double authentification
+                </a>
+            </li>
         </ul>
 
         {if $profileTab == 'info'}
             {include '../profile/updateProfile.latte', user => $user}
         {elseif $profileTab == 'password'}
             {include '../profile/updatePassword.latte'}
+        {elseif $profileTab == 'mfa'}
+            {include '../profile/mfaSettings.latte', mfa => $mfa}
         {/if}
     </div>
 </div>

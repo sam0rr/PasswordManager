@@ -10,10 +10,10 @@ class PasswordBroker extends DatabaseBroker
 {
     private EncryptionService $encryption;
 
-    public function __construct()
+    public function __construct(EncryptionService $encryption)
     {
         parent::__construct();
-        $this->encryption = new EncryptionService();
+        $this->encryption = $encryption;
     }
 
     public function findAllByUser(string $userId, string $userKey): array

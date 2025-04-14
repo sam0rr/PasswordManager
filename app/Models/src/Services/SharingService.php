@@ -3,9 +3,7 @@
 namespace Models\src\Services;
 
 use Models\Exceptions\FormException;
-use Models\src\Brokers\PasswordBroker;
 use Models\src\Brokers\SharingBroker;
-use Models\src\Brokers\UserBroker;
 use Models\src\Entities\PasswordSharing;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\BaseService;
@@ -16,15 +14,10 @@ use Zephyrus\Application\Form;
 
 class SharingService extends BaseService
 {
-    private SharingBroker $sharingBroker;
-
-    public function __construct(array $auth)
-    {
-        $this->auth = $auth;
-        $this->passwordBroker = new PasswordBroker();
-        $this->userBroker = new UserBroker();
-        $this->sharingBroker = new SharingBroker();
-        $this->encryption = new EncryptionService();
+    private ?SharingBroker $sharingBroker = null {
+        get {
+            return $this->sharingBroker ??= new SharingBroker();
+        }
     }
 
     public function acceptPendingShares(): void

@@ -5,36 +5,13 @@ namespace Controllers\src;
 use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
 use Models\src\Entities\User;
-use Models\src\Services\AuthHistoryService;
-use Models\src\Services\PasswordService;
-use Models\src\Services\SecurityService;
-use Models\src\Services\SharingService;
-use Models\src\Services\UserService;
+use Models\src\Services\Utils\SecurityService;
 use Zephyrus\Application\Form;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 
 class DashboardController extends SecureController
 {
-    private UserService $userService;
-    private AuthHistoryService $authHistoryService;
-    private SharingService $sharingService;
-    private PasswordService $passwordService;
-
-    public function before(): ?Response
-    {
-        $response = parent::before();
-        if (!is_null($response)) return $response;
-
-        $auth = $this->getAuth();
-        $this->userService = new UserService($auth);
-        $this->authHistoryService = new AuthHistoryService($auth);
-        $this->sharingService = new SharingService($auth);
-        $this->passwordService = new PasswordService($auth);
-
-        return null;
-    }
-
     #[Get('/dashboard')]
     public function dashboard(): Response
     {
@@ -60,7 +37,6 @@ class DashboardController extends SecureController
         return [
             'title' => "Tableau de bord",
             'user' => $user,
-            'auth_history' => $this->authHistoryService->getHistoryForUser(),
             'activeSection' => $section,
             'tab' => $tab
         ];
@@ -69,8 +45,12 @@ class DashboardController extends SecureController
     private function injectDataIfNeeded(array &$context): void
     {
         if (!SessionHelper::get("user")) {
-            $context['shared_credentials'] = $this->sharingService->getAllShares(new Form());
-            $context['passwords'] = $this->passwordService->getAllUserPasswords(new Form());
+            $context["auth_history"] = $this->getService()->history->getHistoryForUser();
+
+            $context['shared_credentials'] = $this->getService()->sharing->getAllShares(new Form());
+            $context['passwords'] = $this->getService()->passwordService->getAllUserPasswords(new Form());
+
+            $context['mfa'] = $this->getService()->verify->getAllMethods();
             SessionHelper::setContext($context);
         } else {
             SessionHelper::appendContext($context);
@@ -97,7 +77,7 @@ class DashboardController extends SecureController
 
     private function getDashboardUser(): User
     {
-        $user = $this->userService->getCurrentUserEntity();
+        $user = $this->getService()->userService->getCurrentUserEntity();
         if (!$user) {
             $this->abortNotFound("Utilisateur introuvable.");
         }
