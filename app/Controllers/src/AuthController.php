@@ -55,6 +55,11 @@ class AuthController extends Controller
             ]);
         }
 
+//        if ($user->mfa > 0) {
+//            Session::set("mfa_pending_user", $user->id);
+//           return redirect("/mfa"); // vers formulaire d'entrée du code
+//        }
+
         return $this->redirect("/dashboard");
     }
 

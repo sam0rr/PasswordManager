@@ -99,6 +99,11 @@ class UserBroker extends DatabaseBroker
         return (bool) $this->selectSingle("SELECT 1 FROM users WHERE email_hash = ?", [$emailHash]);
     }
 
+    public function updateMfaCount(string $userId, int $mfa): void
+    {
+        $this->rawQuery("UPDATE users SET mfa = ?, mfa_end = CURRENT_TIMESTAMP WHERE id = ?", [$mfa, $userId]);
+    }
+
     private function decryptUser(User $user, string $userKey): User
     {
         $user->first_name = $this->encryptionService->decryptWithUserKey($user->first_name, $userKey);
