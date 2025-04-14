@@ -46,7 +46,7 @@ class PasswordValidator extends BaseValidator
     public static function assertUpdate(Form $form, PasswordBroker $broker, string $userId, UserPassword $currentPassword): void
     {
         $form->field("password", [
-            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
+            Rule::minLength(2, "Le mot de passe doit contenir au moins 2 caractères.")
         ])->optional();
 
         $form->field("description", [
