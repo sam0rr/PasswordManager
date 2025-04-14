@@ -5,6 +5,7 @@ namespace Controllers\src;
 use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\PasswordService;
+use Models\src\Services\SecurityService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Post;
 
@@ -94,6 +95,17 @@ class PasswordController extends SecureController
 
         $passwords = $this->passwordService->getAllUserPasswords($form);
         $this->setPasswordContext($passwords);
+
+        $analysis = SessionHelper::get('security_analysis', []);
+        $fingerprints = SessionHelper::get('security_password_fingerprint', []);
+
+        $filtered = SecurityService::filterOutPasswordFromAnalysis($id, $analysis, $fingerprints);
+
+        SessionHelper::appendContext([
+            'security_analysis' => $filtered['analysis'],
+            'security_password_fingerprint' => $filtered['fingerprintMap']
+        ]);
+
         return $this->redirect("/dashboard?section=passwords&tab=list");
     }
 

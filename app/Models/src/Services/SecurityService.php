@@ -62,6 +62,7 @@ class SecurityService
     private function analyzePasswords(array $passwords): array
     {
         return array_map(fn($pwd) => [
+            'id' => $pwd->id,
             'description' => $pwd->description,
             'note' => $pwd->note ?? null,
             'entropy' => self::calculatePasswordStrength($pwd->password)['entropy'],
@@ -73,7 +74,7 @@ class SecurityService
     {
         $results = [];
         foreach ($passwords as $pwd) {
-            $results[$pwd->description] = self::findBreachCount($pwd->password);
+            $results[$pwd->id] = self::findBreachCount($pwd->password);
         }
         return $results;
     }
@@ -85,7 +86,7 @@ class SecurityService
         $breaches = $service->analyzeBreaches($passwords);
 
         foreach ($analysis as &$entry) {
-            $entry['breach_count'] = $breaches[$entry['description']] ?? 0;
+            $entry['breach_count'] = $breaches[$entry['id']] ?? 0;
         }
 
         return $analysis;
@@ -94,8 +95,8 @@ class SecurityService
     public static function analyzeIfChanged(array $passwords, array $previousMap, array $existingAnalysis = []): array
     {
         $newMap = self::generateFingerprintMap($passwords);
-
         $passwordMap = [];
+
         foreach ($passwords as $pwd) {
             $passwordMap[$pwd->id] = $pwd;
         }
@@ -127,10 +128,10 @@ class SecurityService
     {
         $map = [];
         foreach ($existing as $entry) {
-            $map[$entry['description']] = $entry;
+            $map[$entry['id']] = $entry;
         }
         foreach ($new as $entry) {
-            $map[$entry['description']] = $entry;
+            $map[$entry['id']] = $entry;
         }
         return array_values($map);
     }
@@ -142,4 +143,16 @@ class SecurityService
             return $map;
         }, []);
     }
+
+    public static function filterOutPasswordFromAnalysis(string $passwordId, array $existingAnalysis, array $existingFingerprintMap): array
+    {
+        $filteredAnalysis = array_filter($existingAnalysis, fn($entry) => $entry['id'] !== $passwordId);
+        unset($existingFingerprintMap[$passwordId]);
+
+        return [
+            'analysis' => array_values($filteredAnalysis),
+            'fingerprintMap' => $existingFingerprintMap
+        ];
+    }
+
 }
