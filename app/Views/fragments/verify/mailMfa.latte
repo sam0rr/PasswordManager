@@ -1,6 +1,8 @@
 {var $form = Controllers\src\Utils\SessionHelper::getForm('mfa_confirm')}
 
 <div id="verify-form-wrapper">
+    {include '../../components/alert/successAlert.latte', message => $successMessage ?? null}
+
     <form method="post"
           action="/verify/confirm"
           hx-post="/verify/confirm"

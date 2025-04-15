@@ -98,5 +98,12 @@ class SessionHelper
         Session::remove("form__{$key}");
     }
 
+    public static function consume(string $key, mixed $default = null): mixed
+    {
+        $value = Session::get($key, $default);
+        Session::remove($key);
+        return $value;
+    }
+
 }
 

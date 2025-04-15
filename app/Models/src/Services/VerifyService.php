@@ -59,24 +59,15 @@ class VerifyService extends BaseService
     public function confirmCode(Form $form, $service, bool $isHtmx): array
     {
         try {
-            $userId = $this->auth['user_id'];
-
             VerifyValidator::assertConfirm($form, $isHtmx);
 
             $method = $form->getValue('method');
             $code = $form->getValue('code');
 
-            $isValid = $service->verifyCode($userId, $code);
-
-            if (!$isValid && !empty($code)) {
-                $form->addError('code', 'Code incorrect ou expiré.');
-                throw new FormException($form);
-            }
+            $this->assertCodeValidity($code, $service, $method, $form);
 
             if ($isHtmx) {
-                return [
-                    "form" => $form
-                ];
+                return ['form' => $form];
             }
 
             $this->markVerified($method);
@@ -166,6 +157,37 @@ class VerifyService extends BaseService
         return array_filter($this->getAllMethods(), function (UserVerify $method) {
             return $method->is_active && !$this->isMethodVerified($method);
         });
+    }
+
+    private function assertCodeValidity(string $code, object $service, string $method, Form $form): void
+    {
+        if (empty($code)) {
+            return;
+        }
+
+        $methodEntity = $this->getMethod($method);
+
+        if (!$methodEntity || $this->isCodeExpired($methodEntity)) {
+            $form->addError('code', 'Ce code a expiré. Veuillez en demander un nouveau.');
+            throw new FormException($form);
+        }
+
+        $isValid = $service->verifyCode($this->auth['user_id'], $code);
+
+        if (!$isValid) {
+            $form->addError('code', 'Le code est invalide.');
+            throw new FormException($form);
+        }
+    }
+
+    private function isCodeExpired(UserVerify $method): bool
+    {
+        if (empty($method->last_verified)) {
+            return true;
+        }
+
+        $last = strtotime($method->last_verified);
+        return (time() - $last) > self::MFA_EXPIRATION_SECONDS;
     }
 
     public function isMethodVerified(UserVerify $method): bool

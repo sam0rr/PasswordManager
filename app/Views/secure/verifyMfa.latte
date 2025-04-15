@@ -15,11 +15,11 @@
 
                         <div id="verify-form-wrapper">
                             {if $method->method == 'mail'}
-                                {include '../fragments/verify/mailMfa.latte'}
+                                {include '../fragments/verify/mailMfa.latte', successMessage => $successMessage ?? null}
                             {elseif $method->method == 'sms'}
-                                {include '../fragments/verify/smsMfa.latte'}
+                                {include '../fragments/verify/smsMfa.latte', successMessage => $successMessage ?? null}
                             {elseif $method->method == 'authenticator'}
-                                {include '../fragments/verify/authenticatorMfa.latte'}
+                                {include '../fragments/verify/authenticatorMfa.latte', successMessage => $successMessage ?? null}
                             {/if}
                         </div>
                     </div>

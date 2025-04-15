@@ -13,6 +13,7 @@ class VerifyValidator extends BaseValidator
     {
         $code = $form->field("code", [
             Rule::required("Le code MFA est requis."),
+            Rule::decimal("Le code doit être numérique."),
             Rule::length(6, "Le code doit contenir 6 chiffres."),
         ]);
         self::optionalIf($code, $isHtmx);

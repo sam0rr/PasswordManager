@@ -1,6 +1,8 @@
 {var $form = Controllers\src\Utils\SessionHelper::getForm('mfa_confirm')}
 
 <div id="verify-form-wrapper">
+    {include '../../components/alert/successAlert.latte', message => $successMessage ?? null}
+
     <form method="post"
           action="/verify/confirm"
           hx-post="/verify/confirm"
@@ -12,7 +14,7 @@
 
         <input type="hidden" name="method" value="sms">
 
-        {include '../../components/formField.latte', name => 'code', label => 'Code reçu par SMS', icon => 'chat-dots', form => $form}
+        {include '../../components/formField.latte', name => 'code', label => 'Code reçu par courriel', icon => 'chat-dots', form => $form}
 
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">

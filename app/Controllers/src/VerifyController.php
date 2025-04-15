@@ -111,11 +111,16 @@ class VerifyController extends SecureController
         $service = $this->resolveMfaService($form);
         $service->sendCode($this->getAuth()['user_id']);
 
+        $this->flashSuccess("Le code a été envoyé avec succès.");
         SessionHelper::append(['code_sent' => true]);
-
         $this->setMfaContext();
 
-        return $this->redirect('/verify-mfa');
+        return $this->render("fragments/verify/{$form->getValue('method')}Mfa", [
+            'form' => $form,
+            'method' => $form->getValue('method'),
+            'isHtmx' => true,
+            'successMessage' => SessionHelper::consume('flash_success')
+        ]);
     }
 
     // Helpers

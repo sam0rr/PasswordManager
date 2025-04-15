@@ -1,5 +1,6 @@
 <?php namespace Controllers;
 
+use Controllers\src\Utils\SessionHelper;
 use Models\Core\Entities\Now;
 use Zephyrus\Application\Controller as BaseController;
 use Models\Core\Application;
@@ -110,6 +111,13 @@ abstract class Controller extends BaseController
     protected function isHtmx(): bool
     {
         return $this->request->getHeader('HX-Request') !== null;
+    }
+
+    protected function flashSuccess(string $message): void
+    {
+        SessionHelper::append([
+            'flash_success' => $message
+        ]);
     }
 
 }
