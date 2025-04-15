@@ -2,7 +2,6 @@
 
 namespace Models\src\Brokers;
 
-use DateTime;
 use Models\src\Entities\User;
 use Models\src\Services\EncryptionService;
 use Zephyrus\Database\DatabaseBroker;
@@ -29,9 +28,8 @@ class UserBroker extends DatabaseBroker
                 email_hash,
                 password_hash,
                 salt,
-                public_key,
-                mfa_end
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                public_key
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *";
 
         $result = $this->selectSingle($sql, [
@@ -43,8 +41,7 @@ class UserBroker extends DatabaseBroker
             $data['email_hash'],
             $data['password_hash'],
             $data['salt'],
-            $data['public_key'],
-            $data['mfa_end'] ?? new DateTime()->format('c')
+            $data['public_key']
         ]);
 
         return User::build($result);
@@ -99,11 +96,6 @@ class UserBroker extends DatabaseBroker
         return (bool) $this->selectSingle("SELECT 1 FROM users WHERE email_hash = ?", [$emailHash]);
     }
 
-    public function updateMfaCount(string $userId, int $mfa): void
-    {
-        $this->rawQuery("UPDATE users SET mfa = ?, mfa_end = CURRENT_TIMESTAMP WHERE id = ?", [$mfa, $userId]);
-    }
-
     private function decryptUser(User $user, string $userKey): User
     {
         $user->first_name = $this->encryption->decryptWithUserKey($user->first_name, $userKey);
@@ -114,5 +106,4 @@ class UserBroker extends DatabaseBroker
 
         return $user;
     }
-
 }

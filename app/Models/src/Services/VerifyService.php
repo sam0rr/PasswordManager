@@ -12,6 +12,7 @@ use Zephyrus\Application\Form;
 
 class VerifyService extends BaseService
 {
+    private const int MFA_EXPIRATION_SECONDS = 300;
     private ?VerifyBroker $verifyBroker = null {
         get {
             return $this->verifyBroker ??= new VerifyBroker($this->encryption);
@@ -22,8 +23,6 @@ class VerifyService extends BaseService
             return $this->authenticatorMfaService ??= new AuthenticatorMfaService($this->auth);
         }
     }
-
-    private const int MFA_EXPIRATION_SECONDS = 300;
 
     public function handleActivation(Form $form): UserVerify
     {
@@ -52,7 +51,6 @@ class VerifyService extends BaseService
             $verify = $this->verifyBroker->findByMethod($userId, $method, $userKey);
         }
 
-        $this->updateMfaCount();
         return $verify;
     }
 
@@ -63,7 +61,6 @@ class VerifyService extends BaseService
 
         if ($userId) {
             $this->verifyBroker->deactivate($userId, $method, $userKey);
-            $this->updateMfaCount();
         }
     }
 
@@ -146,12 +143,6 @@ class VerifyService extends BaseService
             throw new FormException($form);
         }
         return $method;
-    }
-
-    private function updateMfaCount(): void
-    {
-        $count = count(array_filter($this->getAllMethods(), fn($m) => $m->is_active));
-        $this->userBroker->updateMfaCount($this->auth['user_id'], $count);
     }
 
     private function buildEncryptedVerifyData(string $userId, string $method): array

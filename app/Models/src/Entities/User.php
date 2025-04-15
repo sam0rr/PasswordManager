@@ -16,8 +16,6 @@ class User extends Entity
     public string $password_hash;
     public string $salt;
     public string $public_key;
-    public int $mfa;
-    public string $mfa_end;
     public string $created_at;
     public string $updated_at;
 }
