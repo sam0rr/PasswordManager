@@ -3,10 +3,10 @@
 namespace Models\src\Services\Mfa;
 
 use Models\src\Services\Utils\BaseService;
-use RobThree\Auth\Providers\Qr\BaconQrCodeProvider;
+use RobThree\Auth\Algorithm;
+use RobThree\Auth\Providers\Qr\EndroidQrCodeProvider;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\TwoFactorAuthException;
-use RuntimeException as RuntimeExceptionAlias;
 
 class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
 {
@@ -19,12 +19,22 @@ class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
     private function createTfa(): TwoFactorAuth
     {
         try {
+            $qrProvider = new EndroidQrCodeProvider(
+                'ffffff',
+                '000000',
+                10,
+                'H'
+            );
+
             return new TwoFactorAuth(
-                new BaconQrCodeProvider(),
-                'KryptLok'
+                $qrProvider,
+                'KryptLok',
+                6,
+                30,
+                Algorithm::Sha1
             );
         } catch (TwoFactorAuthException $e) {
-            throw new RuntimeExceptionAlias("Error initializing 2FA: " . $e->getMessage());
+            throw new \RuntimeException("Error initializing 2FA: " . $e->getMessage());
         }
     }
 

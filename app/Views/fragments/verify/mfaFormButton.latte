@@ -1,0 +1,12 @@
+{varType string $action}
+{varType string $methodType}
+{varType string $style}
+{varType string $icon}
+{varType string $label}
+
+<form method="post" action="/verify/{$action}">
+    <input type="hidden" name="method" value="{$methodType}">
+    <button type="submit" class="btn btn-sm btn-{$style}">
+        <i class="bi bi-{$icon} me-1"></i> {$label}
+    </button>
+</form>

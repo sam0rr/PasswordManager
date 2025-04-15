@@ -1,0 +1,38 @@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            <i class="bi bi-qr-code me-2"></i>Configuration de l’Authenticator
+        </h5>
+    </div>
+
+    <div class="card-body">
+        <p class="text-muted">
+            Scannez le code QR ci-dessous avec une application d’authentification comme <strong>Google Authenticator</strong> ou <strong>Authy</strong> pour lier votre compte.
+        </p>
+
+        <div class="d-flex justify-content-center my-4">
+            <img src="{$qrCode}" alt="QR Code Authenticator" class="img-fluid shadow-sm rounded" style="max-width: 250px;">
+        </div>
+
+        <p class="text-muted small">
+            Une fois lié, vous pourrez entrer le code généré par l’application pour confirmer l’activation.
+        </p>
+
+        <form method="post" action="/verify/confirm" class="mt-3">
+            <input type="hidden" name="method" value="authenticator">
+
+            <div class="mb-3">
+                <label class="form-label">
+                    <strong>Code généré :</strong>
+                </label>
+                <input type="text" name="code" class="form-control" placeholder="123 456" required>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-shield-check me-1"></i> Valider le code
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

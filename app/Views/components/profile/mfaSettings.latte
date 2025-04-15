@@ -1,3 +1,5 @@
+{varType array $mfa}
+
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white">
         <h5 class="mb-0">
@@ -20,50 +22,19 @@
                 {foreach $mfa as $m}
                     {if $m->method == $methodType}
                         {var $method = $m}
+                        {breakIf true}
                     {/if}
                 {/foreach}
 
-                <div class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
-                    <div class="mb-2 mb-md-0 w-100 w-md-50">
-                        <div class="fw-bold text-dark">
-                            <i class="bi bi-lock-fill me-2"></i>
-                            {if $methodType == 'mail'}Authentification par courriel{/if}
-                            {if $methodType == 'sms'}Authentification par SMS{/if}
-                            {if $methodType == 'authenticator'}Application Authenticator (TOTP){/if}
-                        </div>
-
-                        <div class="text-muted small mt-1">
-                            {if $method && $method->is_active}
-                                Vérifiée :
-                                {if $method->last_verified}
-                                    {$method->last_verified|date:'d/m/Y à H:i'}
-                                    {if strtotime($method->last_verified) + 300 < time()}
-                                        <span class="badge bg-danger ms-2">Expiré</span>
-                                    {/if}
-                                {else}
-                                    <span class="text-muted">Jamais vérifiée</span>
-                                {/if}
-                            {else}
-                                <span class="text-muted">Méthode désactivée</span>
-                            {/if}
-                        </div>
-                    </div>
-
-                    <div class="text-end w-100 w-md-50">
-                        <form method="post" action="/verify/{= $method && $method->is_active ? 'deactivate' : 'activate'}">
-                            <input type="hidden" name="method" value="{$methodType}">
-                            <button type="submit"
-                                    class="btn btn-sm {= $method && $method->is_active ? 'btn-outline-danger' : 'btn-primary'}">
-                                {if $method && $method->is_active}
-                                    <i class="bi bi-x-circle me-1"></i> Désactiver
-                                {else}
-                                    <i class="bi bi-shield-plus me-1"></i> Activer
-                                {/if}
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                {include '../../fragments/profile/mfaMethodRow.latte', method => $method, methodType => $methodType}
             {/foreach}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mfa-setup-modal" tabindex="-1" aria-labelledby="mfa-setup-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" id="mfa-setup-modal-content">
         </div>
     </div>
 </div>

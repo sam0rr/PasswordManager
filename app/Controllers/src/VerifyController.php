@@ -34,10 +34,14 @@ class VerifyController extends SecureController
     public function activate(): Response
     {
         $form = $this->buildForm();
-        $this->base->verify->handleActivation($form);
+        $method = $form->getValue("method");
 
+        $this->base->verify->handleActivation($form);
         $this->setMfaContext();
-        return $this->redirect('/dashboard?section=profile&tab=mfa');
+
+        return ($method === "authenticator")
+            ? $this->renderAuthenticatorSetup($method)
+            : $this->redirect('/dashboard?section=profile&tab=mfa');
     }
 
     #[Post('/verify/deactivate')]
@@ -146,6 +150,17 @@ class VerifyController extends SecureController
         ]);
     }
 
+    private function renderAuthenticatorSetup(string $method): Response
+    {
+        $userId = $this->getAuth()['user_id'];
+        $qrCode = $this->authenticatorMfaService->sendCode($userId);
+
+        return $this->render("fragments/verify/setupAuthenticator", [
+            'qrCode' => $qrCode,
+            'method' => $method
+        ]);
+    }
+
     private function sendMfaCodeIfNeeded(?object $method): void
     {
         if (SessionHelper::get('code_sent') || is_null($method)) {
@@ -155,7 +170,6 @@ class VerifyController extends SecureController
         $service = match ($method->method) {
             'mail' => $this->mailMfaService,
             'sms' => $this->smsMfaService,
-            'authenticator' => $this->authenticatorMfaService,
             default => null
         };
 
