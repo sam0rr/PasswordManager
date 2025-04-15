@@ -85,14 +85,13 @@ class AuthService
 
 
             if ($this->verifyService->hasPendingMfa()) {
-                SessionHelper::append([
-                    'post_auth_actions' => true,
-                    'mfa_validated' => false
-                ]);
-                return ["form" => $form, "status" => "pending_mfa"];
+                SessionHelper::append(['mfa_validated' => false]);
+                return ["form" => $form];
             }
 
             $this->postAuthActions();
+            SessionHelper::append(['mfa_validated' => true]);
+
             return ["form" => $form];
         } catch (FormException $e) {
             if (!$isHtmx && $form->getValue("email")) {

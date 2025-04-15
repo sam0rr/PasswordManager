@@ -3,6 +3,7 @@
 namespace Controllers\src;
 
 use Controllers\Controller;
+use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\AuthService;
 use Zephyrus\Application\Form;
 use Zephyrus\Network\Response;
@@ -54,7 +55,7 @@ class AuthController extends Controller
             ]);
         }
 
-        if (isset($result["status"]) && $result["status"] === "pending_mfa") {
+        if (!SessionHelper::get('mfa_validated')) {
             return $this->redirect("/verify-mfa");
         }
 

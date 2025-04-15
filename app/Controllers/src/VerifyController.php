@@ -101,7 +101,7 @@ class VerifyController extends SecureController
         }
 
         $this->setMfaContext();
-        return $this->redirect('/dashboard?section=profile&tab=mfa');
+        return $this->redirect('/dashboard');
     }
 
     #[Post('/verify/status')]

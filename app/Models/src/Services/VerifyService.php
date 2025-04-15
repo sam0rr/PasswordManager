@@ -82,13 +82,8 @@ class VerifyService extends BaseService
             return;
         }
 
-        if (!SessionHelper::get('post_auth_actions')) {
-            return;
-        }
-
         $this->authService->postAuthActions();
 
-        SessionHelper::clear('post_auth_actions');
         SessionHelper::append([
             'mfa_validated' => true
         ]);
