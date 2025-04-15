@@ -91,10 +91,6 @@ class VerifyController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::append([
-                'activeSection' => 'profile',
-                'tab' => 'mfa'
-            ]);
             return $this->redirect('/verify-mfa');
         }
 

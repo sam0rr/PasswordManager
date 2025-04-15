@@ -35,8 +35,8 @@ class VerifyBroker extends DatabaseBroker
     public function createMethod(array $data, string $userKey): ?UserVerify
     {
         $sql = "
-            INSERT INTO user_verify (user_id, method, otp_secret, is_active, last_verified)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO user_verify (user_id, method, otp_secret, is_active, otp_created_at, last_verified)
+            VALUES (?, ?, ?, ?, ?, ?)
             RETURNING *;
         ";
 
@@ -45,6 +45,7 @@ class VerifyBroker extends DatabaseBroker
             $data['method'],
             $data['otp_secret'],
             $data['is_active'],
+            $data['otp_created_at'],
             $data['last_verified']
         ]);
 
@@ -54,7 +55,7 @@ class VerifyBroker extends DatabaseBroker
     public function updateSecret(string $userId, string $method, string $otp): void
     {
         $this->query(
-            "UPDATE user_verify SET otp_secret = ? WHERE user_id = ? AND method = ?",
+            "UPDATE user_verify SET otp_secret = ?, otp_created_at = CURRENT_TIMESTAMP WHERE user_id = ? AND method = ?",
             [$otp, $userId, $method]
         );
     }
@@ -94,5 +95,4 @@ class VerifyBroker extends DatabaseBroker
         $verify->otp_secret = $this->encryption->decryptWithUserKey($verify->otp_secret, $userKey);
         return $verify;
     }
-
 }

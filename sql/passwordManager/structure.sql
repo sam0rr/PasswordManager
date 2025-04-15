@@ -70,6 +70,7 @@ CREATE TABLE user_verify (
     method auth_method NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT FALSE,
     otp_secret TEXT NOT NULL,
+    otp_created_at TIMESTAMPTZ NOT NULL,
     last_verified TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

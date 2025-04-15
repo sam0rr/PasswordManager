@@ -16,6 +16,7 @@ use Zephyrus\Application\Form;
 class VerifyService extends BaseService
 {
     private const int MFA_EXPIRATION_SECONDS = 300; //5 MINUTES
+    private const int OTP_EXPIRATION_SECONDS = 60; //1 MINUTE
     private ?VerifyBroker $verifyBroker = null {
         get {
             return $this->verifyBroker ??= new VerifyBroker($this->encryption);
@@ -78,7 +79,7 @@ class VerifyService extends BaseService
                 'method' => $method
             ];
         } catch (FormException) {
-            return ['form' => $form];
+            return $this->buildErrorResponse($form);
         }
     }
 
@@ -165,29 +166,27 @@ class VerifyService extends BaseService
             return;
         }
 
-        $methodEntity = $this->getMethod($method);
-
-        if (!$methodEntity || $this->isCodeExpired($methodEntity)) {
-            $form->addError('code', 'Ce code a expiré. Veuillez en demander un nouveau.');
-            throw new FormException($form);
-        }
-
         $isValid = $service->verifyCode($this->auth['user_id'], $code);
-
         if (!$isValid) {
             $form->addError('code', 'Le code est invalide.');
+            throw new FormException($form);
+        }
+        $methodEntity = $this->getMethod($method);
+
+        if ($this->isCodeExpired($methodEntity)) {
+            $form->addError('code', 'Ce code a expiré. Veuillez en demander un nouveau.');
             throw new FormException($form);
         }
     }
 
     private function isCodeExpired(UserVerify $method): bool
     {
-        if (empty($method->last_verified)) {
+        if (empty($method->otp_created_at)) {
             return true;
         }
 
-        $last = strtotime($method->last_verified);
-        return (time() - $last) > self::MFA_EXPIRATION_SECONDS;
+        $last = strtotime($method->otp_created_at);
+        return (time() - $last) > self::OTP_EXPIRATION_SECONDS;
     }
 
     public function isMethodVerified(UserVerify $method): bool
@@ -239,6 +238,7 @@ class VerifyService extends BaseService
             'user_id' => $userId,
             'method' => $method,
             'otp_secret' => $this->encryption->encryptWithUserKey($otp, $this->auth['user_key']),
+            'otp_created_at' =>  date('Y-m-d H:i:s'),
             'last_verified' => date('Y-m-d H:i:s', strtotime('-1 day')),
             'is_active' => true
         ];
