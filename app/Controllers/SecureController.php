@@ -41,7 +41,7 @@ abstract class SecureController extends Controller
 
         $this->base = new BaseService($this->getAuth());
 
-        if (!SessionHelper::get('mfa_validated') && !$this->base->verify->areAllMethodsVerified()) {
+        if (!SessionHelper::get('mfa_validated')) {
             return $this->redirect('/verify-mfa');
         }
 

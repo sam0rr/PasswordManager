@@ -104,6 +104,8 @@ CREATE INDEX idx_login_records_user_time ON auth_history (user_id, auth_timestam
 CREATE INDEX idx_password_user_service ON user_password (user_id, description_hash);
 -- Permet de valider un token rapidement (vérification email)
 CREATE INDEX idx_email_token_token ON email_token (token);
+-- Vérifie efficacement l’unicité d’une méthode MFA par utilisateur
+CREATE UNIQUE INDEX ON user_verify (user_id, method);
 -- Récupération rapide des méthodes MFA actives pour un utilisateur
 CREATE INDEX idx_user_auth_methods_active ON user_verify (user_id, is_active);
 -- Permet d’afficher rapidement les partages faits par un utilisateur

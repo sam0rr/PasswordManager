@@ -91,7 +91,7 @@ class VerifyController extends SecureController
                 throw new FormException($form);
             }
 
-            $service->getVerifyService()->markVerified($form->getValue('method'));
+            $this->base->verify->markVerified($form->getValue('method'));
             SessionHelper::clearForm('mfa_confirm');
 
             $this->base->verify->handlePostMfaActionsIfNeeded();
