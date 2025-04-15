@@ -47,11 +47,16 @@ class SessionHelper
         ];
     }
 
-    public static function appendContext(array $data): void
+    public static function append(array $data): void
     {
         foreach ($data as $key => $value) {
             Session::set($key, $value);
         }
+    }
+
+    public static function clear(string $key): void
+    {
+        Session::remove($key);
     }
 
     public static function setForm(string $key, Form $form): void

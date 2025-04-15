@@ -2,6 +2,7 @@
 
 namespace Models\src\Services;
 
+use Controllers\src\Utils\SessionHelper;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
@@ -18,6 +19,11 @@ class AuthService
             return $this->userBroker ??= new UserBroker($this->encryption);
         }
     }
+    private ?SharingService $sharingService = null {
+        get {
+            return $this->sharingService ??= new SharingService($this->getAuth());
+        }
+    }
     private ?EncryptionService $encryption = null {
         get {
             return $this->encryption ??= new EncryptionService($this->getAuth());
@@ -26,6 +32,11 @@ class AuthService
     private ?AuthHistoryService $history = null {
         get {
             return $this->history ??= new AuthHistoryService($this->getAuth());
+        }
+    }
+    private ?VerifyService $verifyService = null {
+        get {
+            return $this->verifyService ??= new VerifyService($this->getAuth());
         }
     }
 
@@ -71,9 +82,16 @@ class AuthService
             }
 
             $this->storeAuthContext($user->id, $userKey);
-            new SharingService($this->getAuth())->acceptPendingShares();
-            $this->history->logSuccess($user);
 
+
+            if ($this->verifyService->hasPendingMfa()) {
+                SessionHelper::append([
+                    'post_auth_actions' => true
+                ]);
+                return ["form" => $form, "status" => "pending_mfa"];
+            }
+
+            $this->postAuthActions();
             return ["form" => $form];
         } catch (FormException $e) {
             if (!$isHtmx && $form->getValue("email")) {
@@ -81,6 +99,14 @@ class AuthService
             }
             return ["form" => $e->getForm(), "errors" => true];
         }
+    }
+
+    private function postAuthActions(): void
+    {
+        $user = $this->userBroker->findById($this->currentUserId, $this->currentUserKey);
+
+        $this->sharingService->acceptPendingShares();
+        $this->history->logSuccess($user);
     }
 
     // Helpers

@@ -2,6 +2,7 @@
 
 namespace Models\src\Services;
 
+use Controllers\src\Utils\SessionHelper;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\VerifyBroker;
 use Models\src\Entities\UserVerify;
@@ -23,6 +24,11 @@ class VerifyService extends BaseService
             return $this->authenticatorMfaService ??= new AuthenticatorMfaService($this->auth);
         }
     }
+    private ?AuthService $authService = null {
+        get {
+            return $this->authService ??= new AuthService();
+        }
+}
 
     public function handleActivation(Form $form): UserVerify
     {
@@ -70,6 +76,23 @@ class VerifyService extends BaseService
         $this->verifyBroker->updateSecret($userId, $method, $encryptedOtp);
     }
 
+    public function handlePostMfaActionsIfNeeded(): void
+    {
+        if (!$this->areAllMethodsVerified()) {
+            return;
+        }
+
+        if (!SessionHelper::get('post_auth_actions')) {
+            return;
+        }
+
+        $authService = new AuthService();
+        $authService->postAuthActions($this->auth);
+
+        SessionHelper::clear('post_auth_actions');
+    }
+
+
     public function markVerified(string $method): void
     {
         $userKey = $this->auth['user_key'];
@@ -99,6 +122,11 @@ class VerifyService extends BaseService
         return array_filter($this->getAllMethods(), function (UserVerify $method) {
             return $method->is_active && !$this->isMethodVerified($method);
         });
+    }
+
+    public function hasPendingMfa(): bool
+    {
+        return !empty($this->getPendingMethods());
     }
 
     public function getMethod(string $method): ?UserVerify

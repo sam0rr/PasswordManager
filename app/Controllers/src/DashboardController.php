@@ -53,7 +53,7 @@ class DashboardController extends SecureController
             $context['mfa'] = $this->getService()->verify->getAllMethods();
             SessionHelper::setContext($context);
         } else {
-            SessionHelper::appendContext($context);
+            SessionHelper::append($context);
         }
     }
 
@@ -67,7 +67,7 @@ class DashboardController extends SecureController
 
         $result = SecurityService::analyzeIfChanged($passwords, $lastMap, $existing);
 
-        SessionHelper::appendContext([
+        SessionHelper::append([
             'security_analysis' => $result['analysis'],
             'security_password_fingerprint' => $result['fingerprintMap']
         ]);

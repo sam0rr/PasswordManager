@@ -27,7 +27,7 @@ class SharingController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::appendContext([
+            SessionHelper::append([
                 'activeSection' => 'shares',
                 'tab' => 'send'
             ]);
@@ -53,7 +53,7 @@ class SharingController extends SecureController
 
     private function setSharingContext(array $shares): void
     {
-        SessionHelper::appendContext([
+        SessionHelper::append([
             'shared_credentials' => $shares,
             'activeSection' => 'shares',
             'tab' => 'list'

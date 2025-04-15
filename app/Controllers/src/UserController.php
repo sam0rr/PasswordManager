@@ -29,7 +29,7 @@ class UserController extends SecureController
         }
 
         if (isset($result["errors"])) {
-            SessionHelper::appendContext([
+            SessionHelper::append([
                 'user' => $result["user"] ?? null,
                 'activeSection' => 'profile',
                 'tab' => 'info'
@@ -53,7 +53,7 @@ class UserController extends SecureController
         SessionHelper::setForm('user_avatar', $result['form']);
 
         if (isset($result["errors"])) {
-            SessionHelper::appendContext([
+            SessionHelper::append([
                 'user' => $this->getService()->userService->getCurrentUserEntity(),
                 'activeSection' => 'profile',
                 'tab' => 'info',
@@ -83,7 +83,7 @@ class UserController extends SecureController
         }
 
         if (isset($result["errors"])) {
-            SessionHelper::appendContext([
+            SessionHelper::append([
                 'user' => $result["user"] ?? null,
                 'activeSection' => 'profile',
                 'tab' => 'password'

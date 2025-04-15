@@ -27,7 +27,7 @@ class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::appendContext([
+            SessionHelper::append([
                 'activeSection' => 'passwords',
                 'tab' => 'add'
             ]);
@@ -58,7 +58,7 @@ class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::appendContext([
+            SessionHelper::append([
                 'password' => $result['password'] ?? null,
                 'activeSection' => 'passwords',
                 'tab' => 'list'
@@ -86,7 +86,7 @@ class PasswordController extends SecureController
 
         $filtered = SecurityService::filterOutPasswordFromAnalysis($id, $analysis, $fingerprints);
 
-        SessionHelper::appendContext([
+        SessionHelper::append([
             'security_analysis' => $filtered['analysis'],
             'security_password_fingerprint' => $filtered['fingerprintMap']
         ]);
@@ -96,7 +96,7 @@ class PasswordController extends SecureController
 
     private function setPasswordContext(array $passwords): void
     {
-        SessionHelper::appendContext([
+        SessionHelper::append([
             'passwords' => $passwords,
             'activeSection' => 'passwords',
             'tab' => 'list'

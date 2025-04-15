@@ -78,6 +78,9 @@ class VerifyController extends SecureController
 
             $service->getVerifyService()->markVerified($form->getValue('method'));
             SessionHelper::clearForm('mfa_confirm');
+
+            $this->getService()->verify->handlePostMfaActionsIfNeeded();
+
         } catch (FormException) {
             SessionHelper::setForm('mfa_confirm', $form);
         }
@@ -113,7 +116,7 @@ class VerifyController extends SecureController
 
     private function setMfaContext(): void
     {
-        SessionHelper::appendContext([
+        SessionHelper::append([
             'mfa' => $this->getService()->verify->getAllMethods(),
             'activeSection' => 'profile',
             'tab' => 'mfa'
