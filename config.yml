@@ -16,12 +16,12 @@ locale:
 
 mailer:
   transport: "smtp"
-  from_address: "info@ophelios.com"
-  from_name: "Zephyrus"
+  from_address: !php/const MAIL_FROM
+  from_name: !php/const MAIL_FROM_NAME
   smtp:
     enabled: true
-    host: "localhost"
-    port: 1025
+    host: !php/const MAIL_HOST
+    port: !php/const MAIL_PORT
     encryption: "none"
     username: ""
     password: ""
@@ -55,3 +55,7 @@ security:
     enabled: true
     impact_threshold: 50
 
+twilio:
+  account_sid: !php/const TWILIO_ACCOUNT_SID
+  auth_token: !php/const TWILIO_AUTH_TOKEN
+  phone_from: !php/const TWILIO_PHONE_FROM

@@ -17,15 +17,15 @@ class SmsMfaService extends BaseService implements MfaServiceInterface
 
     private ?string $fromPhone = null {
         get {
-            return $this->fromPhone ??= getenv('TWILIO_PHONE_FROM') ?: '000000000';
+            return $this->fromPhone ??= config('twilio', 'phone_from', '000000000');
         }
     }
 
     private function createTwilioClient(): Client
     {
         try {
-            $accountSid = getenv('TWILIO_ACCOUNT_SID');
-            $authToken = getenv('TWILIO_AUTH_TOKEN');
+            $accountSid = config('twilio', 'account_sid');
+            $authToken = config('twilio', 'auth_token');
 
             if (!$accountSid || !$authToken) {
                 throw new RuntimeExceptionAlias("Twilio credentials are missing.");
@@ -80,5 +80,4 @@ class SmsMfaService extends BaseService implements MfaServiceInterface
             throw new RuntimeExceptionAlias("Erreur lors de l'envoi du code par SMS : " . $e->getMessage());
         }
     }
-
 }

@@ -11,22 +11,22 @@ class MailMfaService extends BaseService implements MfaServiceInterface
 {
     private ?string $mailHost = null {
         get {
-            return $this->mailHost ??= getenv('MAIL_HOST') ?: 'localhost';
+            return $this->mailHost ??= config('mailer.smtp', 'host', 'localhost');
         }
     }
     private ?int $mailPort = null {
         get {
-            return $this->mailPort ??= (int)(getenv('MAIL_PORT') ?: 1080);
+            return $this->mailPort ??= (int)config('mailer.smtp', 'port', 1025);
         }
     }
     private ?string $mailFrom = null {
         get {
-            return $this->mailFrom ??= getenv('MAIL_FROM') ?: 'noreply@kryptlok.dev';
+            return $this->mailFrom ??= config('mailer', 'from_address', 'noreply@kryptlok.dev');
         }
     }
     private ?string $mailFromName = null {
         get {
-            return $this->mailFromName ??= getenv('MAIL_FROM_NAME') ?: 'KryptLok';
+            return $this->mailFromName ??= config('mailer', 'from_name', 'KryptLok');
         }
     }
 
@@ -63,6 +63,7 @@ class MailMfaService extends BaseService implements MfaServiceInterface
             $mailer->Host = $this->mailHost;
             $mailer->Port = $this->mailPort;
             $mailer->SMTPAuth = false;
+            $mailer->SMTPAutoTLS = false;
 
             $mailer->setFrom($this->mailFrom, $this->mailFromName);
             $mailer->addAddress($email);

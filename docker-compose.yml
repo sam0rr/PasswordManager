@@ -13,7 +13,6 @@ services:
     volumes:
       - ./:/var/www/html
       - ./xdebug:/xdebug.d
-
   database:
     build:
       context: "./docker/services/postgres"

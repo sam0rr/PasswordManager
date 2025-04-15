@@ -14,10 +14,27 @@ use Zephyrus\Network\Router\Post;
 
 class VerifyController extends SecureController
 {
+    private ?MailMfaService $mailMfaService = null {
+        get {
+            return $this->mailMfaService ??= new MailMfaService($this->getAuth());
+        }
+    }
+    private ?SmsMfaService $smsMfaService = null {
+        get {
+            return $this->smsMfaService ??= new SmsMfaService($this->getAuth());
+        }
+    }
+    private ?AuthenticatorMfaService $authenticatorMfaService = null {
+        get {
+            return $this->authenticatorMfaService ??= new AuthenticatorMfaService($this->getAuth());
+        }
+    }
+
     #[Post('/verify/activate')]
     public function activate(): Response
     {
         $form = $this->buildForm();
+        SessionHelper::setForm('mfa_activate', $form);
 
         try {
             $this->base->verify->handleActivation($form);
@@ -34,6 +51,7 @@ class VerifyController extends SecureController
     public function deactivate(): Response
     {
         $form = $this->buildForm();
+        SessionHelper::setForm('mfa_deactivate', $form);
 
         try {
             $this->base->verify->handleDeactivation($form);
@@ -50,6 +68,7 @@ class VerifyController extends SecureController
     public function send(): Response
     {
         $form = $this->buildForm();
+        SessionHelper::setForm('mfa_send', $form);
 
         try {
             $service = $this->resolveMfaService($form);
@@ -70,6 +89,16 @@ class VerifyController extends SecureController
             $pendingMethods = $this->base->verify->getPendingMethods();
             $method = reset($pendingMethods);
 
+            if ($method && in_array($method->method, ['mail', 'sms'])) {
+                $service = match ($method->method) {
+                    'mail' => $this->mailMfaService,
+                    'sms' => $this->smsMfaService,
+                    default => null
+                };
+
+                $service?->sendCode($this->getAuth()['user_id']);
+            }
+
             return $this->render("secure/verifyMfa", [
                 'form' => SessionHelper::getForm('mfa_confirm'),
                 'method' => $method,
@@ -77,6 +106,7 @@ class VerifyController extends SecureController
                 'title' => 'Vérification MFA'
             ]);
         }
+
         return $this->redirect('/dashboard');
     }
 
@@ -84,6 +114,7 @@ class VerifyController extends SecureController
     public function confirm(): Response
     {
         $form = $this->buildForm();
+        SessionHelper::setForm('mfa_send', $form);
 
         try {
             $service = $this->resolveMfaService($form);
@@ -125,9 +156,9 @@ class VerifyController extends SecureController
         }
 
         return match ($method) {
-            'mail' => new MailMfaService($this->getAuth()),
-            'sms' => new SmsMfaService($this->getAuth()),
-            'authenticator' => new AuthenticatorMfaService($this->getAuth()),
+            'mail' => $this->mailMfaService,
+            'sms' => $this->smsMfaService,
+            'authenticator' => $this->authenticatorMfaService,
             default => throw new FormException($form->addError("method", "Méthode MFA invalide."))
         };
     }
