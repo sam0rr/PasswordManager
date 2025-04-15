@@ -14,7 +14,7 @@ class SharingController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->getService()->sharing->sharePassword($form, $id, $isHtmx);
+        $result = $this->base->sharing->sharePassword($form, $id, $isHtmx);
 
         SessionHelper::setForm("share_$id", $result['form']);
 
@@ -34,7 +34,7 @@ class SharingController extends SecureController
             return $this->redirect("/dashboard?section=shares");
         }
 
-        $shares = $this->getService()->sharing->getAllShares($form);
+        $shares = $this->base->sharing->getAllShares($form);
         $this->setSharingContext($shares);
         SessionHelper::clearForm("share_$id");
         return $this->redirect("/dashboard?section=shares");
@@ -44,9 +44,9 @@ class SharingController extends SecureController
     public function deleteShare(string $id): Response
     {
         $form = $this->buildForm();
-        $this->getService()->sharing->deleteShare($id, $form);
+        $this->base->sharing->deleteShare($id, $form);
 
-        $shares = $this->getService()->sharing->getAllShares($form);
+        $shares = $this->base->sharing->getAllShares($form);
         $this->setSharingContext($shares);
         return $this->redirect("/dashboard?section=shares");
     }

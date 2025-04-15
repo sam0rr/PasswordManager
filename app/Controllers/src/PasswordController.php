@@ -15,7 +15,7 @@ class PasswordController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->getService()->passwordService->addPassword($form, $isHtmx);
+        $result = $this->base->passwordService->addPassword($form, $isHtmx);
 
         SessionHelper::setForm('password_add', $result['form']);
 
@@ -34,7 +34,7 @@ class PasswordController extends SecureController
             return $this->redirect("/dashboard?section=passwords&tab=add");
         }
 
-        $passwords = $this->getService()->passwordService->getAllUserPasswords($form);
+        $passwords = $this->base->passwordService->getAllUserPasswords($form);
         $this->setPasswordContext($passwords);
         SessionHelper::clearForm('password_add');
         return $this->redirect("/dashboard?section=passwords&tab=list");
@@ -45,7 +45,7 @@ class PasswordController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->getService()->passwordService->updatePassword($form, $id, $isHtmx);
+        $result = $this->base->passwordService->updatePassword($form, $id, $isHtmx);
 
         SessionHelper::setForm("password_update_$id", $result['form']);
 
@@ -66,7 +66,7 @@ class PasswordController extends SecureController
             return $this->redirect("/dashboard?section=passwords&tab=list");
         }
 
-        $passwords = $this->getService()->passwordService->getAllUserPasswords($form);
+        $passwords = $this->base->passwordService->getAllUserPasswords($form);
         $this->setPasswordContext($passwords);
         SessionHelper::clearForm("password_update_$id");
         return $this->redirect("/dashboard?section=passwords&tab=list");
@@ -76,9 +76,9 @@ class PasswordController extends SecureController
     public function deletePassword(string $id): Response
     {
         $form = $this->buildForm();
-        $this->getService()->passwordService->deletePassword($form, $id);
+        $this->base->passwordService->deletePassword($form, $id);
 
-        $passwords = $this->getService()->passwordService->getAllUserPasswords($form);
+        $passwords = $this->base->passwordService->getAllUserPasswords($form);
         $this->setPasswordContext($passwords);
 
         $analysis = SessionHelper::get('security_analysis', []);

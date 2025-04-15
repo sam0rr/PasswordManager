@@ -1,0 +1,17 @@
+<form method="post"
+      action="/verify/confirm"
+      hx-post="/verify/confirm"
+      hx-target="#verify-form-wrapper"
+      hx-swap="morphdom"
+      novalidate>
+
+    <input type="hidden" name="method" value="mail">
+
+    {include '../../components/formField.latte', name => 'code', label => 'Code reçu par email', icon => 'envelope'}
+
+    <div class="d-grid gap-2 mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-shield-check me-2"></i>Valider
+        </button>
+    </div>
+</form>

@@ -28,7 +28,7 @@ class VerifyService extends BaseService
         get {
             return $this->authService ??= new AuthService();
         }
-}
+    }
 
     public function handleActivation(Form $form): UserVerify
     {
@@ -86,12 +86,13 @@ class VerifyService extends BaseService
             return;
         }
 
-        $authService = new AuthService();
-        $authService->postAuthActions($this->auth);
+        $this->authService->postAuthActions();
 
         SessionHelper::clear('post_auth_actions');
+        SessionHelper::append([
+            'mfa_validated' => true
+        ]);
     }
-
 
     public function markVerified(string $method): void
     {

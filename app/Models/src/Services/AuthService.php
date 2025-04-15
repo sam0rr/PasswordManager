@@ -86,7 +86,8 @@ class AuthService
 
             if ($this->verifyService->hasPendingMfa()) {
                 SessionHelper::append([
-                    'post_auth_actions' => true
+                    'post_auth_actions' => true,
+                    'mfa_validated' => false
                 ]);
                 return ["form" => $form, "status" => "pending_mfa"];
             }
@@ -101,7 +102,7 @@ class AuthService
         }
     }
 
-    private function postAuthActions(): void
+    public function postAuthActions(): void
     {
         $user = $this->userBroker->findById($this->currentUserId, $this->currentUserKey);
 

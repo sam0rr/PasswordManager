@@ -9,6 +9,7 @@ use Models\src\Services\Mfa\AuthenticatorMfaService;
 use Models\src\Services\Mfa\MailMfaService;
 use Models\src\Services\Mfa\SmsMfaService;
 use Zephyrus\Network\Response;
+use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
 class VerifyController extends SecureController
@@ -19,7 +20,7 @@ class VerifyController extends SecureController
         $form = $this->buildForm();
 
         try {
-            $this->getService()->verify->handleActivation($form);
+            $this->base->verify->handleActivation($form);
             SessionHelper::clearForm('mfa_activate');
         } catch (FormException) {
             SessionHelper::setForm('mfa_activate', $form);
@@ -35,7 +36,7 @@ class VerifyController extends SecureController
         $form = $this->buildForm();
 
         try {
-            $this->getService()->verify->handleDeactivation($form);
+            $this->base->verify->handleDeactivation($form);
             SessionHelper::clearForm('mfa_deactivate');
         } catch (FormException) {
             SessionHelper::setForm('mfa_deactivate', $form);
@@ -62,6 +63,20 @@ class VerifyController extends SecureController
         return $this->redirect('/dashboard?section=profile&tab=mfa');
     }
 
+    #[Get('/verify-mfa')]
+    public function showMfaForm(): Response
+    {
+        $pendingMethods = $this->base->verify->getPendingMethods();
+        $method = reset($pendingMethods);
+
+        return $this->render("secure/verifyMfa", [
+            'form' => SessionHelper::getForm('mfa_confirm'),
+            'method' => $method,
+            'pendingMethods' => $pendingMethods,
+            'title' => 'Vérification MFA'
+        ]);
+    }
+
     #[Post('/verify/confirm')]
     public function confirm(): Response
     {
@@ -79,7 +94,7 @@ class VerifyController extends SecureController
             $service->getVerifyService()->markVerified($form->getValue('method'));
             SessionHelper::clearForm('mfa_confirm');
 
-            $this->getService()->verify->handlePostMfaActionsIfNeeded();
+            $this->base->verify->handlePostMfaActionsIfNeeded();
 
         } catch (FormException) {
             SessionHelper::setForm('mfa_confirm', $form);
@@ -93,8 +108,8 @@ class VerifyController extends SecureController
     public function status(): Response
     {
         return $this->json([
-            'completed' => $this->getService()->verify->areAllMethodsVerified(),
-            'pending' => $this->getService()->verify->getPendingMethods()
+            'completed' => $this->base->verify->areAllMethodsVerified(),
+            'pending' => $this->base->verify->getPendingMethods()
         ]);
     }
 
@@ -117,7 +132,7 @@ class VerifyController extends SecureController
     private function setMfaContext(): void
     {
         SessionHelper::append([
-            'mfa' => $this->getService()->verify->getAllMethods(),
+            'mfa' => $this->base->verify->getAllMethods(),
             'activeSection' => 'profile',
             'tab' => 'mfa'
         ]);

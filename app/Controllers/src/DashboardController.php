@@ -45,12 +45,12 @@ class DashboardController extends SecureController
     private function injectDataIfNeeded(array &$context): void
     {
         if (!SessionHelper::get("user")) {
-            $context["auth_history"] = $this->getService()->history->getHistoryForUser();
+            $context["auth_history"] = $this->base->history->getHistoryForUser();
 
-            $context['shared_credentials'] = $this->getService()->sharing->getAllShares(new Form());
-            $context['passwords'] = $this->getService()->passwordService->getAllUserPasswords(new Form());
+            $context['shared_credentials'] = $this->base->sharing->getAllShares(new Form());
+            $context['passwords'] = $this->base->passwordService->getAllUserPasswords(new Form());
 
-            $context['mfa'] = $this->getService()->verify->getAllMethods();
+            $context['mfa'] = $this->base->verify->getAllMethods();
             SessionHelper::setContext($context);
         } else {
             SessionHelper::append($context);
@@ -77,7 +77,7 @@ class DashboardController extends SecureController
 
     private function getDashboardUser(): User
     {
-        $user = $this->getService()->userService->getCurrentUserEntity();
+        $user = $this->base->userService->getCurrentUserEntity();
         if (!$user) {
             $this->abortNotFound("Utilisateur introuvable.");
         }

@@ -16,7 +16,7 @@ class UserController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->getService()->userService->updateUser($form, $isHtmx);
+        $result = $this->base->userService->updateUser($form, $isHtmx);
 
         SessionHelper::setForm('user_update', $result['form']);
 
@@ -48,13 +48,13 @@ class UserController extends SecureController
         $files = $this->request->getFiles();
         $avatarFile = $files['avatar'] ?? null;
 
-        $result = $this->getService()->userService->updateAvatar($form, $avatarFile);
+        $result = $this->base->userService->updateAvatar($form, $avatarFile);
 
         SessionHelper::setForm('user_avatar', $result['form']);
 
         if (isset($result["errors"])) {
             SessionHelper::append([
-                'user' => $this->getService()->userService->getCurrentUserEntity(),
+                'user' => $this->base->userService->getCurrentUserEntity(),
                 'activeSection' => 'profile',
                 'tab' => 'info',
                 'avatarError' => true
@@ -71,7 +71,7 @@ class UserController extends SecureController
     {
         $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        $result = $this->getService()->userService->updatePassword($form, $isHtmx);
+        $result = $this->base->userService->updatePassword($form, $isHtmx);
 
         SessionHelper::setForm('user_password', $result['form']);
 
