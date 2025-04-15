@@ -54,16 +54,6 @@ CREATE TABLE user_password (
     UNIQUE (user_id, description_hash)
 );
 
-CREATE TABLE email_token (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    token TEXT UNIQUE NOT NULL,
-    type TEXT NOT NULL,
-    expires_at TIMESTAMPTZ NOT NULL,
-    is_used BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE user_verify (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -102,8 +92,6 @@ CREATE INDEX idx_password_user ON user_password (user_id);
 CREATE INDEX idx_login_records_user_time ON auth_history (user_id, auth_timestamp DESC);
 -- Vérifie efficacement l’unicité d’une description pour un utilisateur
 CREATE INDEX idx_password_user_service ON user_password (user_id, description_hash);
--- Permet de valider un token rapidement (vérification email)
-CREATE INDEX idx_email_token_token ON email_token (token);
 -- Vérifie efficacement l’unicité d’une méthode MFA par utilisateur
 CREATE UNIQUE INDEX ON user_verify (user_id, method);
 -- Récupération rapide des méthodes MFA actives pour un utilisateur

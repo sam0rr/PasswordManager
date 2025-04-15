@@ -8,12 +8,14 @@ use Models\src\Brokers\VerifyBroker;
 use Models\src\Entities\UserVerify;
 use Models\src\Services\Mfa\AuthenticatorMfaService;
 use Models\src\Services\Utils\BaseService;
+use Models\src\Validators\VerifyValidator;
 use RuntimeException as RuntimeExceptionAlias;
+use Throwable as ThrowableAlias;
 use Zephyrus\Application\Form;
 
 class VerifyService extends BaseService
 {
-    private const int MFA_EXPIRATION_SECONDS = 300;
+    private const int MFA_EXPIRATION_SECONDS = 300; //5 MINUTES
     private ?VerifyBroker $verifyBroker = null {
         get {
             return $this->verifyBroker ??= new VerifyBroker($this->encryption);
@@ -30,6 +32,18 @@ class VerifyService extends BaseService
         }
     }
 
+    public function getAllMethods(): array
+    {
+        try {
+            $userId = $this->auth['user_id'];
+            $userKey = $this->auth['user_key'];
+
+            return $this->verifyBroker->findAllByUser($userId, $userKey);
+        } catch (ThrowableAlias) {
+            return [];
+        }
+    }
+
     public function handleActivation(Form $form): UserVerify
     {
         $method = $this->extractMethodOrFail($form);
@@ -41,6 +55,43 @@ class VerifyService extends BaseService
         $method = $this->extractMethodOrFail($form);
         $this->disableMethod($method);
     }
+
+    public function confirmCode(Form $form, $service, bool $isHtmx): array
+    {
+        try {
+            $userId = $this->auth['user_id'];
+
+            VerifyValidator::assertConfirm($form, $isHtmx);
+
+            $method = $form->getValue('method');
+            $code = $form->getValue('code');
+
+            $isValid = $service->verifyCode($userId, $code);
+
+            if (!$isValid && !empty($code)) {
+                $form->addError('code', 'Code incorrect ou expiré.');
+                throw new FormException($form);
+            }
+
+            if ($isHtmx) {
+                return [
+                    "form" => $form
+                ];
+            }
+
+            $this->markVerified($method);
+            $this->handlePostMfaActions();
+
+            return [
+                'form' => $form,
+                'method' => $method
+            ];
+        } catch (FormException) {
+            return ['form' => $form];
+        }
+    }
+
+    // Helpers
 
     public function activateMethod(string $method): UserVerify
     {
@@ -76,7 +127,7 @@ class VerifyService extends BaseService
         $this->verifyBroker->updateSecret($userId, $method, $encryptedOtp);
     }
 
-    public function handlePostMfaActionsIfNeeded(): void
+    public function handlePostMfaActions(): void
     {
         if (!$this->areAllMethodsVerified()) {
             return;
@@ -99,25 +150,10 @@ class VerifyService extends BaseService
         }
     }
 
-    public function getAllMethods(): array
-    {
-        $userKey = $this->auth['user_key'];
-        $userId = $this->auth['user_id'];
-
-        return $this->verifyBroker->findAllByUser($userId, $userKey);
-    }
-
     public function areAllMethodsVerified(): bool
     {
         $methods = $this->getAllMethods();
         return array_all($methods, fn($method) => !$method->is_active || $this->isMethodVerified($method));
-    }
-
-    public function getPendingMethods(): array
-    {
-        return array_filter($this->getAllMethods(), function (UserVerify $method) {
-            return $method->is_active && !$this->isMethodVerified($method);
-        });
     }
 
     public function hasPendingMfa(): bool
@@ -125,12 +161,11 @@ class VerifyService extends BaseService
         return !empty($this->getPendingMethods());
     }
 
-    public function getMethod(string $method): ?UserVerify
+    public function getPendingMethods(): array
     {
-        $userKey = $this->auth['user_key'];
-        $userId = $this->auth['user_id'];
-
-        return $userId ? $this->verifyBroker->findByMethod($userId, $method, $userKey) : null;
+        return array_filter($this->getAllMethods(), function (UserVerify $method) {
+            return $method->is_active && !$this->isMethodVerified($method);
+        });
     }
 
     public function isMethodVerified(UserVerify $method): bool
@@ -141,6 +176,14 @@ class VerifyService extends BaseService
 
         $lastVerified = strtotime($method->last_verified);
         return ($lastVerified + self::MFA_EXPIRATION_SECONDS) >= time();
+    }
+
+    public function getMethod(string $method): ?UserVerify
+    {
+        $userKey = $this->auth['user_key'];
+        $userId = $this->auth['user_id'];
+
+        return $userId ? $this->verifyBroker->findByMethod($userId, $method, $userKey) : null;
     }
 
     public function getUserEmail(): string
@@ -157,13 +200,10 @@ class VerifyService extends BaseService
             ->phone;
     }
 
-    // Helpers
-
     private function extractMethodOrFail(Form $form): string
     {
         $method = $form->getValue('method');
         if (empty($method)) {
-            $form->addError("global", "La méthode est requise.");
             throw new FormException($form);
         }
         return $method;

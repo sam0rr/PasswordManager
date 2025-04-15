@@ -34,14 +34,7 @@ class VerifyController extends SecureController
     public function activate(): Response
     {
         $form = $this->buildForm();
-        SessionHelper::setForm('mfa_activate', $form);
-
-        try {
-            $this->base->verify->handleActivation($form);
-            SessionHelper::clearForm('mfa_activate');
-        } catch (FormException) {
-            SessionHelper::setForm('mfa_activate', $form);
-        }
+        $this->base->verify->handleActivation($form);
 
         $this->setMfaContext();
         return $this->redirect('/dashboard?section=profile&tab=mfa');
@@ -51,32 +44,7 @@ class VerifyController extends SecureController
     public function deactivate(): Response
     {
         $form = $this->buildForm();
-        SessionHelper::setForm('mfa_deactivate', $form);
-
-        try {
-            $this->base->verify->handleDeactivation($form);
-            SessionHelper::clearForm('mfa_deactivate');
-        } catch (FormException) {
-            SessionHelper::setForm('mfa_deactivate', $form);
-        }
-
-        $this->setMfaContext();
-        return $this->redirect('/dashboard?section=profile&tab=mfa');
-    }
-
-    #[Post('/verify/send')]
-    public function send(): Response
-    {
-        $form = $this->buildForm();
-        SessionHelper::setForm('mfa_send', $form);
-
-        try {
-            $service = $this->resolveMfaService($form);
-            $service->sendCode($this->getAuth()['user_id']);
-            SessionHelper::clearForm('mfa_send');
-        } catch (FormException) {
-            SessionHelper::setForm('mfa_send', $form);
-        }
+        $this->base->verify->handleDeactivation($form);
 
         $this->setMfaContext();
         return $this->redirect('/dashboard?section=profile&tab=mfa');
@@ -85,73 +53,78 @@ class VerifyController extends SecureController
     #[Get('/verify-mfa')]
     public function showMfaForm(): Response
     {
-        if (!SessionHelper::get('mfa_validated')) {
-            $pendingMethods = $this->base->verify->getPendingMethods();
-            $method = reset($pendingMethods);
-
-            if ($method && in_array($method->method, ['mail', 'sms'])) {
-                $service = match ($method->method) {
-                    'mail' => $this->mailMfaService,
-                    'sms' => $this->smsMfaService,
-                    default => null
-                };
-
-                $service?->sendCode($this->getAuth()['user_id']);
-            }
-
-            return $this->render("secure/verifyMfa", [
-                'form' => SessionHelper::getForm('mfa_confirm'),
-                'method' => $method,
-                'pendingMethods' => $pendingMethods,
-                'title' => 'Vérification MFA'
-            ]);
+        if (SessionHelper::get('mfa_validated')) {
+            return $this->redirect('/dashboard');
         }
 
-        return $this->redirect('/dashboard');
+        $form = SessionHelper::getForm('mfa_confirm');
+        $pendingMethods = $this->base->verify->getPendingMethods();
+        $method = reset($pendingMethods);
+
+        $this->sendMfaCodeIfNeeded($method);
+
+        return $this->render("secure/verifyMfa", [
+            'form' => $form,
+            'method' => $method,
+            'pendingMethods' => $pendingMethods,
+            'title' => 'Vérification MFA'
+        ]);
     }
 
     #[Post('/verify/confirm')]
     public function confirm(): Response
     {
+        $isHtmx = $this->isHtmx();
         $form = $this->buildForm();
-        SessionHelper::setForm('mfa_send', $form);
+        $service = $this->resolveMfaService($form);
 
-        try {
-            $service = $this->resolveMfaService($form);
-            $isValid = $service->verifyCode($this->getAuth()['user_id'], $form->getValue('code'));
+        $result = $this->base->verify->confirmCode($form, $service, $isHtmx);
 
-            if (!$isValid) {
-                $form->addError('code', 'Code incorrect ou expiré.');
-                throw new FormException($form);
-            }
+        SessionHelper::setForm('mfa_confirm', $result['form']);
 
-            $this->base->verify->markVerified($form->getValue('method'));
-            SessionHelper::clearForm('mfa_confirm');
-
-            $this->base->verify->handlePostMfaActionsIfNeeded();
-
-        } catch (FormException) {
-            SessionHelper::setForm('mfa_confirm', $form);
+        if ($isHtmx) {
+            return $this->render("fragments/verify/{$form->getValue('method')}Mfa", [
+                'form' => $result['form'],
+                'method' => $form->getValue('method'),
+                'isHtmx' => true
+            ]);
         }
 
+        if (isset($result['errors'])) {
+            SessionHelper::append([
+                'activeSection' => 'profile',
+                'tab' => 'mfa'
+            ]);
+            return $this->redirect('/verify-mfa');
+        }
+
+        SessionHelper::clearForm('mfa_confirm');
+        SessionHelper::clear('code_sent');
         $this->setMfaContext();
         return $this->redirect('/dashboard');
     }
 
-    #[Post('/verify/status')]
-    public function status(): Response
+    #[Post('/verify/send')]
+    public function send(): Response
     {
-        return $this->json([
-            'completed' => $this->base->verify->areAllMethodsVerified(),
-            'pending' => $this->base->verify->getPendingMethods()
-        ]);
+        $form = $this->buildForm();
+        $service = $this->resolveMfaService($form);
+        $service->sendCode($this->getAuth()['user_id']);
+
+        SessionHelper::append(['code_sent' => true]);
+
+        $this->setMfaContext();
+
+        return $this->redirect('/verify-mfa');
     }
+
+    // Helpers
 
     private function resolveMfaService($form): object
     {
         $method = $form->getValue('method');
+
         if (empty($method)) {
-            $form->addError("method", "La méthode est requise.");
             throw new FormException($form);
         }
 
@@ -159,7 +132,7 @@ class VerifyController extends SecureController
             'mail' => $this->mailMfaService,
             'sms' => $this->smsMfaService,
             'authenticator' => $this->authenticatorMfaService,
-            default => throw new FormException($form->addError("method", "Méthode MFA invalide."))
+            default => throw new FormException($form)
         };
     }
 
@@ -170,6 +143,25 @@ class VerifyController extends SecureController
             'activeSection' => 'profile',
             'tab' => 'mfa'
         ]);
+    }
+
+    private function sendMfaCodeIfNeeded(?object $method): void
+    {
+        if (SessionHelper::get('code_sent') || is_null($method)) {
+            return;
+        }
+
+        $service = match ($method->method) {
+            'mail' => $this->mailMfaService,
+            'sms' => $this->smsMfaService,
+            'authenticator' => $this->authenticatorMfaService,
+            default => null
+        };
+
+        if ($service) {
+            $service->sendCode($this->getAuth()['user_id']);
+            SessionHelper::append(['code_sent' => true]);
+        }
     }
 
 }

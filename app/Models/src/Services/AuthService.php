@@ -103,6 +103,10 @@ class AuthService
 
     public function postAuthActions(): void
     {
+        if (!$this->currentUserId || !$this->currentUserKey) {
+            $this->currentUserKey = EncryptionService::getUserKeyFromContext();
+            $this->currentUserId = EncryptionService::getUserIdFromContext();
+        }
         $user = $this->userBroker->findById($this->currentUserId, $this->currentUserKey);
 
         $this->sharingService->acceptPendingShares();

@@ -1,17 +1,31 @@
-<form method="post"
-      action="/verify/confirm"
-      hx-post="/verify/confirm"
-      hx-target="#verify-form-wrapper"
-      hx-swap="morphdom"
-      novalidate>
+{var $form = Controllers\src\Utils\SessionHelper::getForm('mfa_confirm')}
 
-    <input type="hidden" name="method" value="mail">
+<div id="verify-form-wrapper">
+    <form method="post"
+          action="/verify/confirm"
+          hx-post="/verify/confirm"
+          hx-trigger="change"
+          hx-target="#verify-form-wrapper"
+          hx-swap="morphdom"
+          hx-preserve="true"
+          novalidate>
 
-    {include '../../components/formField.latte', name => 'code', label => 'Code reçu par email', icon => 'envelope'}
+        <input type="hidden" name="method" value="mail">
 
-    <div class="d-grid gap-2 mt-4">
-        <button type="submit" class="btn btn-primary btn-lg">
-            <i class="bi bi-shield-check me-2"></i>Valider
-        </button>
-    </div>
-</form>
+        {include '../../components/formField.latte', name => 'code', label => 'Code reçu par courriel', icon => 'chat-dots', form => $form}
+
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-shield-check me-2"></i>Valider
+            </button>
+
+            <button type="button" class="btn btn-outline-secondary"
+                    hx-post="/verify/send"
+                    hx-vals='{"method": "mail"}'
+                    hx-target="#verify-form-wrapper"
+                    hx-swap="morphdom">
+                <i class="bi bi-arrow-repeat me-2"></i>Renvoyer le code
+            </button>
+        </div>
+    </form>
+</div>
