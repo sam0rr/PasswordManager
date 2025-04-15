@@ -30,6 +30,8 @@ abstract class SecureController extends Controller
         $this->currentUserKey = EncryptionService::getUserKeyFromContext();
         $this->currentUserId = EncryptionService::getUserIdFromContext();
 
+        $this->base = new BaseService($this->getAuth());
+
         if (is_null($this->currentUserKey) || is_null($this->currentUserId)) {
             return $this->redirect("/login");
         }
@@ -39,13 +41,17 @@ abstract class SecureController extends Controller
             return $this->redirect("/login?error=too_many_attempts");
         }
 
-        $this->base = new BaseService($this->getAuth());
-
-        if (!SessionHelper::get('mfa_validated')) {
+        if (!SessionHelper::get('mfa_validated') && !$this->isOnVerifyRoute()) {
             return $this->redirect('/verify-mfa');
         }
 
         return parent::before();
+    }
+
+    private function isOnVerifyRoute(): bool
+    {
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        return str_starts_with($uri, '/verify');
     }
 
 }
