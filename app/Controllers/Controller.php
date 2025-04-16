@@ -90,10 +90,10 @@ abstract class Controller extends BaseController
         return $this->request->getHeader('HX-Request') !== null;
     }
 
-    protected function flashSuccess(string $message): void
+    protected function flashMessage(string $message): void
     {
         SessionHelper::append([
-            'flash_success' => $message
+            'flash_message' => $message
         ]);
     }
 

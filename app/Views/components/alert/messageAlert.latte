@@ -1,0 +1,25 @@
+{varType string $message}
+{varType string $type}
+{var $type = $type ?? 'success'}
+
+{if isset($message) && $message}
+    {var $alertClass = 'alert-info'}
+    {var $icon = 'info-circle'}
+
+    {if $type == 'error' || $type == 'danger'}
+        {var $alertClass = 'alert-danger'}
+        {var $icon = 'exclamation-triangle-fill'}
+    {elseif $type == 'warning'}
+        {var $alertClass = 'alert-warning'}
+        {var $icon = 'exclamation-circle'}
+    {elseif $type == 'success'}
+        {var $alertClass = 'alert-success'}
+        {var $icon = 'check-circle'}
+    {/if}
+
+    <div class="alert {$alertClass} alert-dismissible fade show" role="alert">
+        <i class="bi bi-{$icon} me-2"></i>
+        {$message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+{/if}

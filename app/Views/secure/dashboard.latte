@@ -2,6 +2,9 @@
 
 {block pageContent}
     <div class="container py-4">
+        {if isset($authenticator_warning_message)}
+            {include '../components/alert/messageAlert.latte', message => $authenticator_warning_message, type => 'warning'}
+        {/if}
         <div class="d-md-none mb-3">
             <select class="form-select" id="section-selector">
                 <option value="?section=profile" {$activeSection == 'profile' ? 'selected' : ''}>Profil</option>

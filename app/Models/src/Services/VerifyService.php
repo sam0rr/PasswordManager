@@ -144,11 +144,15 @@ class VerifyService extends BaseService
 
     public function markVerified(string $method): void
     {
-        $userKey = $this->auth['user_key'];
         $userId = $this->auth['user_id'];
+        $userKey = $this->auth['user_key'];
 
         if ($userId) {
-            $this->verifyBroker->updateLastVerified($userId, $method, $userKey);
+            $methodEntity = $this->verifyBroker->updateLastVerified($userId, $method, $userKey);
+
+            if ($method === 'authenticator' && !$methodEntity->is_first_verified) {
+                $this->verifyBroker->markFirstVerificationDone($userId, $userKey);
+            }
         }
     }
 
@@ -166,7 +170,15 @@ class VerifyService extends BaseService
     public function getPendingMethods(): array
     {
         $methods = array_filter($this->getAllMethods(), function (UserVerify $method) {
-            return $method->is_active && !$this->isMethodVerified($method);
+            if (!$method->is_active) {
+                return false;
+            }
+
+            if ($method->method === 'authenticator' && !$method->is_first_verified) {
+                return false;
+            }
+
+            return !$this->isMethodVerified($method);
         });
 
         return $this->sortMethodsByPriority($methods);
@@ -213,6 +225,14 @@ class VerifyService extends BaseService
         $expiresAt = $lastVerified + $this->MFA_EXPIRATION_SECONDS;
 
         return time() <= $expiresAt;
+    }
+
+    public function getFirstUnverifiedAuthenticatorMethod(): ?UserVerify
+    {
+        $methods = $this->getAllMethods();
+
+        return array_find($methods, fn($method) => $method->method === 'authenticator' && $method->is_active && !$method->is_first_verified);
+
     }
 
     public function getMethod(string $method): ?UserVerify
@@ -265,9 +285,10 @@ class VerifyService extends BaseService
             'user_id' => $userId,
             'method' => $method,
             'otp_secret' => $this->encryption->encryptWithUserKey($otp, $this->auth['user_key']),
-            'otp_created_at' =>  date('Y-m-d H:i:s'),
+            'otp_created_at' => date('Y-m-d H:i:s'),
             'last_verified' => date('Y-m-d H:i:s', strtotime('-1 day')),
-            'is_active' => true
+            'is_active' => true,
+            'is_first_verified' => false
         ];
     }
 

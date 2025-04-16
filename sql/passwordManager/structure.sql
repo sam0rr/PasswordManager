@@ -69,6 +69,7 @@ CREATE TABLE user_verify (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     method auth_method NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT FALSE,
+    is_first_verified BOOLEAN NOT NULL DEFAULT FALSE,
     otp_secret TEXT NOT NULL,
     otp_created_at TIMESTAMPTZ NOT NULL,
     last_verified TIMESTAMPTZ NOT NULL,
@@ -76,6 +77,7 @@ CREATE TABLE user_verify (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, method)
 );
+
 
 CREATE TABLE password_sharing (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

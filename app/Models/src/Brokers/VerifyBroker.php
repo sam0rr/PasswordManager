@@ -35,16 +35,17 @@ class VerifyBroker extends DatabaseBroker
     public function createMethod(array $data, string $userKey): ?UserVerify
     {
         $sql = "
-            INSERT INTO user_verify (user_id, method, otp_secret, is_active, otp_created_at, last_verified)
-            VALUES (?, ?, ?, ?, ?, ?)
-            RETURNING *;
-        ";
+        INSERT INTO user_verify (user_id, method, otp_secret, is_active, is_first_verified, otp_created_at, last_verified)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING *;
+    ";
 
         $row = $this->selectSingle($sql, [
             $data['user_id'],
             $data['method'],
             $data['otp_secret'],
             $data['is_active'],
+            $data['is_first_verified'] ?? false,
             $data['otp_created_at'],
             $data['last_verified']
         ]);
@@ -68,6 +69,14 @@ class VerifyBroker extends DatabaseBroker
         );
 
         return $row ? $this->decryptVerify(UserVerify::build($row), $userKey) : null;
+    }
+
+    public function markFirstVerificationDone(string $userId, string $userKey): void
+    {
+        $this->query(
+            "UPDATE user_verify SET is_first_verified = true WHERE user_id = ? AND method = 'authenticator'",
+            [$userId]
+        );
     }
 
     public function activate(string $userId, string $method, string $userKey): ?UserVerify

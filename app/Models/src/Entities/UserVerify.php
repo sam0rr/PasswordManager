@@ -10,6 +10,7 @@ class UserVerify extends Entity
     public string $user_id;
     public string $method;
     public bool $is_active;
+    public bool $is_first_verified;
     public string $otp_secret;
     public ?string $otp_created_at;
     public string $last_verified;
