@@ -9,10 +9,6 @@
                         <h1 class="h4 mb-0">Vérification de sécurité</h1>
                     </div>
                     <div class="card-body p-4">
-                        <p class="text-muted mb-4">
-                            Veuillez confirmer votre identité via la méthode d’authentification activée.
-                        </p>
-
                         <div id="verify-form-wrapper">
                             {if $method->method == 'mail'}
                                 {include '../fragments/verify/mailMfa.latte', successMessage => $successMessage ?? null}
