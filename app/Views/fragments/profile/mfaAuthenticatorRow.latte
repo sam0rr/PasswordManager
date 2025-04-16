@@ -1,0 +1,52 @@
+<div class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
+    <div class="mb-2 mb-md-0 w-100 w-md-50">
+        <div class="fw-bold text-dark">
+            <i class="bi bi-lock-fill me-2"></i>
+            Application Authenticator (TOTP)
+        </div>
+
+        <div class="text-muted small mt-1">
+            {if $method && $method->is_active}
+                Vérifiée :
+                {if $method->last_verified}
+                    {$method->last_verified|date:'d/m/Y à H:i'}
+                    {if strtotime($method->last_verified) + 300 < time()}
+                        <span class="badge bg-danger ms-2">Expiré</span>
+                    {/if}
+                {else}
+                    <span class="text-muted">Jamais vérifiée</span>
+                {/if}
+            {else}
+                <span class="text-muted">Méthode désactivée</span>
+            {/if}
+        </div>
+    </div>
+
+    <div class="text-end w-100 w-md-50">
+        {if $method && $method->is_active}
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                        hx-get="/verify/qrcode"
+                        hx-target="#qr-code-container"
+                        data-bs-toggle="modal"
+                        data-bs-target="#qr-code-modal">
+                    <i class="bi bi-qr-code me-1"></i> Voir QR code
+                </button>
+
+                {include '../verify/mfaFormButton.latte',
+                action => 'deactivate',
+                methodType => 'authenticator',
+                style => 'outline-danger',
+                icon => 'x-circle',
+                label => 'Désactiver'
+                }
+            </div>
+        {else}
+            <button type="button" class="btn btn-sm btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#activateAuthenticatorModal">
+                <i class="bi bi-shield-plus me-1"></i> Activer
+            </button>
+        {/if}
+    </div>
+</div>

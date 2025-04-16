@@ -1,44 +1,43 @@
 {varType ?object $method}
 {varType string $methodType}
 
-<div class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
-    <div class="mb-2 mb-md-0 w-100 w-md-50">
-        <div class="fw-bold text-dark">
-            <i class="bi bi-lock-fill me-2"></i>
-            {switch $methodType}
-                {case 'mail'}Authentification par courriel
-                {case 'sms'}Authentification par SMS
-                {case 'authenticator'}Application Authenticator (TOTP)
-                {default}Méthode inconnue
-            {/switch}
-        </div>
+{if $methodType == 'authenticator'}
+    {include 'mfaAuthenticatorRow.latte', method => $method, methodType => $methodType}
+{else}
+    <div class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
+        <div class="mb-2 mb-md-0 w-100 w-md-50">
+            <div class="fw-bold text-dark">
+                <i class="bi bi-lock-fill me-2"></i>
+                {switch $methodType}
+                    {case 'mail'}Authentification par courriel
+                    {case 'sms'}Authentification par SMS
+                    {default}Méthode inconnue
+                {/switch}
+            </div>
 
-        <div class="text-muted small mt-1">
-            {if $method && $method->is_active}
-                Vérifiée :
-                {if $method->last_verified}
-                    {$method->last_verified|date:'d/m/Y à H:i'}
-                    {if strtotime($method->last_verified) + 300 < time()}
-                        <span class="badge bg-danger ms-2">Expiré</span>
+            <div class="text-muted small mt-1">
+                {if $method && $method->is_active}
+                    Vérifiée :
+                    {if $method->last_verified}
+                        {$method->last_verified|date:'d/m/Y à H:i'}
+                        {if strtotime($method->last_verified) + 300 < time()}
+                            <span class="badge bg-danger ms-2">Expiré</span>
+                        {/if}
+                    {else}
+                        <span class="text-muted">Jamais vérifiée</span>
                     {/if}
                 {else}
-                    <span class="text-muted">Jamais vérifiée</span>
+                    <span class="text-muted">Méthode désactivée</span>
                 {/if}
-            {else}
-                <span class="text-muted">Méthode désactivée</span>
-            {/if}
+            </div>
         </div>
-    </div>
 
-    <div class="text-end w-100 w-md-50">
-        {if $method && $method->is_active}
-            {include '../verify/mfaFormButton.latte', action => 'deactivate', methodType => $methodType, style => 'outline-danger', icon => 'x-circle', label => 'Désactiver'}
-        {else}
-            {if $methodType == 'authenticator'}
-                {include '../verify/mfaAuthenticatorButton.latte', methodType => $methodType}
+        <div class="text-end w-100 w-md-50">
+            {if $method && $method->is_active}
+                {include '../verify/mfaFormButton.latte', action => 'deactivate', methodType => $methodType, style => 'outline-danger', icon => 'x-circle', label => 'Désactiver'}
             {else}
                 {include '../verify/mfaFormButton.latte', action => 'activate', methodType => $methodType, style => 'primary', icon => 'shield-plus', label => 'Activer'}
             {/if}
-        {/if}
+        </div>
     </div>
-</div>
+{/if}

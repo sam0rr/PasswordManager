@@ -39,9 +39,22 @@ class VerifyController extends SecureController
         $this->base->verify->handleActivation($form);
         $this->setMfaContext();
 
-        return ($method === "authenticator")
-            ? $this->renderAuthenticatorSetup($method)
-            : $this->redirect('/dashboard?section=profile&tab=mfa');
+        if ($method === "authenticator") {
+            SessionHelper::append(['authenticator_activated' => true]);
+        }
+
+        return $this->redirect('/dashboard?section=profile&tab=mfa');
+    }
+
+    #[Get('/verify/qrcode')]
+    public function getQrCode(): Response
+    {
+        $userId = $this->getAuth()['user_id'];
+        $qrCode = $this->authenticatorMfaService->sendCode($userId);
+
+        return $this->render("fragments/verify/qrCodeDisplay", [
+            'qrCode' => $qrCode
+        ]);
     }
 
     #[Post('/verify/deactivate')]
@@ -147,17 +160,6 @@ class VerifyController extends SecureController
             'mfa' => $this->base->verify->getAllMethods(),
             'activeSection' => 'profile',
             'tab' => 'mfa'
-        ]);
-    }
-
-    private function renderAuthenticatorSetup(string $method): Response
-    {
-        $userId = $this->getAuth()['user_id'];
-        $qrCode = $this->authenticatorMfaService->sendCode($userId);
-
-        return $this->render("fragments/verify/setupAuthenticator", [
-            'qrCode' => $qrCode,
-            'method' => $method
         ]);
     }
 

@@ -1,4 +1,5 @@
 {varType array $mfa}
+{varType bool $showQrCode}
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white">
@@ -32,9 +33,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="mfa-setup-modal" tabindex="-1" aria-labelledby="mfa-setup-modal-label" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content" id="mfa-setup-modal-content">
-        </div>
-    </div>
-</div>
+{include '../../fragments/verify/authenticatorActivationModal.latte'}
+{include '../../fragments/verify/qrCodeModal.latte'}
+
+
+
