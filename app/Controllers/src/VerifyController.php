@@ -152,7 +152,7 @@ class VerifyController extends SecureController
     private function setMfaContext(): void
     {
         SessionHelper::append([
-            'mfa' => $this->base->verify->getAllMethods(),
+            'mfa' => $this->base->verify->getAllActiveMethods(),
             'activeSection' => 'profile',
             'tab' => 'mfa'
         ]);

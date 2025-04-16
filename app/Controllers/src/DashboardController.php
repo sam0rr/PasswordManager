@@ -52,7 +52,7 @@ class DashboardController extends SecureController
             $context['shared_credentials'] = $this->base->sharing->getAllShares(new Form());
             $context['passwords'] = $this->base->passwordService->getAllUserPasswords(new Form());
 
-            $context['mfa'] = $this->base->verify->getAllMethods();
+            $context['mfa'] = $this->base->verify->getAllActiveMethods();
             SessionHelper::setContext($context);
         } else {
             SessionHelper::append($context);

@@ -167,6 +167,14 @@ class VerifyService extends BaseService
         return !empty($this->getPendingMethods());
     }
 
+    public function getAllActiveMethods(): array
+    {
+        $methods = $this->getAllMethods();
+        $activeMethods = array_filter($methods, fn($method) => $method->is_active);
+
+        return $this->sortMethodsByPriority($activeMethods);
+    }
+
     public function getPendingMethods(): array
     {
         $methods = array_filter($this->getAllMethods(), function (UserVerify $method) {
@@ -229,9 +237,9 @@ class VerifyService extends BaseService
 
     public function getFirstUnverifiedAuthenticatorMethod(): ?UserVerify
     {
-        $methods = $this->getAllMethods();
+        $methods = $this->getAllActiveMethods();
 
-        return array_find($methods, fn($method) => $method->method === 'authenticator' && $method->is_active && !$method->is_first_verified);
+        return array_find($methods, fn($method) => $method->method === 'authenticator' && !$method->is_first_verified);
 
     }
 
