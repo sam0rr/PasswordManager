@@ -54,16 +54,6 @@ CREATE TABLE user_password (
     UNIQUE (user_id, description_hash)
 );
 
-CREATE TABLE email_token (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    token TEXT UNIQUE NOT NULL,
-    type TEXT NOT NULL,
-    expires_at TIMESTAMPTZ NOT NULL,
-    is_used BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE user_verify (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
