@@ -95,30 +95,13 @@ class VerifyController extends SecureController
     #[Post('/verify/confirm')]
     public function confirm(): Response
     {
-        $isHtmx = $this->isHtmx();
-        $form = $this->buildForm();
-        $service = $this->resolveMfaService($form);
+        return $this->handleConfirmation('mfa_confirm', '/verify-mfa', 'fragments/verify/{method}Mfa');
+    }
 
-        $result = $this->base->verify->confirmCode($form, $service, $isHtmx);
-
-        SessionHelper::setForm('mfa_confirm', $result['form']);
-
-        if ($isHtmx) {
-            return $this->render("fragments/verify/{$form->getValue('method')}Mfa", [
-                'form' => $result['form'],
-                'method' => $form->getValue('method'),
-                'isHtmx' => true
-            ]);
-        }
-
-        if (isset($result['errors'])) {
-            return $this->redirect('/verify-mfa');
-        }
-
-        SessionHelper::clearForm('mfa_confirm');
-        SessionHelper::clear('code_sent');
-        $this->setMfaContext();
-        return $this->redirect('/dashboard');
+    #[Post('/verify/confirmModal')]
+    public function confirmModal(): Response
+    {
+        return $this->handleConfirmation('mfa_confirm_modal', '/dashboard?section=profile&tab=mfa', 'fragments/verify/qrCodeModalForm');
     }
 
     #[Post('/verify/send')]
@@ -141,6 +124,35 @@ class VerifyController extends SecureController
     }
 
     // Helpers
+
+    private function handleConfirmation(string $formKey, string $redirectUrl, string $fragmentTemplate): Response
+    {
+        $isHtmx = $this->isHtmx();
+        $form = $this->buildForm();
+        $service = $this->resolveMfaService($form);
+
+        $result = $this->base->verify->confirmCode($form, $service, $isHtmx);
+
+        SessionHelper::setForm($formKey, $result['form']);
+
+        if ($isHtmx) {
+            $template = str_replace('{method}', $form->getValue('method'), $fragmentTemplate);
+            return $this->render($template, [
+                'form' => $result['form'],
+                'method' => $form->getValue('method'),
+                'isHtmx' => true
+            ]);
+        }
+
+        if (isset($result['errors'])) {
+            return $this->redirect($redirectUrl);
+        }
+
+        SessionHelper::clearForm($formKey);
+        SessionHelper::clear('code_sent');
+        $this->setMfaContext();
+        return $this->redirect($redirectUrl);
+    }
 
     private function resolveMfaService($form): object
     {

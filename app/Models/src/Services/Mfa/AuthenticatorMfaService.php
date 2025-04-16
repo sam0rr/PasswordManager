@@ -30,7 +30,7 @@ class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
                 $qrProvider,
                 'KryptLok',
                 6,
-                10,
+                30,
                 Algorithm::Sha1
             );
         } catch (TwoFactorAuthException $e) {

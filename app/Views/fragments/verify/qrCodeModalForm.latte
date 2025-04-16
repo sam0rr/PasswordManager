@@ -1,0 +1,25 @@
+{var $form = Controllers\src\Utils\SessionHelper::getForm('mfa_confirm_modal')}
+
+<form method="post"
+      action="/verify/confirmModal"
+      hx-post="/verify/confirmModal"
+      hx-trigger="change"
+      hx-target="#modal-verify-form-wrapper"
+      hx-swap="morphdom"
+      hx-preserve="true"
+      novalidate>
+    {$csrf_keep_alive|noescape}
+
+    <input type="hidden" name="method" value="authenticator">
+
+    {include '../../components/formField.latte', name => 'code', label => 'Entrez le code à 6 chiffres', icon => 'shield-lock', form => $form}
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Fermer
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-shield-check me-2"></i>Vérifier
+        </button>
+    </div>
+</form>

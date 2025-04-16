@@ -169,10 +169,13 @@ class UserService extends BaseService
         // Étape 3 : Mettre à jour les données dépendantes (passwords)
         $this->passwordService->updatePasswordsWithNewKey($user->id, $oldUserKey, $newUserKey);
 
-        // Étape 4 : Mettre à jour le contexte
+        // Étape 4 : Mettre à jour les OTP (verify)
+        $this->verify->updateOtpWithNewKey($user->id, $oldUserKey, $newUserKey);
+
+        // Étape 5 : Mettre à jour le contexte
         $this->updateUserContext($user->id, $newUserKey);
 
-        // Étape 5 : Retourner l’utilisateur mis à jour
+        // Étape 6 : Retourner l’utilisateur mis à jour
         return $this->userBroker->findById($user->id, $newUserKey);
     }
 

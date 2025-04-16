@@ -91,10 +91,17 @@ class VerifyBroker extends DatabaseBroker
 
     public function deactivate(string $userId, string $method, string $userKey): ?UserVerify
     {
-        $row = $this->selectSingle(
-            "UPDATE user_verify SET is_active = false WHERE user_id = ? AND method = ? RETURNING *",
-            [$userId, $method]
-        );
+        if ($method === 'authenticator') {
+            $row = $this->selectSingle(
+                "UPDATE user_verify SET is_active = false, is_first_verified = false WHERE user_id = ? AND method = ? RETURNING *",
+                [$userId, $method]
+            );
+        } else {
+            $row = $this->selectSingle(
+                "UPDATE user_verify SET is_active = false WHERE user_id = ? AND method = ? RETURNING *",
+                [$userId, $method]
+            );
+        }
 
         return $row ? $this->decryptVerify(UserVerify::build($row), $userKey) : null;
     }

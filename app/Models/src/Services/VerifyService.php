@@ -203,11 +203,14 @@ class VerifyService extends BaseService
             $form->addError('code', 'Le code est invalide.');
             throw new FormException($form);
         }
-        $methodEntity = $this->getMethod($method);
 
-        if ($this->isCodeExpired($methodEntity)) {
-            $form->addError('code', 'Ce code a expiré. Veuillez en demander un nouveau.');
-            throw new FormException($form);
+        // Skip expiration check for authenticator method (it does it itself)
+        if ($method !== 'authenticator') {
+            $methodEntity = $this->getMethod($method);
+            if ($this->isCodeExpired($methodEntity)) {
+                $form->addError('code', 'Ce code a expiré. Veuillez en demander un nouveau.');
+                throw new FormException($form);
+            }
         }
     }
 
@@ -298,6 +301,18 @@ class VerifyService extends BaseService
             'is_active' => true,
             'is_first_verified' => false
         ];
+    }
+
+    public function updateOtpWithNewKey(string $userId, string $oldKey, string $newKey): void
+    {
+        $authenticatorMethod = $this->verifyBroker->findByMethod($userId, 'authenticator', $oldKey);
+
+        if ($authenticatorMethod) {
+            $plainSecret = $this->encryption->decryptWithUserKey($authenticatorMethod->otp_secret, $oldKey);
+            $newEncryptedSecret = $this->encryption->encryptWithUserKey($plainSecret, $newKey);
+
+            $this->verifyBroker->updateSecret($userId, 'authenticator', $newEncryptedSecret);
+        }
     }
 
     private function getOtpForMethod(string $method): string
