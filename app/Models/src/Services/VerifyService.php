@@ -38,8 +38,8 @@ class VerifyService extends BaseService
         try {
             $userId = $this->auth['user_id'];
             $userKey = $this->auth['user_key'];
-
-            return $this->verifyBroker->findAllByUser($userId, $userKey);
+            $methods = $this->verifyBroker->findAllByUser($userId, $userKey);
+            return $this->sortMethodsByPriority($methods);
         } catch (ThrowableAlias) {
             return [];
         }
@@ -155,9 +155,11 @@ class VerifyService extends BaseService
 
     public function getPendingMethods(): array
     {
-        return array_filter($this->getAllMethods(), function (UserVerify $method) {
+        $methods = array_filter($this->getAllMethods(), function (UserVerify $method) {
             return $method->is_active && !$this->isMethodVerified($method);
         });
+
+        return $this->sortMethodsByPriority($methods);
     }
 
     private function assertCodeValidity(string $code, object $service, string $method, Form $form): void
@@ -219,6 +221,17 @@ class VerifyService extends BaseService
         return $this->userBroker
             ->findById($this->auth['user_id'], $this->auth['user_key'])
             ->phone;
+    }
+
+    private function sortMethodsByPriority(array $methods): array
+    {
+        $priority = ['mail', 'sms', 'authenticator'];
+
+        usort($methods, function (UserVerify $a, UserVerify $b) use ($priority) {
+            return array_search($a->method, $priority) <=> array_search($b->method, $priority);
+        });
+
+        return $methods;
     }
 
     private function extractMethodOrFail(Form $form): string
