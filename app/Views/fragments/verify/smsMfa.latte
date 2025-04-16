@@ -11,6 +11,7 @@
           hx-swap="morphdom"
           hx-preserve="true"
           novalidate>
+        {$csrf_keep_alive|noescape}
 
         <input type="hidden" name="method" value="sms">
 

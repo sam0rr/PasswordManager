@@ -14,6 +14,8 @@ abstract class Controller extends BaseController
 {
     public function before(): ?Response
     {
+        error_log("Session ID: " . session_id());
+        error_log("CSRF token from request: " . $this->request->getParameter('CSRFToken'));
         return parent::before();
     }
 
@@ -33,15 +35,9 @@ abstract class Controller extends BaseController
             "route_root" => $this->request->getRouteDefinition()->getRouteRoot(),
 
             /**
-             * String representation of the currently loaded language (e.g. français (Canada)).
+             * Keep the csrf alive cause i use htmx it can't kill itself.
              */
-            "loaded_language" => $this->getLoadedLanguage(),
-            "loaded_locale" => Application::getInstance()->getLocalization()->getLocale(),
-
-            /**
-             * List of all installed and available languages.
-             */
-            "installed_languages" => Application::getInstance()->getSupportedLanguages(),
+            "csrf_keep_alive" => '<input type="hidden" name="CSRF_KEEP_ALIVE" value="1"/>',
 
             /**
              * Token for script execution.
@@ -78,7 +74,6 @@ abstract class Controller extends BaseController
         $csp->setConnectSources(["'self'", 'https://api.mapbox.com', 'https://events.mapbox.com']);
         $csp->addImageSource("https://yourdomain.com/uploads/");
 
-        // Allow Google authenticator image generation
         $csp->setImageSources([
             "'self'",
             'blob:',
@@ -87,25 +82,7 @@ abstract class Controller extends BaseController
         ]);
         $csp->setBaseUri([$this->request->getUrl()->getBaseUrl()]);
 
-        // Add custom CSP
         $secureHeader->setContentSecurityPolicy($csp);
-    }
-
-    /**
-     * Retrieves the currently loaded language as a string with its country. E.g. "français (Canada)".
-     *
-     * @return string
-     */
-    private function getLoadedLanguage(): string
-    {
-        $localization = Application::getInstance()->getLocalization();
-        $loadedLanguage = "";
-        foreach ($localization->getInstalledLanguages() as $language) {
-            if ($language->locale == $localization->getLocale()) {
-                $loadedLanguage = $language->lang . ' (' . $language->country . ')';
-            }
-        }
-        return $loadedLanguage;
     }
 
     protected function isHtmx(): bool
