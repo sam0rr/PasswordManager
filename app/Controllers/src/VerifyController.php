@@ -34,14 +34,9 @@ class VerifyController extends SecureController
     public function activate(): Response
     {
         $form = $this->buildForm();
-        $method = $form->getValue("method");
 
         $this->base->verify->handleActivation($form);
         $this->setMfaContext();
-
-        if ($method === "authenticator") {
-            SessionHelper::append(['authenticator_activated' => true]);
-        }
 
         return $this->redirect('/dashboard?section=profile&tab=mfa');
     }

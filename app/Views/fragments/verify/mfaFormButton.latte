@@ -5,6 +5,7 @@
 {varType string $label}
 
 <form method="post" action="/verify/{$action}">
+    {$csrf_keep_alive|noescape}
     <input type="hidden" name="method" value="{$methodType}">
     <button type="submit" class="btn btn-sm btn-{$style}">
         <i class="bi bi-{$icon} me-1"></i> {$label}

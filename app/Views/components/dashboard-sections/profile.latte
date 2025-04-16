@@ -1,5 +1,4 @@
 {var $profileTab = $_GET['tab'] ?? 'info'}
-{var $showQrCode = Controllers\src\Utils\SessionHelper::consume('authenticator_activated')}
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white">
@@ -44,7 +43,7 @@
         {elseif $profileTab == 'password'}
             {include '../profile/updatePassword.latte'}
         {elseif $profileTab == 'mfa'}
-            {include '../profile/mfaSettings.latte', mfa => $mfa, showQrCode => $showQrCode}
+            {include '../profile/mfaSettings.latte', mfa => $mfa}
         {/if}
     </div>
 </div>
