@@ -15,8 +15,18 @@ use Zephyrus\Application\Form;
 
 class VerifyService extends BaseService
 {
-    private const int MFA_EXPIRATION_SECONDS = 300; //5 MINUTES
-    private const int OTP_EXPIRATION_SECONDS = 60; //1 MINUTE
+    private ?int $MFA_EXPIRATION_SECONDS = null {
+        get {
+            return $this->MFA_EXPIRATION_SECONDS ??= config('security.mfa', 'mfa_expiration_seconds', '300');
+        }
+    }
+
+    private ?int $OTP_EXPIRATION_SECONDS = null {
+        get {
+            return $this->OTP_EXPIRATION_SECONDS ??= config('security.mfa', 'otp_expiration_seconds', '60');
+        }
+    }
+
     private ?VerifyBroker $verifyBroker = null {
         get {
             return $this->verifyBroker ??= new VerifyBroker($this->encryption);
@@ -187,8 +197,10 @@ class VerifyService extends BaseService
             return true;
         }
 
-        $last = strtotime($method->otp_created_at);
-        return (time() - $last) > self::OTP_EXPIRATION_SECONDS;
+        $createdAt = strtotime($method->otp_created_at);
+        $expiresAt = $createdAt + $this->OTP_EXPIRATION_SECONDS;
+
+        return time() > $expiresAt;
     }
 
     public function isMethodVerified(UserVerify $method): bool
@@ -198,7 +210,9 @@ class VerifyService extends BaseService
         }
 
         $lastVerified = strtotime($method->last_verified);
-        return ($lastVerified + self::MFA_EXPIRATION_SECONDS) >= time();
+        $expiresAt = $lastVerified + $this->MFA_EXPIRATION_SECONDS;
+
+        return time() <= $expiresAt;
     }
 
     public function getMethod(string $method): ?UserVerify

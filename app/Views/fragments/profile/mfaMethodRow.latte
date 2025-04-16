@@ -1,8 +1,15 @@
 {varType ?object $method}
 {varType string $methodType}
+{varType int $mfa_expiration}
+{varType int $otp_expiration}
 
 {if $methodType == 'authenticator'}
-    {include 'mfaAuthenticatorRow.latte', method => $method, methodType => $methodType}
+    {include 'mfaAuthenticatorRow.latte',
+    method => $method,
+    methodType => $methodType,
+    mfa_expiration => $mfa_expiration,
+    otp_expiration => $otp_expiration
+    }
 {else}
     <div class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
         <div class="mb-2 mb-md-0 w-100 w-md-50">
@@ -20,7 +27,7 @@
                     Vérifiée :
                     {if $method->last_verified}
                         {$method->last_verified|date:'d/m/Y à H:i'}
-                        {if strtotime($method->last_verified) + 300 < time()}
+                        {if strtotime($method->last_verified) + $mfa_expiration < time()}
                             <span class="badge bg-danger ms-2">Expiré</span>
                         {/if}
                     {else}
@@ -34,9 +41,21 @@
 
         <div class="text-end w-100 w-md-50">
             {if $method && $method->is_active}
-                {include '../verify/mfaFormButton.latte', action => 'deactivate', methodType => $methodType, style => 'outline-danger', icon => 'x-circle', label => 'Désactiver'}
+                {include '../verify/mfaFormButton.latte',
+                action => 'deactivate',
+                methodType => $methodType,
+                style => 'outline-danger',
+                icon => 'x-circle',
+                label => 'Désactiver'
+                }
             {else}
-                {include '../verify/mfaFormButton.latte', action => 'activate', methodType => $methodType, style => 'primary', icon => 'shield-plus', label => 'Activer'}
+                {include '../verify/mfaFormButton.latte',
+                action => 'activate',
+                methodType => $methodType,
+                style => 'primary',
+                icon => 'shield-plus',
+                label => 'Activer'
+                }
             {/if}
         </div>
     </div>

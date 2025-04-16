@@ -54,6 +54,9 @@ security:
   ids:
     enabled: true
     impact_threshold: 50
+  mfa:
+    mfa_expiration_seconds: !php/const MFA_EXPIRATION_SECONDS
+    otp_expiration_seconds: !php/const OTP_EXPIRATION_SECONDS
 
 twilio:
   account_sid: !php/const TWILIO_ACCOUNT_SID

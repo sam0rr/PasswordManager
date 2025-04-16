@@ -1,4 +1,6 @@
 {varType array $mfa}
+{varType int $mfa_expiration}
+{varType int $otp_expiration}
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white">
@@ -26,7 +28,12 @@
                     {/if}
                 {/foreach}
 
-                {include '../../fragments/profile/mfaMethodRow.latte', method => $method, methodType => $methodType}
+                {include '../../fragments/profile/mfaMethodRow.latte',
+                method => $method,
+                methodType => $methodType,
+                mfa_expiration => $mfa_expiration,
+                otp_expiration => $otp_expiration
+                }
             {/foreach}
         </div>
     </div>

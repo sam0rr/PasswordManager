@@ -28,8 +28,9 @@ class DashboardController extends SecureController
         $context = $this->initializeBaseContext($user, $section, $tab);
         $this->injectDataIfNeeded($context);
         $this->appendSecurityAnalysisIfNeeded($context, $section);
+        $this->injectMfaConfig($context);
 
-        return SessionHelper::getContext();
+        return SessionHelper::getContext() + $context;
     }
 
     private function initializeBaseContext(User $user, string $section, string $tab): array
@@ -92,6 +93,12 @@ class DashboardController extends SecureController
     private function getDashboardTab(): string
     {
         return $this->request->getParameter('tab') ?? 'list';
+    }
+
+    private function injectMfaConfig(array &$context): void
+    {
+        $context['mfa_expiration'] = config('security.mfa', 'mfa_expiration_seconds', 300);
+        $context['otp_expiration'] = config('security.mfa', 'otp_expiration_seconds', 60);
     }
 
 }

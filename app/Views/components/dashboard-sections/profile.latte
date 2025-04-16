@@ -43,7 +43,7 @@
         {elseif $profileTab == 'password'}
             {include '../profile/updatePassword.latte'}
         {elseif $profileTab == 'mfa'}
-            {include '../profile/mfaSettings.latte', mfa => $mfa}
+            {include '../profile/mfaSettings.latte', mfa => $mfa, mfa_expiration => $mfa_expiration, otp_expiration => $otp_expiration}
         {/if}
     </div>
 </div>
