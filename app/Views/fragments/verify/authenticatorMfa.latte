@@ -1,4 +1,6 @@
 {var $form = Controllers\src\Utils\SessionHelper::getForm('mfa_confirm')}
+{var $method = 'authenticator'}
+{var $label = $method == 'mail' ? 'Code reçu par courriel' : ($method == 'sms' ? 'Code reçu par SMS' : ($method == 'authenticator' ? 'Code généré par l’application')}
 
 <div id="verify-form-wrapper">
     <form method="post"
@@ -11,9 +13,9 @@
           novalidate>
         {$csrf_keep_alive|noescape}
 
-        <input type="hidden" name="method" value="authenticator">
+        <input type="hidden" name="method" value="{$method}">
 
-        {include '../../components/formField.latte', name => 'code', label => 'Application Authenticator (TOTP)', icon => 'chat-dots', form => $form}
+        {include '../../components/formField.latte', name => 'code', label => $label, icon => 'chat-dots', form => $form}
 
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">

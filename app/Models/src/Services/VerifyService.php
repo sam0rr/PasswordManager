@@ -307,8 +307,9 @@ class VerifyService extends BaseService
     {
         $authenticatorMethod = $this->verifyBroker->findByMethod($userId, 'authenticator', $oldKey);
 
-        if ($authenticatorMethod) {
-            $plainSecret = $this->encryption->decryptWithUserKey($authenticatorMethod->otp_secret, $oldKey);
+        if ($authenticatorMethod && $authenticatorMethod->otp_secret) {
+            $plainSecret = $authenticatorMethod->otp_secret;
+
             $newEncryptedSecret = $this->encryption->encryptWithUserKey($plainSecret, $newKey);
 
             $this->verifyBroker->updateSecret($userId, 'authenticator', $newEncryptedSecret);

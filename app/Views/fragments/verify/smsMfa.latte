@@ -1,4 +1,6 @@
 {var $form = Controllers\src\Utils\SessionHelper::getForm('mfa_confirm')}
+{var $method = 'sms'}
+{var $label = $method == 'mail' ? 'Code reçu par courriel' : ($method == 'sms' ? 'Code reçu par SMS' : ($method == 'authenticator' ? 'Code généré par l’application')}
 
 <div id="verify-form-wrapper">
     {if isset($successMessage)}
@@ -15,9 +17,9 @@
           novalidate>
         {$csrf_keep_alive|noescape}
 
-        <input type="hidden" name="method" value="sms">
+        <input type="hidden" name="method" value="{$method}">
 
-        {include '../../components/formField.latte', name => 'code', label => 'Code reçu par courriel', icon => 'chat-dots', form => $form}
+        {include '../../components/formField.latte', name => 'code', label => $label, icon => 'chat-dots', form => $form}
 
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
@@ -26,7 +28,7 @@
 
             <button type="button" class="btn btn-outline-secondary"
                     hx-post="/verify/send"
-                    hx-vals='{"method": "sms"}'
+                    hx-vals='{"method": "{$method}"}'
                     hx-target="#verify-form-wrapper"
                     hx-swap="morphdom">
                 <i class="bi bi-arrow-repeat me-2"></i>Renvoyer le code
