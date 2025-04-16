@@ -8,6 +8,7 @@ use Models\Exceptions\FormException;
 use Models\src\Services\Mfa\AuthenticatorMfaService;
 use Models\src\Services\Mfa\MailMfaService;
 use Models\src\Services\Mfa\SmsMfaService;
+use Zephyrus\Network\ContentType;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
@@ -45,11 +46,19 @@ class VerifyController extends SecureController
     public function getQrCode(): Response
     {
         $userId = $this->getAuth()['user_id'];
-        $qrCode = $this->authenticatorMfaService->sendCode($userId);
+        $dataUri = $this->authenticatorMfaService->sendCode($userId);
 
-        return $this->render("fragments/verify/qrCodeDisplay", [
-            'qrCode' => $qrCode
-        ]);
+        $html = '
+
+        <div class="qr-code-image text-center">
+            <img src="' . htmlspecialchars($dataUri) . '" alt="QR Code To Scan" class="img-fluid rounded shadow" style="max-width: 250px;">
+        </div>
+
+        ';
+
+        $response = new Response();
+        $response->setContent($html);
+        return $response;
     }
 
     #[Post('/verify/deactivate')]

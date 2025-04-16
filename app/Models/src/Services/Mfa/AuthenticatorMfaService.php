@@ -21,16 +21,16 @@ class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
         try {
             $qrProvider = new EndroidQrCodeProvider(
                 'ffffff',
-                '000000',
-                10,
-                'H'
+                '4a90e2',
+                0,
+                'H',
             );
 
             return new TwoFactorAuth(
                 $qrProvider,
                 'KryptLok',
                 6,
-                30,
+                10,
                 Algorithm::Sha1
             );
         } catch (TwoFactorAuthException $e) {

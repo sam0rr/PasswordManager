@@ -80,6 +80,7 @@ abstract class Controller extends BaseController
             'data:',
             'https:'
         ]);
+
         $csp->setBaseUri([$this->request->getUrl()->getBaseUrl()]);
 
         $secureHeader->setContentSecurityPolicy($csp);
