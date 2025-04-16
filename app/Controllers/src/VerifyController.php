@@ -63,7 +63,7 @@ class VerifyController extends SecureController
 
         $form = SessionHelper::getForm('mfa_confirm');
         $pendingMethods = $this->base->verify->getPendingMethods();
-        $method = reset($pendingMethods);
+        $method = !empty($pendingMethods) ? reset($pendingMethods) : null;
 
         $this->sendMfaCodeIfNeeded($method);
 
@@ -161,9 +161,9 @@ class VerifyController extends SecureController
         ]);
     }
 
-    private function sendMfaCodeIfNeeded(?object $method): void
+    private function sendMfaCodeIfNeeded($method): void
     {
-        if (SessionHelper::get('code_sent') || is_null($method)) {
+        if (SessionHelper::get('code_sent') || !$method) {
             return;
         }
 
