@@ -1,6 +1,6 @@
 {var $form = Controllers\src\Utils\SessionHelper::getForm('mfa_confirm')}
 {var $method = 'sms'}
-{var $label = $method == 'mail' ? 'Code reçu par courriel' : ($method == 'sms' ? 'Code reçu par SMS' : ($method == 'authenticator' ? 'Code généré par l’application')}
+{var $label = $method == 'mail' ? 'Code reçu par courriel' : ($method == 'sms' ? 'Code reçu par SMS' : ($method == 'authenticator' ? 'Code généré par l’application' : ''))}
 
 <div id="verify-form-wrapper">
     {if isset($successMessage)}
