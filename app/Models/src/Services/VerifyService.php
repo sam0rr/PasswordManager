@@ -332,14 +332,14 @@ class VerifyService extends BaseService
 
     public function updateOtpWithNewKey(string $userId, string $oldKey, string $newKey): void
     {
-        $authenticatorMethod = $this->verifyBroker->findByMethod($userId, 'authenticator', $oldKey);
+        $methods = $this->verifyBroker->findAllByUser($userId, $oldKey);
 
-        if ($authenticatorMethod && $authenticatorMethod->otp_secret) {
-            $plainSecret = $authenticatorMethod->otp_secret;
-
-            $newEncryptedSecret = $this->encryption->encryptWithUserKey($plainSecret, $newKey);
-
-            $this->verifyBroker->updateSecret($userId, 'authenticator', $newEncryptedSecret);
+        foreach ($methods as $method) {
+            if ($method->otp_secret) {
+                $plainSecret = $method->otp_secret;
+                $newEncryptedSecret = $this->encryption->encryptWithUserKey($plainSecret, $newKey);
+                $this->verifyBroker->updateSecret($userId, $method->method, $newEncryptedSecret);
+            }
         }
     }
 
