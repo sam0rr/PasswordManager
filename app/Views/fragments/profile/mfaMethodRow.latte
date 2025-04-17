@@ -22,21 +22,25 @@
                 <div class="mb-2 mb-md-0 w-100 w-md-50">
                     <div class="text-muted small">
                         {if $method && $method->is_active}
-                            Vérifiée :
                             {if $method->last_verified}
-                                {$method->last_verified|date:'d/m/Y à H:i'}
-                                {if $method->grace_period_enabled}
-                                    {if strtotime($method->last_verified) + ($mfa_grace_period_days * 86400) < time()}
-                                        <span class="badge bg-danger ms-2 align-middle">Expiré</span>
-                                    {else}
+                                {var $isExpired = $method->grace_period_enabled
+                                ? strtotime($method->last_verified) + ($mfa_grace_period_days * 86400) < time()
+                                : strtotime($method->last_verified) + $mfa_expiration < time()
+                                }
+
+                                {if !$isExpired}
+                                    Vérifiée : {$method->last_verified|date:'d/m/Y à H:i'}
+                                    {if $method->grace_period_enabled}
                                         <span class="badge bg-success ms-2 align-middle">
                                             Valide pour {ceil((strtotime($method->last_verified) + ($mfa_grace_period_days * 86400) - time()) / 86400)} jours
                                         </span>
+                                    {else}
+                                        <span class="badge bg-success ms-2 align-middle">
+                                            Valide
+                                        </span>
                                     {/if}
                                 {else}
-                                    {if strtotime($method->last_verified) + $mfa_expiration < time()}
-                                        <span class="badge bg-danger ms-2 align-middle">Expiré</span>
-                                    {/if}
+                                    <span class="badge bg-danger ms-2 align-middle">Expiré</span>
                                 {/if}
                             {else}
                                 <span class="text-muted">Jamais vérifiée</span>

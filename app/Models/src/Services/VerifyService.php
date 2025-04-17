@@ -197,7 +197,7 @@ class VerifyService extends BaseService
 
     public function getPendingMethods(): array
     {
-        $methods = array_filter($this->getAllMethods(), function (UserVerify $method) {
+        return $this->sortMethodsByPriority(array_filter($this->getAllMethods(), function (UserVerify $method) {
             if (!$method->is_active) {
                 return false;
             }
@@ -207,9 +207,7 @@ class VerifyService extends BaseService
             }
 
             return !$this->isMethodVerified($method);
-        });
-
-        return $this->sortMethodsByPriority($methods);
+        }));
     }
 
     private function assertCodeValidity(string $code, object $service, string $method, Form $form): void

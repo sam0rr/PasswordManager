@@ -93,13 +93,15 @@ class VerifyController extends SecureController
     #[Get('/verify-mfa')]
     public function showMfaForm(): Response
     {
-        if (SessionHelper::get('mfa_validated')) {
+        $form = SessionHelper::getForm('mfa_confirm');
+        $pendingMethods = $this->base->verify->getPendingMethods();
+
+        if (empty($pendingMethods)) {
+            SessionHelper::append(['mfa_validated' => true]);
             return $this->redirect('/dashboard');
         }
 
-        $form = SessionHelper::getForm('mfa_confirm');
-        $pendingMethods = $this->base->verify->getPendingMethods();
-        $method = !empty($pendingMethods) ? reset($pendingMethods) : null;
+        $method = reset($pendingMethods);
 
         $this->sendMfaCodeIfNeeded($method);
 
