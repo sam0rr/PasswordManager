@@ -103,12 +103,14 @@ class VerifyBroker extends DatabaseBroker
     {
         if ($method === 'authenticator') {
             $row = $this->selectSingle(
-                "UPDATE user_verify SET is_active = false, is_first_verified = false WHERE user_id = ? AND method = ? RETURNING *",
+                "UPDATE user_verify SET is_active = false, is_first_verified = false, grace_period_enabled = false 
+             WHERE user_id = ? AND method = ? RETURNING *",
                 [$userId, $method]
             );
         } else {
             $row = $this->selectSingle(
-                "UPDATE user_verify SET is_active = false WHERE user_id = ? AND method = ? RETURNING *",
+                "UPDATE user_verify SET is_active = false, grace_period_enabled = false 
+             WHERE user_id = ? AND method = ? RETURNING *",
                 [$userId, $method]
             );
         }

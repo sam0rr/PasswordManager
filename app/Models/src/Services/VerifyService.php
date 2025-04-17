@@ -317,12 +317,15 @@ class VerifyService extends BaseService
     {
         $otp = $this->getOtpForMethod($method);
 
+        $expirationDays = config('security.mfa', 'mfa_grace_period_days', '20') + 1;
+        $expiredDate = date('Y-m-d H:i:s', strtotime("-{$expirationDays} days"));
+
         return [
             'user_id' => $userId,
             'method' => $method,
             'otp_secret' => $this->encryption->encryptWithUserKey($otp, $this->auth['user_key']),
             'otp_created_at' => date('Y-m-d H:i:s'),
-            'last_verified' => date('Y-m-d H:i:s', strtotime('-1 day')),
+            'last_verified' => $expiredDate,
             'is_active' => true,
             'is_first_verified' => false,
             'grace_period_enabled' => false

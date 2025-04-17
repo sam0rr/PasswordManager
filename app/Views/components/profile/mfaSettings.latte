@@ -1,14 +1,9 @@
 {varType array $mfa}
 {varType int $mfa_expiration}
-{varType int $otp_expiration}
+{varType int $mfa_grace_period_days}
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">
-            <i class="bi bi-shield-lock me-2"></i>Double authentification
-        </h5>
-    </div>
 
+<div>
     <div class="card-body">
         {if count($mfa) == 0}
             {include '../../components/alert/messageAlert.latte',
@@ -30,7 +25,7 @@
                 method => $method,
                 methodType => $methodType,
                 mfa_expiration => $mfa_expiration,
-                otp_expiration => $otp_expiration
+                mfa_grace_period_days => $mfa_grace_period_days
                 }
             {/foreach}
         </div>

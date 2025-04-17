@@ -34,7 +34,7 @@
         </ul>
 
         {if $activeSection == 'profile'}
-            {include '../components/dashboard-sections/profile.latte', user => $user, mfa => $mfa, mfa_expiration => $mfa_expiration, otp_expiration => $otp_expiration}
+            {include '../components/dashboard-sections/profile.latte', user => $user, mfa => $mfa, mfa_expiration => $mfa_expiration, mfa_grace_period_days => $mfa_grace_period_days}
         {elseif $activeSection == 'passwords'}
             {include '../components/dashboard-sections/passwords.latte', passwords => $passwords}
         {elseif $activeSection == 'history'}
