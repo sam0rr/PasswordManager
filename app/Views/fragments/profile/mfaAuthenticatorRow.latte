@@ -1,44 +1,86 @@
 {varType ?object $method}
+{varType string $methodType}
 {varType int $mfa_expiration}
+{varType int $mfa_grace_period_days}
 
 <div class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
     <div class="mb-2 mb-md-0 w-100 w-md-50">
         <div class="fw-bold text-dark">
-            <i class="bi bi-lock-fill me-2"></i>
-            Application Authenticator (TOTP)
+            <i class="bi bi-shield-lock-fill me-2"></i> Authentificateur
+
+            {if $method && $method->is_active && $method->grace_period_enabled}
+                <span class="badge bg-info ms-2" title="Période de grâce activée">
+                    <i class="bi bi-calendar-check"></i>
+                </span>
+            {/if}
         </div>
 
         <div class="text-muted small mt-1">
             {if $method && $method->is_active}
-                Vérifiée :
-                {if $method->last_verified}
-                    {$method->last_verified|date:'d/m/Y à H:i'}
-                    {if strtotime($method->last_verified) + $mfa_expiration < time()}
-                        <span class="badge bg-danger ms-2">Expiré</span>
+                {if $method->is_first_verified}
+                    Vérifiée :
+                    {if $method->last_verified}
+                        {$method->last_verified|date:'d/m/Y à H:i'}
+                        {if $method->grace_period_enabled}
+                            {if strtotime($method->last_verified) + ($mfa_grace_period_days * 24 * 60 * 60) < time()}
+                                <span class="badge bg-danger ms-2">Expiré</span>
+                            {else}
+                                <span class="badge bg-success ms-2">Valide pour {ceil((strtotime($method->last_verified) + ($mfa_grace_period_days * 24 * 60 * 60) - time()) / 86400)} jours</span>
+                            {/if}
+                        {else}
+                            {if strtotime($method->last_verified) + $mfa_expiration < time()}
+                                <span class="badge bg-danger ms-2">Expiré</span>
+                            {/if}
+                        {/if}
+                    {else}
+                        <span class="text-muted">Jamais vérifiée</span>
                     {/if}
                 {else}
-                    <span class="text-muted">Jamais vérifiée</span>
+                    <span class="badge bg-warning text-dark">Configuration requise</span>
                 {/if}
             {else}
                 <span class="text-muted">Méthode désactivée</span>
             {/if}
         </div>
+
+        {if $method && $method->is_active && $method->grace_period_enabled}
+            <div class="text-muted small mt-1">
+                <i class="bi bi-info-circle me-1"></i> Période de grâce active : cette méthode reste valide pendant
+                {$mfa_grace_period_days} jours après vérification.
+            </div>
+        {/if}
     </div>
 
     <div class="text-end w-100 w-md-50">
         {if $method && $method->is_active}
-            <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-sm btn-primary"
-                        hx-get="/verify/qrcode"
-                        hx-target="#qr-code-container"
-                        data-bs-toggle="modal"
-                        data-bs-target="#qr-code-modal">
-                    <i class="bi bi-qr-code me-1"></i> Voir QR code
-                </button>
+            <div class="d-flex justify-content-end flex-wrap gap-2">
+                {if !$method->is_first_verified}
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#qrCodeModal">
+                        <i class="bi bi-qr-code me-1"></i> Configurer
+                    </button>
+                {else}
+                    {if $method->grace_period_enabled}
+                        {include '../verify/mfaFormButton.latte',
+                        action => 'grace-period/deactivate',
+                        methodType => $methodType,
+                        style => 'outline-info',
+                        icon => 'calendar-x',
+                        label => 'Désactiver grâce'
+                        }
+                    {else}
+                        {include '../verify/mfaFormButton.latte',
+                        action => 'grace-period/activate',
+                        methodType => $methodType,
+                        style => 'outline-info',
+                        icon => 'calendar-check',
+                        label => 'Activer grâce'
+                        }
+                    {/if}
+                {/if}
 
                 {include '../verify/mfaFormButton.latte',
                 action => 'deactivate',
-                methodType => 'authenticator',
+                methodType => $methodType,
                 style => 'outline-danger',
                 icon => 'x-circle',
                 label => 'Désactiver'
@@ -47,7 +89,7 @@
         {else}
             {include '../verify/mfaFormButton.latte',
             action => 'activate',
-            methodType => 'authenticator',
+            methodType => $methodType,
             style => 'primary',
             icon => 'shield-plus',
             label => 'Activer'

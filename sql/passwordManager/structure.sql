@@ -65,6 +65,7 @@ CREATE TABLE user_verify (
     last_verified TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    grace_period_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     UNIQUE(user_id, method)
 );
 
@@ -95,8 +96,6 @@ CREATE INDEX idx_password_user ON user_password (user_id);
 CREATE INDEX idx_login_records_user_time ON auth_history (user_id, auth_timestamp DESC);
 -- Vérifie efficacement l’unicité d’une description pour un utilisateur
 CREATE INDEX idx_password_user_service ON user_password (user_id, description_hash);
--- Permet de valider un token rapidement (vérification email)
-CREATE INDEX idx_email_token_token ON email_token (token);
 -- Vérifie efficacement l’unicité d’une méthode MFA par utilisateur
 CREATE UNIQUE INDEX ON user_verify (user_id, method);
 -- Récupération rapide des méthodes MFA actives pour un utilisateur

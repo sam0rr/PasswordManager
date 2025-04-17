@@ -99,7 +99,7 @@ class DashboardController extends SecureController
     private function injectMfaConfig(array &$context): void
     {
         $context['mfa_expiration'] = config('security.mfa', 'mfa_expiration_seconds', 300);
-        $context['otp_expiration'] = config('security.mfa', 'otp_expiration_seconds', 60);
+        $context['mfa_grace_period_days'] = config('security.mfa', 'mfa_grace_period_days', 20);
     }
 
     private function appendAuthenticatorWarningIfNeeded(array &$context): void

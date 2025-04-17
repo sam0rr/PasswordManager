@@ -8,7 +8,6 @@ use Models\Exceptions\FormException;
 use Models\src\Services\Mfa\AuthenticatorMfaService;
 use Models\src\Services\Mfa\MailMfaService;
 use Models\src\Services\Mfa\SmsMfaService;
-use Zephyrus\Network\ContentType;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
@@ -42,6 +41,36 @@ class VerifyController extends SecureController
         return $this->redirect('/dashboard?section=profile&tab=mfa');
     }
 
+    #[Post('/verify/deactivate')]
+    public function deactivate(): Response
+    {
+        $form = $this->buildForm();
+        $this->base->verify->handleDeactivation($form);
+
+        $this->setMfaContext();
+        return $this->redirect('/dashboard?section=profile&tab=mfa');
+    }
+
+    #[Post('/verify/grace-period/activate')]
+    public function activateGracePeriod(): Response
+    {
+        $form = $this->buildForm();
+        $this->base->verify->handleGracePeriod($form, true);
+
+        $this->setMfaContext();
+        return $this->redirect('/dashboard?section=profile&tab=mfa');
+    }
+
+    #[Post('/verify/grace-period/deactivate')]
+    public function deactivateGracePeriod(): Response
+    {
+        $form = $this->buildForm();
+        $this->base->verify->handleGracePeriod($form, false);
+
+        $this->setMfaContext();
+        return $this->redirect('/dashboard?section=profile&tab=mfa');
+    }
+
     #[Get('/verify/qrcode')]
     public function getQrCode(): Response
     {
@@ -59,16 +88,6 @@ class VerifyController extends SecureController
         $response = new Response();
         $response->setContent($html);
         return $response;
-    }
-
-    #[Post('/verify/deactivate')]
-    public function deactivate(): Response
-    {
-        $form = $this->buildForm();
-        $this->base->verify->handleDeactivation($form);
-
-        $this->setMfaContext();
-        return $this->redirect('/dashboard?section=profile&tab=mfa');
     }
 
     #[Get('/verify-mfa')]

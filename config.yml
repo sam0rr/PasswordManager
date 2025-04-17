@@ -57,6 +57,7 @@ security:
   mfa:
     mfa_expiration_seconds: !php/const MFA_EXPIRATION_SECONDS
     otp_expiration_seconds: !php/const OTP_EXPIRATION_SECONDS
+    mfa_grace_period_days: !php/const MFA_GRACE_PERIOD_DAYS
 
 twilio:
   account_sid: !php/const TWILIO_ACCOUNT_SID

@@ -21,6 +21,13 @@ class VerifyService extends BaseService
         }
     }
 
+    private ?int $MFA_GRACE_PERIOD_SECONDS = null {
+        get {
+            $days = config('security.mfa', 'mfa_grace_period_days', '20');
+            return $this->MFA_GRACE_PERIOD_SECONDS ??= $days * 24 * 60 * 60;
+        }
+    }
+
     private ?int $OTP_EXPIRATION_SECONDS = null {
         get {
             return $this->OTP_EXPIRATION_SECONDS ??= config('security.mfa', 'otp_expiration_seconds', '60');
@@ -65,6 +72,19 @@ class VerifyService extends BaseService
     {
         $method = $this->extractMethodOrFail($form);
         $this->disableMethod($method);
+    }
+
+    public function handleGracePeriod(Form $form, bool $enable): ?UserVerify
+    {
+        $method = $this->extractMethodOrFail($form);
+        $userId = $this->auth['user_id'];
+        $userKey = $this->auth['user_key'];
+
+        if ($userId) {
+            return $this->verifyBroker->updateGracePeriodStatus($userId, $method, $enable, $userKey);
+        }
+
+        return null;
     }
 
     public function confirmCode(Form $form, $service, bool $isHtmx): array
@@ -151,7 +171,7 @@ class VerifyService extends BaseService
             $methodEntity = $this->verifyBroker->updateLastVerified($userId, $method, $userKey);
 
             if ($method === 'authenticator' && !$methodEntity->is_first_verified) {
-                $this->verifyBroker->markFirstVerificationDone($userId, $userKey);
+                $this->verifyBroker->markFirstVerificationDone($userId);
             }
         }
     }
@@ -233,7 +253,12 @@ class VerifyService extends BaseService
         }
 
         $lastVerified = strtotime($method->last_verified);
-        $expiresAt = $lastVerified + $this->MFA_EXPIRATION_SECONDS;
+
+        if ($method->grace_period_enabled) {
+            $expiresAt = $lastVerified + $this->MFA_GRACE_PERIOD_SECONDS;
+        } else {
+            $expiresAt = $lastVerified + $this->MFA_EXPIRATION_SECONDS;
+        }
 
         return time() <= $expiresAt;
     }
@@ -299,7 +324,8 @@ class VerifyService extends BaseService
             'otp_created_at' => date('Y-m-d H:i:s'),
             'last_verified' => date('Y-m-d H:i:s', strtotime('-1 day')),
             'is_active' => true,
-            'is_first_verified' => false
+            'is_first_verified' => false,
+            'grace_period_enabled' => false
         ];
     }
 

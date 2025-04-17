@@ -35,8 +35,17 @@ class VerifyBroker extends DatabaseBroker
     public function createMethod(array $data, string $userKey): ?UserVerify
     {
         $sql = "
-        INSERT INTO user_verify (user_id, method, otp_secret, is_active, is_first_verified, otp_created_at, last_verified)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO user_verify (
+            user_id, 
+            method, 
+            otp_secret, 
+            is_active, 
+            is_first_verified, 
+            otp_created_at, 
+            last_verified,
+            grace_period_enabled
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *;
     ";
 
@@ -47,7 +56,8 @@ class VerifyBroker extends DatabaseBroker
             $data['is_active'],
             $data['is_first_verified'] ?? false,
             $data['otp_created_at'],
-            $data['last_verified']
+            $data['last_verified'],
+            $data['grace_period_enabled'] ?? false
         ]);
 
         return $row ? $this->decryptVerify(UserVerify::build($row), $userKey) : null;
@@ -71,7 +81,7 @@ class VerifyBroker extends DatabaseBroker
         return $row ? $this->decryptVerify(UserVerify::build($row), $userKey) : null;
     }
 
-    public function markFirstVerificationDone(string $userId, string $userKey): void
+    public function markFirstVerificationDone(string $userId): void
     {
         $this->query(
             "UPDATE user_verify SET is_first_verified = true WHERE user_id = ? AND method = 'authenticator'",
@@ -102,6 +112,16 @@ class VerifyBroker extends DatabaseBroker
                 [$userId, $method]
             );
         }
+
+        return $row ? $this->decryptVerify(UserVerify::build($row), $userKey) : null;
+    }
+
+    public function updateGracePeriodStatus(string $userId, string $method, bool $enabled, string $userKey): ?UserVerify
+    {
+        $row = $this->selectSingle(
+            "UPDATE user_verify SET grace_period_enabled = ? WHERE user_id = ? AND method = ? RETURNING *",
+            [$enabled, $userId, $method]
+        );
 
         return $row ? $this->decryptVerify(UserVerify::build($row), $userKey) : null;
     }

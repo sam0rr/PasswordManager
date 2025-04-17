@@ -16,4 +16,5 @@ class UserVerify extends Entity
     public string $last_verified;
     public string $created_at;
     public string $updated_at;
+    public bool $grace_period_enabled;
 }
