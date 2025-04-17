@@ -27,10 +27,6 @@ class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::append([
-                'activeSection' => 'passwords',
-                'tab' => 'add'
-            ]);
             return $this->redirect("/dashboard?section=passwords&tab=add");
         }
 
@@ -60,8 +56,6 @@ class PasswordController extends SecureController
         if (isset($result['errors'])) {
             SessionHelper::append([
                 'password' => $result['password'] ?? null,
-                'activeSection' => 'passwords',
-                'tab' => 'list'
             ]);
             return $this->redirect("/dashboard?section=passwords&tab=list");
         }

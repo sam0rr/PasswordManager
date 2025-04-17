@@ -31,8 +31,6 @@ class UserController extends SecureController
         if (isset($result["errors"])) {
             SessionHelper::append([
                 'user' => $result["user"] ?? null,
-                'activeSection' => 'profile',
-                'tab' => 'info'
             ]);
             return $this->redirect("/dashboard?section=profile&tab=info");
         }
@@ -55,9 +53,6 @@ class UserController extends SecureController
         if (isset($result["errors"])) {
             SessionHelper::append([
                 'user' => $this->base->userService->getCurrentUserEntity(),
-                'activeSection' => 'profile',
-                'tab' => 'info',
-                'avatarError' => true
             ]);
             return $this->redirect("/dashboard?section=profile&tab=info");
         }
@@ -85,8 +80,6 @@ class UserController extends SecureController
         if (isset($result["errors"])) {
             SessionHelper::append([
                 'user' => $result["user"] ?? null,
-                'activeSection' => 'profile',
-                'tab' => 'password'
             ]);
             return $this->redirect("/dashboard?section=profile&tab=password");
         }

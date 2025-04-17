@@ -27,11 +27,7 @@ class SharingController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::append([
-                'activeSection' => 'shares',
-                'tab' => 'send'
-            ]);
-            return $this->redirect("/dashboard?section=shares");
+            return $this->redirect("/dashboard?section=passwords");
         }
 
         $shares = $this->base->sharing->getAllShares($form);

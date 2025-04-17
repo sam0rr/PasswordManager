@@ -37,7 +37,7 @@ class DashboardController extends SecureController
     private function initializeBaseContext(User $user, string $section, string $tab): array
     {
         return [
-            'title' => "Tableau de bord",
+            'title' => "Dashboard",
             'user' => $user,
             'activeSection' => $section,
             'tab' => $tab
