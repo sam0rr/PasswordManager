@@ -1,24 +1,48 @@
 {var $type = $type ?? 'text'}
+{var $uniqueId = $name . '-' . uniqid()}
+{var $context = $context ?? 'default'}
 {var $hasError = isset($form) && $form->hasError($name)}
 {var $isValid = isset($form) && !$form->hasError($name) && $form->getValue($name)}
 {var $fieldValue = (isset($form) ? $form->getValue($name) : null) ?? $value ?? ''}
+{var $isPassword = $type === 'password'}
+{var $inputClasses = 'form-control' . ($hasError ? ' is-invalid' : '') . ($isValid ? ' is-valid' : '')}
 
 <div class="mb-3">
-    <label for="{$name}" class="form-label fw-bold">
+    <label for="{$uniqueId}" class="form-label fw-bold">
         <i class="bi bi-{$icon} me-1"></i>{$label}
     </label>
 
-    <input type="{$type}"
-           name="{$name}"
-           id="{$name}"
-           class="form-control
-                  {if $hasError}is-invalid{/if}
-                  {if $isValid}is-valid{/if}"
-           value="{$fieldValue}"
-           required>
+    {if $isPassword}
+        <div class="input-group">
+            <input
+                    type="password"
+                    name="{$name}"
+                    id="{$uniqueId}"
+                    class="{$inputClasses}"
+                    value="{$fieldValue}"
+                    required>
+
+            <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-password-toggle="{$uniqueId}"
+                    data-toggle-key="{$name}-{$context}"
+                    aria-label="Afficher ou masquer le mot de passe">
+                <i class="fa fa-eye"></i>
+            </button>
+        </div>
+    {else}
+        <input
+                type="{$type}"
+                name="{$name}"
+                id="{$uniqueId}"
+                class="{$inputClasses}"
+                value="{$fieldValue}"
+                required>
+    {/if}
 
     {if $hasError}
-        <div class="invalid-feedback">
+        <div class="invalid-feedback d-block">
             {=getErrorMessage($name, $form)}
         </div>
     {/if}

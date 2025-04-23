@@ -7,9 +7,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
 
     {include components/favicon.latte}
     {block meta}{/block}
@@ -19,15 +19,10 @@
     <link rel="stylesheet" href="/stylesheets/style.css"/>
     <script src="/javascripts/vendor/pace-1.2.4/pace.min.js"></script>
     <script src="/javascripts/vendor/tom-select-2.2.2/tom-select.complete.min.js"></script>
-
-
     <script src="/javascripts/vendor/htmx-2.0.4/htmx.min.js" nonce="{$nonce}"></script>
     <script nonce="{$nonce}">
         htmx.config.inlineScriptNonce = {json_encode($nonce)|noescape};
     </script>
-
-    <script src="/javascripts/utils.js" nonce="{$nonce}"></script>
-
 </head>
 
 <body>

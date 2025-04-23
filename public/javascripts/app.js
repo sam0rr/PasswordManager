@@ -1,5 +1,7 @@
-export default class Application {
+import { bindFormFieldEvents } from './formField.js';
+import { bindSelectNavigation, bindAvatarPreview } from './utils.js';
 
+export default class Application {
     #configurations;
 
     constructor(configurations) {
@@ -8,10 +10,17 @@ export default class Application {
 
     initialize() {
         this.#enableTooltips();
+        this.#bindUtilities();
     }
 
     #enableTooltips() {
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
+    }
+
+    #bindUtilities() {
+        bindFormFieldEvents();
+        bindSelectNavigation();
+        bindAvatarPreview();
     }
 }
