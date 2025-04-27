@@ -11,22 +11,18 @@ class SharingBroker extends DatabaseBroker
     {
         $sql = "
             INSERT INTO password_sharing (
-                encrypted_password,
-                encrypted_description,
-                encrypted_email_from,
+                encrypted_info,
                 description_hash,
                 owner_id,
                 shared_id,
                 status,
                 expires_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?)
             RETURNING *;
         ";
 
         $row = $this->selectSingle($sql, [
-            $data['encrypted_password'],
-            $data['encrypted_description'],
-            $data['encrypted_email_from'],
+            $data['encrypted_info'],
             $data['description_hash'],
             $data['owner_id'],
             $data['shared_id'],
@@ -93,5 +89,4 @@ class SharingBroker extends DatabaseBroker
         $this->rawQuery($sql, [$shareId]);
         return $this->getLastAffectedCount() > 0;
     }
-
 }

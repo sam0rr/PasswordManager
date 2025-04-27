@@ -6,7 +6,9 @@ use Models\Exceptions\FormException;
 use Models\src\Brokers\SharingBroker;
 use Models\src\Entities\PasswordSharing;
 use Models\src\Entities\User;
+use Models\src\Entities\UserPassword;
 use Models\src\Services\Utils\BaseService;
+use Models\src\Services\Utils\PasswordSharingUtils;
 use Models\src\Validators\SharingValidator;
 use RuntimeException;
 use Throwable as ThrowableAlias;
@@ -89,17 +91,7 @@ class SharingService extends BaseService
                 ];
             }
 
-            $encPassword = $this->encryptFromPublicKey($password->password, $recipient->public_key);
-            $encDescription = $this->encryptFromPublicKey($password->description, $recipient->public_key);
-            $encEmailFrom = $this->encryptFromPublicKey($password->email_from, $recipient->public_key);
-
-            $this->insertSharingRecord(
-                $recipient->id,
-                $encPassword,
-                $encDescription,
-                $encEmailFrom,
-                $password->description_hash
-            );
+            $this->encryptShareInfo($password, $recipient);
 
             return [
                 "form" => $form
@@ -131,22 +123,39 @@ class SharingService extends BaseService
         return $this->encryption->decryptFromPublicKey($encrypted, $publicKey, $userKey);
     }
 
+    public function encryptShareInfo(UserPassword $password, User $recipient): void
+    {
+        // 1. Create JSON
+        $jsonInfo = PasswordSharingUtils::encodeInfo(
+            $password->email_from,
+            $password->password,
+            $password->description,
+            $password->note
+        );
+
+        // 2. Encrypt JSON
+        $encInfo = $this->encryptFromPublicKey($jsonInfo, $recipient->public_key);
+
+        // 3. Insert one field
+        $this->insertSharingRecord(
+            $recipient->id,
+            $encInfo,
+            $password->description_hash
+        );
+    }
+
     private function insertSharingRecord(
         string $recipientId,
-        string $encPassword,
-        string $encDescription,
-        string $encEmailFrom,
+        string $encInfo,
         string $descriptionHash
     ): void {
         $this->sharingBroker->insertSharing([
-            'encrypted_password'    => $encPassword,
-            'encrypted_description' => $encDescription,
-            'encrypted_email_from'  => $encEmailFrom,
-            'description_hash'      => $descriptionHash,
-            'owner_id'              => $this->auth['user_id'],
-            'shared_id'             => $recipientId,
-            'status'                => 'pending',
-            'expires_at'            => date('Y-m-d H:i:s', strtotime('+7 days'))
+            'encrypted_info'   => $encInfo,
+            'description_hash' => $descriptionHash,
+            'owner_id'         => $this->auth['user_id'],
+            'shared_id'        => $recipientId,
+            'status'           => 'pending',
+            'expires_at'       => date('Y-m-d H:i:s', strtotime('+7 days'))
         ]);
     }
 
@@ -155,22 +164,27 @@ class SharingService extends BaseService
         return strtotime($share->expires_at) < time();
     }
 
+    private function getCurrentUserPublicKey(): string
+    {
+        return $this->userBroker->findById($this->auth['user_id'])->public_key;
+    }
+
     private function acceptShare(PasswordSharing $share, string $userKey): void
     {
         $publicKey = $this->getCurrentUserPublicKey();
 
-        $description = $this->decryptFromPublicKey($share->encrypted_description, $publicKey, $userKey);
-        $password = $this->decryptFromPublicKey($share->encrypted_password, $publicKey, $userKey);
-        $emailFrom = $this->decryptFromPublicKey($share->encrypted_email_from, $publicKey, $userKey);
+        $decryptedJson = $this->decryptFromPublicKey($share->encrypted_info, $publicKey, $userKey);
+
+        $info = PasswordSharingUtils::decodeInfo($decryptedJson);
+
+        $emailFrom = $info['email_from'];
+        $password = $info['password'];
+        $description = $info['description'];
+        $note = $info['note'];
 
         $this->assertUniqueDescription($share->description_hash);
 
-        $this->storeSharedPassword($description, $password, $emailFrom, $userKey);
-    }
-
-    private function getCurrentUserPublicKey(): string
-    {
-        return $this->userBroker->findById($this->auth['user_id'])->public_key;
+        $this->storeSharedPassword($description, $password, $emailFrom, $note, $userKey);
     }
 
     private function assertRecipientHasNotThisDescription(Form $form, string $recipientId, string $descriptionHash): void
@@ -196,7 +210,7 @@ class SharingService extends BaseService
         }
     }
 
-    private function storeSharedPassword(string $description, string $password, string $emailFrom, string $userKey): void
+    private function storeSharedPassword(string $description, string $password, string $emailFrom, string $note, string $userKey): void
     {
         $descriptionHash = $this->encryption->hash256($description);
 
@@ -205,7 +219,7 @@ class SharingService extends BaseService
             'description'      => $this->encryption->encryptWithUserKey($description, $userKey),
             'description_hash' => $descriptionHash,
             'email_from'       => $this->encryption->encryptWithUserKey($emailFrom, $userKey),
-            'note'             => $this->encryption->encryptWithUserKey('', $userKey),
+            'note'             => $this->encryption->encryptWithUserKey($note, $userKey),
             'password'         => $this->encryption->encryptWithUserKey($password, $userKey),
             'verified'         => false
         ], $userKey);

@@ -7,10 +7,8 @@ use Models\Core\Entity;
 class PasswordSharing extends Entity
 {
     public string $id;
-    public string $encrypted_password;
-    public string $encrypted_description;
+    public string $encrypted_info;
     public string $description_hash;
-    public string $encrypted_email_from;
     public string $owner_id;
     public string $shared_id;
     public string $status;
