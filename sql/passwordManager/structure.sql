@@ -69,7 +69,6 @@ CREATE TABLE user_verify (
     UNIQUE(user_id, method)
 );
 
-
 CREATE TABLE password_sharing (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
