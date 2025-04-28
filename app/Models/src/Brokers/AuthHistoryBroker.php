@@ -7,11 +7,6 @@ use Zephyrus\Database\DatabaseBroker;
 
 class AuthHistoryBroker extends DatabaseBroker
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function logAuthEvent(array $data): AuthHistory
     {
         $row = $this->selectSingle(

@@ -118,6 +118,11 @@ class EncryptionService extends BaseService
         return $plaintext;
     }
 
+    public static function destroySession(): void
+    {
+        Session::destroy();
+    }
+
     private function extractPrivateKey(string $userKey, int $expectedLength): string
     {
         $binary = hex2bin(mb_substr($userKey, 0, 64));
@@ -137,11 +142,6 @@ class EncryptionService extends BaseService
         }
 
         return $decoded;
-    }
-
-    public static function destroySession(): void
-    {
-        Session::destroy();
     }
 
 }
