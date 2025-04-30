@@ -3,7 +3,7 @@
 namespace Models\src\Brokers;
 
 use Models\src\Entities\UserVerify;
-use Models\src\Services\Utils\EncryptionService;
+use Models\src\Services\Utils\Encryption\EncryptionService;
 use Zephyrus\Database\DatabaseBroker;
 
 class VerifyBroker extends DatabaseBroker
@@ -20,6 +20,16 @@ class VerifyBroker extends DatabaseBroker
     {
         $rows = $this->select("SELECT * FROM user_verify WHERE user_id = ?", [$userId]);
         return array_map(fn($row) => $this->decryptVerify(UserVerify::build($row), $userKey), $rows);
+    }
+
+    public function findAllRawByUser(string $userId): array
+    {
+        $rows = $this->select("SELECT * FROM user_verify WHERE user_id = ?", [$userId]);
+
+        return array_map(
+            fn($row) => UserVerify::build($row),
+            $rows
+        );
     }
 
     public function findByMethod(string $userId, string $method, string $userKey): ?UserVerify

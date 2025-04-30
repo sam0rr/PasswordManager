@@ -3,7 +3,7 @@
 namespace Controllers\src;
 
 use Controllers\Controller;
-use Models\src\Services\Utils\EncryptionService;
+use Models\src\Services\Utils\Encryption\EncryptionService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 

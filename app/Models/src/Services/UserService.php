@@ -157,47 +157,42 @@ class UserService extends BaseService
 
     private function rotateUserKey(User $user, string $newPassword): User
     {
-        // Étape 1 : Génération des nouvelles données encryptées
-        $updated = $this->buildEncryptedDataWithNewPassword($user, $newPassword);
-        $newUserKey = $updated['user_key'];
-        unset($updated['user_key']);
-        $oldUserKey = $this->auth['user_key'];
+        $oldKey     = $this->auth['user_key'];
+        $newSalt    = $this->encryption->generateSalt();
+        $newKey     = $this->encryption->deriveUserKey($newPassword, $newSalt);
+        $newHash    = $this->encryption->hashPassword($newPassword);
+        $newPubKey  = $this->encryption->generatePublicKey($newKey);
 
-        // Étape 2 : Mettre à jour l'utilisateur
-        $this->userBroker->updateUser($user->id, $updated);
+        $updates = $this->getUpdates($user, $oldKey, $newKey, $newHash, $newSalt, $newPubKey);
 
-        // Étape 3 : Mettre à jour les données dépendantes (passwords)
-        $this->passwordService->updatePasswordsWithNewKey($user->id, $oldUserKey, $newUserKey);
+        $this->userBroker->updateUser($user->id, $updates);
 
-        // Étape 4 : Mettre à jour les OTP (verify)
-        $this->verify->updateOtpWithNewKey($user->id, $oldUserKey, $newUserKey);
+        // rotate passwords & OTPs
+        $this->passwordService->updatePasswordsWithNewKey($user->id, $oldKey, $newKey);
+        $this->verify->updateOtpWithNewKey      ($user->id, $oldKey, $newKey);
 
-        // Étape 5 : Mettre à jour le contexte
-        $this->updateUserContext($user->id, $newUserKey);
+        $this->updateUserContext($user->id, $newKey);
 
-        // Étape 6 : Retourner l’utilisateur mis à jour
-        return $this->userBroker->findById($user->id, $newUserKey);
+        return $this->userBroker->findById($user->id, $newKey);
     }
 
-    private function buildEncryptedDataWithNewPassword(User $user, string $newPassword): array
+    public function getUpdates(User $user, mixed $oldKey, string $newKey, string $newHash, string $newSalt, string $newPubKey): array
     {
-        $newSalt = $this->encryption->generateSalt();
-        $newKey = $this->encryption->deriveUserKey($newPassword, $newSalt);
-        $newHash = $this->encryption->hashPassword($newPassword);
-        $newPublicKey = $this->encryption->generatePublicKey($newKey);
+        $raw = $this->userBroker->findRawEncryptedById($user->id);
+        $fields = ['first_name', 'last_name', 'email', 'phone', 'image_url'];
+        $updates = [];
+        foreach ($fields as $f) {
+            $updates[$f] = $this->encryption
+                ->rewrapEnvelope($raw->$f, $oldKey, $newKey);
+        }
+        $updates['email_hash'] = $raw->email_hash;
 
-        return [
-            'first_name'    => $this->encryption->encryptWithUserKey($user->first_name, $newKey),
-            'last_name'     => $this->encryption->encryptWithUserKey($user->last_name, $newKey),
-            'email'         => $this->encryption->encryptWithUserKey($user->email, $newKey),
-            'phone'         => $this->encryption->encryptWithUserKey($user->phone, $newKey),
-            'image_url'     => $this->encryption->encryptWithUserKey($user->image_url, $newKey),
-            'email_hash'    => $this->encryption->hash256(strtolower($user->email)),
-            'password_hash' => $newHash,
-            'salt'          => $newSalt,
-            'public_key'    => $newPublicKey,
-            'user_key'      => $newKey
-        ];
+        $updates['password_hash'] = $newHash;
+        $updates['salt'] = $newSalt;
+        $updates['public_key'] = $newPubKey;
+        $updates['user_key'] = $newKey;
+
+        return $updates;
     }
 
 }

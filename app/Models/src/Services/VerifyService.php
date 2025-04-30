@@ -335,11 +335,14 @@ class VerifyService extends BaseService
         $methods = $this->verifyBroker->findAllByUser($userId, $oldKey);
 
         foreach ($methods as $method) {
-            if ($method->otp_secret) {
-                $plainSecret = $method->otp_secret;
-                $newEncryptedSecret = $this->encryption->encryptWithUserKey($plainSecret, $newKey);
-                $this->verifyBroker->updateSecret($userId, $method->method, $newEncryptedSecret);
+            if (empty($method->otp_secret)) {
+                continue;
             }
+            $newEncryptedSecret = $this->encryption
+                ->rewrapEnvelope($method->otp_secret, $oldKey, $newKey);
+
+            $this->verifyBroker
+                ->updateSecret($userId, $method->method, $newEncryptedSecret);
         }
     }
 

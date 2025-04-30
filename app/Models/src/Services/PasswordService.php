@@ -137,16 +137,17 @@ class PasswordService extends BaseService
 
     public function updatePasswordsWithNewKey(string $userId, string $oldKey, string $newKey): void
     {
-        $passwords = $this->passwordBroker->findAllByUser($userId, $oldKey);
+        $passwords = $this->passwordBroker->findAllRawByUser($userId);
 
-        foreach ($passwords as $p) {
-            $this->passwordBroker->updatePassword($p->id, [
-                'description' => $this->encryption->encryptWithUserKey($p->description, $newKey),
-                'description_hash' => $this->encryption->hash256(strtolower($p->description)),
-                'email_from' => $this->encryption->encryptWithUserKey($p->email_from, $newKey),
-                'note' => $this->encryption->encryptWithUserKey($p->note, $newKey),
-                'password' => $this->encryption->encryptWithUserKey($p->password, $newKey)
-            ]);
+        foreach ($passwords as $pw) {
+            $updates = [
+                'description'      => $this->encryption->rewrapEnvelope($pw->description,  $oldKey, $newKey),
+                'email_from'       => $this->encryption->rewrapEnvelope($pw->email_from,   $oldKey, $newKey),
+                'note'             => $this->encryption->rewrapEnvelope($pw->note,         $oldKey, $newKey),
+                'password'         => $this->encryption->rewrapEnvelope($pw->password,     $oldKey, $newKey),
+                'description_hash' => $pw->description_hash
+            ];
+            $this->passwordBroker->updatePassword($pw->id, $updates);
         }
     }
 

@@ -3,7 +3,7 @@
 namespace Models\src\Brokers;
 
 use Models\src\Entities\User;
-use Models\src\Services\Utils\EncryptionService;
+use Models\src\Services\Utils\Encryption\EncryptionService;
 use Zephyrus\Database\DatabaseBroker;
 
 class UserBroker extends DatabaseBroker
@@ -88,6 +88,15 @@ class UserBroker extends DatabaseBroker
 
         $user = User::build($result);
         return $userKey ? $this->decryptUser($user, $userKey) : $user;
+    }
+
+    public function findRawEncryptedById(string $id): ?User
+    {
+        $result = $this->selectSingle("SELECT * FROM users WHERE id = ?", [$id]);
+
+        if (!$result) return null;
+
+        return User::build($result);
     }
 
     public function emailExists(string $email): bool

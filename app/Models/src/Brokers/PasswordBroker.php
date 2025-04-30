@@ -3,7 +3,7 @@
 namespace Models\src\Brokers;
 
 use Models\src\Entities\UserPassword;
-use Models\src\Services\Utils\EncryptionService;
+use Models\src\Services\Utils\Encryption\EncryptionService;
 use Zephyrus\Database\DatabaseBroker;
 
 class PasswordBroker extends DatabaseBroker
@@ -25,6 +25,22 @@ class PasswordBroker extends DatabaseBroker
 
         return array_map(fn($row) =>
         $this->decryptPassword(UserPassword::build($row), $userKey), $rows
+        );
+    }
+
+    public function findAllRawByUser(string $userId): array
+    {
+        $rows = $this->select(
+            "SELECT id, description, note, email_from, password, description_hash
+               FROM user_password
+              WHERE user_id = ?
+           ORDER BY updated_at DESC",
+            [$userId]
+        );
+
+        return array_map(
+            fn($row) => UserPassword::build($row),
+            $rows
         );
     }
 

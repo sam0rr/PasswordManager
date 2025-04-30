@@ -6,7 +6,7 @@ use Controllers\src\Utils\SessionHelper;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
-use Models\src\Services\Utils\EncryptionService;
+use Models\src\Services\Utils\Encryption\EncryptionService;
 use Models\src\Validators\AuthValidator;
 use Zephyrus\Application\Form;
 

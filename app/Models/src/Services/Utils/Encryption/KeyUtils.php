@@ -1,6 +1,6 @@
 <?php
 
-namespace Models\src\Services\Utils;
+namespace Models\src\Services\Utils\Encryption;
 
 use InvalidArgumentException;
 use RuntimeException;
@@ -44,7 +44,7 @@ class KeyUtils
         $dek    = random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
         $cipher = Cryptography::encrypt($plaintext, bin2hex($dek));
 
-        $kp      = self::getKeypairFromUserKey($userKey);
+        $kp      = (new KeyUtils)->getKeypairFromUserKey($userKey);
         $wrapped = sodium_crypto_box_seal($dek, sodium_crypto_box_publickey($kp));
 
         return json_encode([
@@ -152,4 +152,5 @@ class KeyUtils
         }
         return $decoded;
     }
+
 }

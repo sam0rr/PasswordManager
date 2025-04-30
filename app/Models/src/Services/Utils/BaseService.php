@@ -10,6 +10,7 @@ use Models\src\Services\AuthHistoryService;
 use Models\src\Services\PasswordService;
 use Models\src\Services\SharingService;
 use Models\src\Services\UserService;
+use Models\src\Services\Utils\Encryption\EncryptionService;
 use Models\src\Services\VerifyService;
 use Zephyrus\Application\Form;
 

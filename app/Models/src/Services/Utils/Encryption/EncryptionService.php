@@ -1,7 +1,8 @@
 <?php
 
-namespace Models\src\Services\Utils;
+namespace Models\src\Services\Utils\Encryption;
 
+use Models\src\Services\Utils\BaseService;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\Cryptography;
 
