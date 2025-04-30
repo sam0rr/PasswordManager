@@ -15,13 +15,15 @@ class PasswordValidator extends BaseValidator
     {
         $descField = $form->field("description", [
             Rule::required("La description est requise."),
-            Rule::minLength(2, "La description doit contenir au moins 2 caractères.")
+            Rule::minLength(2, "La description doit contenir au moins 2 caractères."),
+            Rule::maxLength(25, "La description doit contenir au maximum 25 caractères.")
         ]);
         self::optionalIf($descField, $isHtmx);
 
         $noteField = $form->field("note", [
             Rule::required("La note est requise."),
-            Rule::minLength(2, "La note doit contenir au moins 2 caractères.")
+            Rule::minLength(2, "La note doit contenir au moins 2 caractères."),
+            Rule::maxLength(50, "La description doit contenir au maximum 50 caractères.")
         ]);
         self::optionalIf($noteField, $isHtmx);
 
@@ -50,11 +52,13 @@ class PasswordValidator extends BaseValidator
         ])->optional();
 
         $form->field("description", [
-            Rule::minLength(2, "La description doit contenir au moins 2 caractères.")
+            Rule::minLength(2, "La description doit contenir au moins 2 caractères."),
+            Rule::maxLength(25, "La description doit contenir au maximum 25 caractères.")
         ])->optional();
 
         $form->field("note", [
-            Rule::minLength(2, "La note doit contenir au moins 2 caractères.")
+            Rule::minLength(2, "La note doit contenir au moins 2 caractères."),
+            Rule::maxLength(50, "La description doit contenir au maximum 50 caractères.")
         ])->optional();
 
         $newDescription = $form->getValue("description");
