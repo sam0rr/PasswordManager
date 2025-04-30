@@ -27,9 +27,9 @@ final class CryptoUtils
         int $length = self::KEY_LENGTH
     ): string {
         $saltBin = hex2bin($salt);
-        if ($saltBin === false || strlen($saltBin) < SODIUM_CRYPTO_PWHASH_SALTBYTES) {
+        if ($saltBin === false || strlen($saltBin) !== SODIUM_CRYPTO_PWHASH_SALTBYTES) {
             throw new InvalidArgumentException(
-                "Salt must be hex of at least " . (SODIUM_CRYPTO_PWHASH_SALTBYTES * 2) . " chars"
+                "Salt must be hex of " . (SODIUM_CRYPTO_PWHASH_SALTBYTES * 2) . " chars"
             );
         }
 

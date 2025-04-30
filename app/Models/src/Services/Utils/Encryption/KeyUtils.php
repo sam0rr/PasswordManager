@@ -23,17 +23,19 @@ final class KeyUtils
             throw new InvalidArgumentException("User key must be hex of " . (SODIUM_CRYPTO_BOX_SEEDBYTES * 2) . " chars.");
         }
 
-        if (!isset(self::$keypairCache[$userKey])) {
+        $cacheKey = hash('sha256', $userKey);
+
+        if (!isset(self::$keypairCache[$cacheKey])) {
             $raw = hex2bin($userKey);
             if ($raw === false) {
                 throw new InvalidArgumentException("Invalid hex in user key.");
             }
 
-            self::$keypairCache[$userKey] = sodium_crypto_box_seed_keypair($raw);
+            self::$keypairCache[$cacheKey] = sodium_crypto_box_seed_keypair($raw);
             CryptoUtils::zeroMemory($raw);
         }
 
-        return self::$keypairCache[$userKey];
+        return self::$keypairCache[$cacheKey];
     }
 
     /**
@@ -62,18 +64,24 @@ final class KeyUtils
      */
     public static function encryptEnvelope(string $plaintext, string $userKey): string
     {
-        $dek     = random_bytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES);
-        $cipher  = CryptoUtils::encrypt($plaintext, $dek);
+        $dek    = random_bytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES);
+        $cipher = CryptoUtils::encrypt($plaintext, $dek);
 
-        $kp       = self::getKeypairFromUserKey($userKey);
-        $pubkey   = sodium_crypto_box_publickey($kp);
+        $kp        = self::getKeypairFromUserKey($userKey);
+        $pubkey    = sodium_crypto_box_publickey($kp);
         $sealedDEK = sodium_crypto_box_seal($dek, $pubkey);
         CryptoUtils::zeroMemory($dek);
 
-        return json_encode([
+        $result = json_encode([
             'd' => $cipher,
             'k' => base64_encode($sealedDEK)
         ]);
+
+        if ($result === false) {
+            throw new RuntimeException("Failed to encode envelope");
+        }
+
+        return $result;
     }
 
     /**
@@ -149,10 +157,16 @@ final class KeyUtils
         $newSealed   = sodium_crypto_box_seal($dek, sodium_crypto_box_publickey($kpNew));
         CryptoUtils::zeroMemory($dek);
 
-        return json_encode([
+        $result = json_encode([
             'd' => $env['d'],
             'k' => base64_encode($newSealed)
         ]);
+
+        if ($result === false) {
+            throw new RuntimeException("Failed to encode rewrapped envelope");
+        }
+
+        return $result;
     }
 
     /**
