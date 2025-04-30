@@ -4,8 +4,7 @@ namespace Controllers\src;
 
 use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
-use Models\src\Services\Utils\Encryption\EncryptionService;
-use Models\src\Services\Utils\SessionContextService;
+use Models\src\Services\Utils\Session\SessionContextService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;

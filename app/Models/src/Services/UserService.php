@@ -6,7 +6,7 @@ use Models\Exceptions\FormException;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\AvatarService;
 use Models\src\Services\Utils\BaseService;
-use Models\src\Services\Utils\SessionContextService;
+use Models\src\Services\Utils\Session\SessionContextService;
 use Models\src\Validators\UserValidator;
 use Zephyrus\Application\Form;
 

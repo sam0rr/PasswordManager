@@ -7,7 +7,7 @@ use Models\Exceptions\FormException;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\Encryption\EncryptionService;
-use Models\src\Services\Utils\SessionContextService;
+use Models\src\Services\Utils\Session\SessionContextService;
 use Models\src\Validators\AuthValidator;
 use Zephyrus\Application\Form;
 
@@ -77,7 +77,6 @@ final class AuthService
 
             $user = $this->validateUserCredentials($email, $password, $form);
             $userKey = $this->encryption->deriveUserKey($password, $user->salt);
-            $user = $this->userBroker->findByEmail($email, $userKey);
 
             if ($isHtmx) {
                 return ["form" => $form];

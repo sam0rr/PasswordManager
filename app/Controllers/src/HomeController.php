@@ -3,8 +3,7 @@
 namespace Controllers\src;
 
 use Controllers\Controller;
-use Models\src\Services\Utils\Encryption\EncryptionService;
-use Models\src\Services\Utils\SessionContextService;
+use Models\src\Services\Utils\Session\SessionContextService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 

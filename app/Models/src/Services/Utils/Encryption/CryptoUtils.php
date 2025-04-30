@@ -18,7 +18,7 @@ final class CryptoUtils
     /**
      * Derives a strong binary key from a password and hex-salt using Argon2id.
      *
-     * - Switched from PBKDF2-SHA256 → Argon2id (Cryptography of Zephyrus) for memory-hard GPU/ASIC resistance.
+     * - Switched from PBKDF2-SHA256 → Argon2id (Cryptography of Zephyrus) for memory-hard resistance.
      * - Outputs a raw binary key of length KEY_LENGTH.
      */
     public static function deriveCryptoKey(
