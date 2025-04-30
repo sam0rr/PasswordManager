@@ -28,7 +28,7 @@ final class EncryptionService
      * - Unwraps the DEK sealed to the user's keypair
      * - Uses the DEK to decrypt the payload
      */
-    public function decryptWithUserKey(string $envelopeJson, string $userKey): ?string
+    public function decryptWithUserKey(string $envelopeJson, string $userKey): string
     {
         return KeyUtils::decryptEnvelope($envelopeJson, $userKey);
     }

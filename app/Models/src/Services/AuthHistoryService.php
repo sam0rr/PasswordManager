@@ -69,7 +69,7 @@ final class AuthHistoryService extends BaseService
 
     private function fetchLocation(string $ip): string
     {
-        $url = "https://ipapi.co/{$ip}/city/";
+        $url = "https://ipapi.co/$ip/city/";
 
         $location = @file_get_contents($url);
 

@@ -6,6 +6,7 @@ use Models\Exceptions\FormException;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\AvatarService;
 use Models\src\Services\Utils\BaseService;
+use Models\src\Services\Utils\SessionContextService;
 use Models\src\Validators\UserValidator;
 use Zephyrus\Application\Form;
 
@@ -114,7 +115,7 @@ final class UserService extends BaseService
 
     private function updateUserContext(string $userId, string $userKey): void
     {
-        $this->encryption->storeUserContext($userId, $userKey);
+        SessionContextService::store($userId, $userKey);
         $this->auth['user_key'] = $userKey;
     }
 

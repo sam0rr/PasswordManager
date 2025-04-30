@@ -29,7 +29,7 @@ final class SecurityService
         $sha1Hash = strtoupper(sha1($password));
         $sha1Prefix = substr($sha1Hash, 0, 5);
 
-        $httpRequester = new HttpRequester("GET", "https://api.pwnedpasswords.com/range/{$sha1Prefix}");
+        $httpRequester = new HttpRequester("GET", "https://api.pwnedpasswords.com/range/$sha1Prefix");
         $httpRequester->addHeader('Add-Padding', 'true');
         $httpRequester->addHeader('User-Agent', 'JoltSecure/1.0');
 

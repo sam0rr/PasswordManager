@@ -37,7 +37,7 @@ class BaseService
     }
     protected ?EncryptionService $encryption = null {
         get {
-            return $this->encryption ??= new EncryptionService($this->auth);
+            return $this->encryption ??= new EncryptionService();
         }
     }
 

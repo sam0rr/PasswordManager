@@ -19,20 +19,33 @@ final class KeyUtils
      */
     private static function getKeypairFromUserKey(string $userKey): string
     {
+        if (!ctype_xdigit($userKey) || strlen($userKey) !== SODIUM_CRYPTO_BOX_SEEDBYTES * 2) {
+            throw new InvalidArgumentException("User key must be hex of " . (SODIUM_CRYPTO_BOX_SEEDBYTES * 2) . " chars.");
+        }
+
         if (!isset(self::$keypairCache[$userKey])) {
             $raw = hex2bin($userKey);
-            if ($raw === false || strlen($raw) !== SODIUM_CRYPTO_BOX_SEEDBYTES) {
-                throw new InvalidArgumentException("User key must be hex of " . (SODIUM_CRYPTO_BOX_SEEDBYTES * 2) . " chars.");
+            if ($raw === false) {
+                throw new InvalidArgumentException("Invalid hex in user key.");
             }
 
-            $seed = hash('sha256', $raw, true);
+            self::$keypairCache[$userKey] = sodium_crypto_box_seed_keypair($raw);
             CryptoUtils::zeroMemory($raw);
-
-            self::$keypairCache[$userKey] = sodium_crypto_box_seed_keypair($seed);
-            CryptoUtils::zeroMemory($seed);
         }
 
         return self::$keypairCache[$userKey];
+    }
+
+    /**
+     * Parses and validates a standard envelope JSON payload (must contain "d" and "k").
+     */
+    private static function parseEnvelope(string $json): array
+    {
+        $env = json_decode($json, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !isset($env['d'], $env['k'])) {
+            throw new InvalidArgumentException("Invalid envelope JSON");
+        }
+        return $env;
     }
 
     /**
@@ -66,12 +79,9 @@ final class KeyUtils
     /**
      * Decrypts an envelope payload using the private key from userKey.
      */
-    public static function decryptEnvelope(string $envelopeJson, string $userKey): ?string
+    public static function decryptEnvelope(string $envelopeJson, string $userKey): string
     {
-        $env = json_decode($envelopeJson, true);
-        if (json_last_error() !== JSON_ERROR_NONE || !isset($env['d'], $env['k'])) {
-            throw new InvalidArgumentException("Invalid envelope JSON");
-        }
+        $env = self::parseEnvelope($envelopeJson);
 
         $sealedDek = base64_decode($env['k'], true);
         if ($sealedDek === false) {
@@ -122,10 +132,7 @@ final class KeyUtils
      */
     public static function rewrapEnvelope(string $envelopeJson, string $oldKey, string $newKey): string
     {
-        $env = json_decode($envelopeJson, true);
-        if (json_last_error() !== JSON_ERROR_NONE || !isset($env['d'], $env['k'])) {
-            throw new InvalidArgumentException("Invalid envelope JSON");
-        }
+        $env = self::parseEnvelope($envelopeJson);
 
         $oldSealed = base64_decode($env['k'], true);
         if ($oldSealed === false) {
@@ -140,7 +147,6 @@ final class KeyUtils
 
         $kpNew       = self::getKeypairFromUserKey($newKey);
         $newSealed   = sodium_crypto_box_seal($dek, sodium_crypto_box_publickey($kpNew));
-
         CryptoUtils::zeroMemory($dek);
 
         return json_encode([
@@ -162,3 +168,4 @@ final class KeyUtils
     }
 
 }
+
