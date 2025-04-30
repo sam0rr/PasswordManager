@@ -5,8 +5,8 @@ namespace Controllers;
 use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\AuthHistoryService;
 use Models\src\Services\Utils\BaseService;
+use Models\src\Services\Utils\EncryptionService;
 use Zephyrus\Network\Response;
-use Models\src\Services\EncryptionService;
 
 abstract class SecureController extends Controller
 {

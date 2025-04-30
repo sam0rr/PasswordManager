@@ -1,9 +1,8 @@
 <?php
 
-namespace Models\src\Services;
+namespace Models\src\Services\Utils;
 
 use InvalidArgumentException;
-use Models\src\Services\Utils\BaseService;
 use RuntimeException;
 use Zephyrus\Core\Session;
 use Zephyrus\Security\Cryptography;

@@ -3,7 +3,7 @@
 namespace Models\src\Brokers;
 
 use Models\src\Entities\UserPassword;
-use Models\src\Services\EncryptionService;
+use Models\src\Services\Utils\EncryptionService;
 use Zephyrus\Database\DatabaseBroker;
 
 class PasswordBroker extends DatabaseBroker

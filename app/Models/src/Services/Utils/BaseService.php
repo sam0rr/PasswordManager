@@ -7,7 +7,6 @@ use Models\src\Brokers\PasswordBroker;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\UserPassword;
 use Models\src\Services\AuthHistoryService;
-use Models\src\Services\EncryptionService;
 use Models\src\Services\PasswordService;
 use Models\src\Services\SharingService;
 use Models\src\Services\UserService;
