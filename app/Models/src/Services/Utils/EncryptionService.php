@@ -11,55 +11,66 @@ class EncryptionService extends BaseService
 {
     private const string CONTEXT_KEY = 'user_context';
 
+    /**
+     * Derives a symmetric key from password & salt via PBKDF2-SHA256.
+     */
     public function deriveUserKey(string $password, string $salt): string
     {
         return Cryptography::deriveEncryptionKey($password, $salt);
     }
 
+    /**
+     * Encrypts and stores [ user_id + userKey ] in session.
+     */
     public function storeUserContext(string $userId, string $userKey): void
     {
         $payload = json_encode([
             'user_id' => $userId,
-            'key' => $userKey
+            'key'     => $userKey,
         ]);
 
-        $encryptedPayload = Cryptography::encrypt($payload);
-        Session::set(self::CONTEXT_KEY, $encryptedPayload);
+        Session::set(self::CONTEXT_KEY, Cryptography::encrypt($payload));
     }
 
     public static function isAuthenticated(): bool
     {
-        return !is_null(EncryptionService::getUserIdFromContext()) &&
-            !is_null(EncryptionService::getUserKeyFromContext());
+        return !is_null(self::getUserIdFromContext())
+            && !is_null(self::getUserKeyFromContext());
+    }
+
+    /** Destroys the entire session (e.g. on logout). */
+    public static function destroySession(): void
+    {
+        Session::destroy();
     }
 
     public static function getUserIdFromContext(): ?string
     {
-        $payload = Session::get(self::CONTEXT_KEY);
-        if (is_null($payload)) {
+        $enc = Session::get(self::CONTEXT_KEY);
+        if ($enc === null) {
             return null;
         }
-
-        $data = json_decode(Cryptography::decrypt($payload), true);
+        $data = json_decode(Cryptography::decrypt($enc), true);
         return $data['user_id'] ?? null;
     }
 
     public static function getUserKeyFromContext(): ?string
     {
-        $payload = Session::get(self::CONTEXT_KEY);
-        if (is_null($payload)) {
+        $enc = Session::get(self::CONTEXT_KEY);
+        if ($enc === null) {
             return null;
         }
-
-        $data = json_decode(Cryptography::decrypt($payload), true);
+        $data = json_decode(Cryptography::decrypt($enc), true);
         return $data['key'] ?? null;
     }
 
+    /**
+     * Symmetric encrypt/decrypt wrappers.
+     */
     public function encryptWithUserKey(string $data, string $userKey): string
     {
         return Cryptography::encrypt($data, $userKey);
     }
-
     public function decryptWithUserKey(string $cipherText, string $userKey): ?string
     {
         return Cryptography::decrypt($cipherText, $userKey);
@@ -69,78 +80,89 @@ class EncryptionService extends BaseService
     {
         return Cryptography::hashPassword($password);
     }
-
     public function verifyPassword(string $plainText, string $hashed): bool
     {
         return Cryptography::verifyHashedPassword($plainText, $hashed);
     }
-
     public function hash256(string $data): string
     {
         return Cryptography::hash($data, 'sha256');
     }
-
     public function generateSalt(int $length = 32): string
     {
         return Cryptography::randomHex($length);
     }
 
+    /**
+     * Generates public key from userKey.
+     */
     public function generatePublicKey(string $userKey): string
     {
-        $binaryPrivateKey = $this->extractPrivateKey($userKey, SODIUM_CRYPTO_SCALARMULT_BYTES);
-        return base64_encode(sodium_crypto_scalarmult_base($binaryPrivateKey));
+        $keypair = $this->getKeypairFromUserKey($userKey);
+        return base64_encode(sodium_crypto_box_publickey($keypair));
     }
 
+    /**
+     * Seals data to recipient's public key.
+     */
     public function encryptWithPublicKey(string $plainText, string $base64PublicKey): string
     {
-        $publicKey = $this->decodePublicKey($base64PublicKey);
-        return base64_encode(sodium_crypto_box_seal($plainText, $publicKey));
+        $pub = $this->decodePublicKey($base64PublicKey);
+        return base64_encode(sodium_crypto_box_seal($plainText, $pub));
     }
 
-    public function decryptFromPublicKey(string $base64CipherText, string $base64PublicKey, string $userKey): ?string
-    {
-        $privateKey = $this->extractPrivateKey($userKey, SODIUM_CRYPTO_BOX_SECRETKEYBYTES);
-        $publicKey = $this->decodePublicKey($base64PublicKey);
-        $sealed = base64_decode($base64CipherText);
+    /**
+     * Opens sealed data using user's keypair.
+     */
+    public function decryptFromPublicKey(
+        string $base64CipherText,
+        string $base64PublicKey,
+        string $userKey
+    ): ?string {
+        $keypair = $this->getKeypairFromUserKey($userKey);
+        $secret  = sodium_crypto_box_secretkey($keypair);
+        $pub     = $this->decodePublicKey($base64PublicKey);
 
+        $sealed = base64_decode($base64CipherText, true);
         if ($sealed === false) {
-            throw new RuntimeException("Invalid base64 ciphertext.");
+            throw new RuntimeException("Invalid Base64 ciphertext.");
         }
 
-        $keyPair = sodium_crypto_box_keypair_from_secretkey_and_publickey($privateKey, $publicKey);
-        $plaintext = sodium_crypto_box_seal_open($sealed, $keyPair);
-
-        if ($plaintext === false) {
-            throw new RuntimeException("Decryption failed: invalid message or mismatched keys.");
+        $pair  = sodium_crypto_box_keypair_from_secretkey_and_publickey($secret, $pub);
+        $plain = sodium_crypto_box_seal_open($sealed, $pair);
+        if ($plain === false) {
+            throw new RuntimeException("Failed to decrypt sealed message.");
         }
 
-        return $plaintext;
+        return $plain;
     }
 
-    public static function destroySession(): void
+    /**
+     * Rebuilds a sodium keypair from hex userKey.
+     */
+    private function getKeypairFromUserKey(string $userKey): string
     {
-        Session::destroy();
-    }
-
-    private function extractPrivateKey(string $userKey, int $expectedLength): string
-    {
-        $binary = hex2bin(mb_substr($userKey, 0, 64));
-
-        if ($binary === false || strlen($binary) !== $expectedLength) {
-            throw new InvalidArgumentException("Invalid private key format.");
+        $raw = hex2bin($userKey);
+        if ($raw === false || strlen($raw) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+            throw new InvalidArgumentException(
+                "User key must be hex of " . (SODIUM_CRYPTO_SECRETBOX_KEYBYTES * 2) . " chars."
+            );
         }
-
-        return $binary;
+        $seed = hash('sha256', $raw, true);
+        return sodium_crypto_box_seed_keypair($seed);
     }
 
+    /**
+     * Decodes & validates Base64 public key.
+     */
     private function decodePublicKey(string $base64): string
     {
-        $decoded = base64_decode($base64);
+        $decoded = base64_decode($base64, true);
         if ($decoded === false || strlen($decoded) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {
-            throw new InvalidArgumentException("Invalid public key format.");
+            throw new InvalidArgumentException(
+                "Public key must be Base64 of " . SODIUM_CRYPTO_BOX_PUBLICKEYBYTES . " bytes."
+            );
         }
-
         return $decoded;
     }
-
 }
