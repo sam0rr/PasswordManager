@@ -31,7 +31,7 @@ final class SecurityService
 
         $httpRequester = new HttpRequester("GET", "https://api.pwnedpasswords.com/range/$sha1Prefix");
         $httpRequester->addHeader('Add-Padding', 'true');
-        $httpRequester->addHeader('User-Agent', 'JoltSecure/1.0');
+        $httpRequester->addHeader('User-Agent', 'KryptoLok/1.0');
 
         usleep(1500000);
 
