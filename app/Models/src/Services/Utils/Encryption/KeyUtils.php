@@ -11,20 +11,17 @@ final class KeyUtils
 
     /**
      * Cache of keypairs derived from userKey (seeded X25519 keypairs).
-     * The key is the SHA256 hash of the userKey (hex).
      */
     private static array $keypairCache = [];
 
     /**
      * Ensures the userKey is in the correct hex format.
-     * If it's a raw 32-byte binary string, convert it to 64-char hex.
      */
     public static function normalizeUserKey(string $userKey): string
     {
         if (strlen($userKey) === SODIUM_CRYPTO_BOX_SEEDBYTES && !ctype_xdigit($userKey)) {
             return bin2hex($userKey);
         }
-
         return $userKey;
     }
 
@@ -113,10 +110,7 @@ final class KeyUtils
     {
         $env = self::parseEnvelope($envelopeJson);
 
-        $sealedDek = base64_decode($env['k'], true);
-        if ($sealedDek === false) {
-            throw new RuntimeException("Malformed DEK base64");
-        }
+        $sealedDek = self::safeBase64Decode($env['k'], 'sealed DEK');
 
         $kp  = self::getKeypairFromUserKey($userKey);
         $dek = sodium_crypto_box_seal_open($sealedDek, $kp);
@@ -145,10 +139,7 @@ final class KeyUtils
      */
     public static function openSealedData(string $sealedBase64, string $userKey): string
     {
-        $sealed = base64_decode($sealedBase64, true);
-        if ($sealed === false) {
-            throw new RuntimeException("Invalid Base64 sealed data");
-        }
+        $sealed = self::safeBase64Decode($sealedBase64, 'sealed payload');
 
         $kp    = self::getKeypairFromUserKey($userKey);
         $plain = sodium_crypto_box_seal_open($sealed, $kp);
@@ -160,16 +151,13 @@ final class KeyUtils
     }
 
     /**
-     * Rewraps an envelope (re-seal the DEK to a new userKey).
+     * Rewraps an envelope (re-seals the DEK to a new userKey).
      */
     public static function rewrapEnvelope(string $envelopeJson, string $oldKey, string $newKey): string
     {
         $env = self::parseEnvelope($envelopeJson);
 
-        $oldSealed = base64_decode($env['k'], true);
-        if ($oldSealed === false) {
-            throw new InvalidArgumentException("Invalid wrapped-DEK base64");
-        }
+        $oldSealed = self::safeBase64Decode($env['k'], 'rewrap envelope');
 
         $kpOld = self::getKeypairFromUserKey($oldKey);
         $dek   = sodium_crypto_box_seal_open($oldSealed, $kpOld);
@@ -201,9 +189,21 @@ final class KeyUtils
      */
     public static function decodePublicKey(string $base64): string
     {
-        $decoded = base64_decode($base64, true);
-        if (!is_string($decoded) || strlen($decoded) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {
+        $decoded = self::safeBase64Decode($base64, 'public key');
+        if (strlen($decoded) !== SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {
             throw new InvalidArgumentException("Public key must be Base64 of " . SODIUM_CRYPTO_BOX_PUBLICKEYBYTES . " bytes.");
+        }
+        return $decoded;
+    }
+
+    /**
+     * Safely decodes a Base64 string or throws a detailed error with context.
+     */
+    private static function safeBase64Decode(string $b64, string $context): string
+    {
+        $decoded = base64_decode($b64, true);
+        if ($decoded === false) {
+            throw new RuntimeException("Invalid Base64 in $context");
         }
         return $decoded;
     }
