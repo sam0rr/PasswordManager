@@ -11,16 +11,32 @@ final class KeyUtils
 
     /**
      * Cache of keypairs derived from userKey (seeded X25519 keypairs).
+     * The key is the SHA256 hash of the userKey (hex).
      */
     private static array $keypairCache = [];
 
     /**
-     * Generates or returns a cached keypair from a userKey (hex).
+     * Ensures the userKey is in the correct hex format.
+     * If it's a raw 32-byte binary string, convert it to 64-char hex.
+     */
+    public static function normalizeUserKey(string $userKey): string
+    {
+        if (strlen($userKey) === SODIUM_CRYPTO_BOX_SEEDBYTES && !ctype_xdigit($userKey)) {
+            return bin2hex($userKey);
+        }
+
+        return $userKey;
+    }
+
+    /**
+     * Generates or returns a cached keypair from a userKey.
      */
     private static function getKeypairFromUserKey(string $userKey): string
     {
+        $userKey = self::normalizeUserKey($userKey);
+
         if (!ctype_xdigit($userKey) || strlen($userKey) !== SODIUM_CRYPTO_BOX_SEEDBYTES * 2) {
-            throw new InvalidArgumentException("User key must be hex of " . (SODIUM_CRYPTO_BOX_SEEDBYTES * 2) . " chars.");
+            throw new InvalidArgumentException("User key must be 32-byte binary or 64-char hex.");
         }
 
         $cacheKey = hash('sha256', $userKey);
@@ -43,10 +59,16 @@ final class KeyUtils
      */
     private static function parseEnvelope(string $json): array
     {
-        $env = json_decode($json, true);
-        if (json_last_error() !== JSON_ERROR_NONE || !isset($env['d'], $env['k'])) {
-            throw new InvalidArgumentException("Invalid envelope JSON");
+        $env = json_decode($json, true, 2, JSON_THROW_ON_ERROR);
+
+        if (!is_array($env) || !isset($env['d'], $env['k'])) {
+            throw new InvalidArgumentException("Envelope JSON must contain 'd' and 'k' fields");
         }
+
+        if (!is_string($env['d']) || !is_string($env['k'])) {
+            throw new InvalidArgumentException("Envelope fields 'd' and 'k' must be strings");
+        }
+
         return $env;
     }
 
@@ -102,9 +124,11 @@ final class KeyUtils
             throw new RuntimeException("Failed to open sealed DEK");
         }
 
-        $plain = CryptoUtils::decrypt($env['d'], $dek);
-        CryptoUtils::zeroMemory($dek);
-        return $plain;
+        try {
+            return CryptoUtils::decrypt($env['d'], $dek);
+        } finally {
+            CryptoUtils::zeroMemory($dek);
+        }
     }
 
     /**
@@ -153,9 +177,12 @@ final class KeyUtils
             throw new RuntimeException("Failed to unwrap DEK");
         }
 
-        $kpNew       = self::getKeypairFromUserKey($newKey);
-        $newSealed   = sodium_crypto_box_seal($dek, sodium_crypto_box_publickey($kpNew));
-        CryptoUtils::zeroMemory($dek);
+        try {
+            $kpNew     = self::getKeypairFromUserKey($newKey);
+            $newSealed = sodium_crypto_box_seal($dek, sodium_crypto_box_publickey($kpNew));
+        } finally {
+            CryptoUtils::zeroMemory($dek);
+        }
 
         $result = json_encode([
             'd' => $env['d'],

@@ -56,14 +56,18 @@ final class CryptoUtils
             throw new InvalidArgumentException("Invalid key length for encryption");
         }
 
-        $nonce = random_bytes(self::NONCE_LENGTH);
-        $cipher = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
-            $plaintext,
-            "",
-            $nonce,
-            $key
-        );
-        return $nonce . $cipher;
+        try {
+            $nonce = random_bytes(self::NONCE_LENGTH);
+            $cipher = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+                $plaintext,
+                "",
+                $nonce,
+                $key
+            );
+            return $nonce . $cipher;
+        } finally {
+            self::zeroMemory($key);
+        }
     }
 
     /**
@@ -91,18 +95,22 @@ final class CryptoUtils
         $nonce  = mb_substr($combined, 0, $nonceSize, '8bit');
         $cipher = mb_substr($combined, $nonceSize, null, '8bit');
 
-        $plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt(
-            $cipher,
-            "",
-            $nonce,
-            $key
-        );
+        try {
+            $plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt(
+                $cipher,
+                "",
+                $nonce,
+                $key
+            );
 
-        if ($plain === false) {
-            throw new RuntimeException("AEAD decryption failed or data corrupted");
+            if ($plain === false) {
+                throw new RuntimeException("AEAD decryption failed or data corrupted");
+            }
+
+            return $plain;
+        } finally {
+            self::zeroMemory($key);
         }
-
-        return $plain;
     }
 
     /**
@@ -127,4 +135,3 @@ final class CryptoUtils
     }
 
 }
-
