@@ -7,7 +7,7 @@ use Models\src\Services\Utils\BaseService;
 use RuntimeException as RuntimeExceptionAlias;
 use Twilio\Rest\Client;
 
-class SmsMfaService extends BaseService implements MfaServiceInterface
+final class SmsMfaService extends BaseService implements MfaServiceInterface
 {
     private ?Client $twilioClient = null {
         get {

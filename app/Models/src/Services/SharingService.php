@@ -14,7 +14,7 @@ use RuntimeException;
 use Throwable as ThrowableAlias;
 use Zephyrus\Application\Form;
 
-class SharingService extends BaseService
+final class SharingService extends BaseService
 {
     private ?SharingBroker $sharingBroker = null {
         get {

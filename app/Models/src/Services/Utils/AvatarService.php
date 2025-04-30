@@ -2,7 +2,7 @@
 
 namespace Models\src\Services\Utils;
 
-class AvatarService extends BaseService
+final class AvatarService extends BaseService
 {
     private const array ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     private const string UPLOAD_FOLDER = '/uploads';

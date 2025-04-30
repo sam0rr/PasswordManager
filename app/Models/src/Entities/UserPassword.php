@@ -4,7 +4,7 @@ namespace Models\src\Entities;
 
 use Models\Core\Entity;
 
-class UserPassword extends Entity
+final class UserPassword extends Entity
 {
     public string $id;
     public string $user_id;

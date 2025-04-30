@@ -9,7 +9,7 @@ use Models\src\Validators\Utils\BaseValidator;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class PasswordValidator extends BaseValidator
+final class PasswordValidator extends BaseValidator
 {
     public static function assertAdd(Form $form, PasswordBroker $broker, string $userId, bool $isHtmx): void
     {

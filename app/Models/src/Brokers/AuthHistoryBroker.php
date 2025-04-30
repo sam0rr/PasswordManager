@@ -5,7 +5,7 @@ namespace Models\src\Brokers;
 use Models\src\Entities\AuthHistory;
 use Zephyrus\Database\DatabaseBroker;
 
-class AuthHistoryBroker extends DatabaseBroker
+final class AuthHistoryBroker extends DatabaseBroker
 {
     public function logAuthEvent(array $data): AuthHistory
     {

@@ -13,7 +13,7 @@ use RuntimeException as RuntimeExceptionAlias;
 use Throwable as ThrowableAlias;
 use Zephyrus\Application\Form;
 
-class VerifyService extends BaseService
+final class VerifyService extends BaseService
 {
     private ?int $MFA_EXPIRATION_SECONDS = null {
         get {

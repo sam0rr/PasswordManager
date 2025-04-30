@@ -8,7 +8,7 @@ use Models\src\Validators\Utils\BaseValidator;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class AuthValidator extends BaseValidator
+final class AuthValidator extends BaseValidator
 {
     public static function assertRegister(Form $form, UserBroker $broker, bool $isHtmx): void
     {

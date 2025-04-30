@@ -10,7 +10,7 @@ use Zephyrus\Application\Form;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 
-class DashboardController extends SecureController
+final class DashboardController extends SecureController
 {
     #[Get('/dashboard')]
     public function dashboard(): Response

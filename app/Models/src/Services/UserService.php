@@ -9,7 +9,7 @@ use Models\src\Services\Utils\BaseService;
 use Models\src\Validators\UserValidator;
 use Zephyrus\Application\Form;
 
-class UserService extends BaseService
+final class UserService extends BaseService
 {
     private ?AvatarService $avatar = null {
         get {

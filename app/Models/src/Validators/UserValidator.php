@@ -8,7 +8,7 @@ use Models\src\Validators\Utils\BaseValidator;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class UserValidator extends BaseValidator
+final class UserValidator extends BaseValidator
 {
     public static function assertUpdate(Form $form, UserBroker $broker, string $currentUserId): void
     {

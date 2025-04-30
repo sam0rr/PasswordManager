@@ -7,10 +7,11 @@ use Models\Exceptions\FormException;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\Encryption\EncryptionService;
+use Models\src\Services\Utils\SessionContextService;
 use Models\src\Validators\AuthValidator;
 use Zephyrus\Application\Form;
 
-class AuthService
+final class AuthService
 {
     private ?string $currentUserId = null;
     private ?string $currentUserKey = null;
@@ -27,7 +28,7 @@ class AuthService
     }
     private ?EncryptionService $encryption = null {
         get {
-            return $this->encryption ??= new EncryptionService($this->getAuth());
+            return $this->encryption ??= new EncryptionService();
         }
     }
     private ?AuthHistoryService $history = null {
@@ -105,8 +106,8 @@ class AuthService
     public function postAuthActions(): void
     {
         if (!$this->currentUserId || !$this->currentUserKey) {
-            $this->currentUserKey = EncryptionService::getUserKeyFromContext();
-            $this->currentUserId = EncryptionService::getUserIdFromContext();
+            $this->currentUserKey = SessionContextService::getUserKey();
+            $this->currentUserId = SessionContextService::getUserId();
         }
         $user = $this->userBroker->findById($this->currentUserId, $this->currentUserKey);
 
@@ -129,7 +130,7 @@ class AuthService
         $this->currentUserId = $userId;
         $this->currentUserKey = $userKey;
 
-        $this->encryption->storeUserContext($userId, $userKey);
+        SessionContextService::store($userId, $userKey);
     }
 
     private function validateUserCredentials(string $email, string $password, Form $form): User

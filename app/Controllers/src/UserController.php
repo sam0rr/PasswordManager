@@ -5,11 +5,12 @@ namespace Controllers\src;
 use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\Utils\Encryption\EncryptionService;
+use Models\src\Services\Utils\SessionContextService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
-class UserController extends SecureController
+final class UserController extends SecureController
 {
     #[Post('/user/update')]
     public function update(): Response
@@ -91,7 +92,7 @@ class UserController extends SecureController
     #[Get('/logout')]
     public function logout(): Response
     {
-        EncryptionService::destroySession();
+        SessionContextService::destroy();
         return $this->redirect("/login");
     }
 

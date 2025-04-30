@@ -7,7 +7,7 @@ use Models\src\Validators\Utils\BaseValidator;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class VerifyValidator extends BaseValidator
+final class VerifyValidator extends BaseValidator
 {
     public static function assertConfirm(Form $form, bool $isHtmx): void
     {

@@ -4,7 +4,7 @@ namespace Models\src\Services\Utils;
 
 use RuntimeException;
 
-class PasswordSharingUtils
+final class PasswordSharingUtils
 {
     public static function encodeInfo(string $emailFrom, string $password, string $description, string $note): string
     {

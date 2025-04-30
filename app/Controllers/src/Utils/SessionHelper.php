@@ -5,7 +5,7 @@ namespace Controllers\src\Utils;
 use Zephyrus\Application\Form;
 use Zephyrus\Core\Session;
 
-class SessionHelper
+final class SessionHelper
 {
     public static function setContext(array $data): void
     {

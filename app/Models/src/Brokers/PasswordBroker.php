@@ -6,7 +6,7 @@ use Models\src\Entities\UserPassword;
 use Models\src\Services\Utils\Encryption\EncryptionService;
 use Zephyrus\Database\DatabaseBroker;
 
-class PasswordBroker extends DatabaseBroker
+final class PasswordBroker extends DatabaseBroker
 {
     private EncryptionService $encryption;
 

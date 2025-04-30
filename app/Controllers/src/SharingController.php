@@ -7,7 +7,7 @@ use Controllers\src\Utils\SessionHelper;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Post;
 
-class SharingController extends SecureController
+final class SharingController extends SecureController
 {
     #[Post('/share/{id}')]
     public function sharePassword(string $id): Response

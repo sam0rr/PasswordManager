@@ -6,6 +6,7 @@ use Controllers\src\Utils\SessionHelper;
 use Models\src\Services\AuthHistoryService;
 use Models\src\Services\Utils\BaseService;
 use Models\src\Services\Utils\Encryption\EncryptionService;
+use Models\src\Services\Utils\SessionContextService;
 use Zephyrus\Network\Response;
 
 abstract class SecureController extends Controller
@@ -27,8 +28,8 @@ abstract class SecureController extends Controller
 
     public function before(): ?Response
     {
-        $this->currentUserKey = EncryptionService::getUserKeyFromContext();
-        $this->currentUserId = EncryptionService::getUserIdFromContext();
+        $this->currentUserKey = SessionContextService::getUserKey();
+        $this->currentUserId = SessionContextService::getUserId();
 
         $this->base = new BaseService($this->getAuth());
 
@@ -37,7 +38,7 @@ abstract class SecureController extends Controller
         }
 
         if ($this->authHistoryService->hasTooManyAttempts($this->currentUserId)) {
-            EncryptionService::destroySession();
+            SessionContextService::destroy();
             return $this->redirect("/login?error=too_many_attempts");
         }
 

@@ -8,7 +8,7 @@ use RobThree\Auth\Providers\Qr\EndroidQrCodeProvider;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\TwoFactorAuthException;
 
-class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
+final class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
 {
     private ?TwoFactorAuth $tfa = null {
         get{

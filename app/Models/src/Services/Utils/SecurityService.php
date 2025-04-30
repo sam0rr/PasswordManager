@@ -4,7 +4,7 @@ namespace Models\src\Services\Utils;
 
 use Zephyrus\Network\HttpRequester;
 
-class SecurityService
+final class SecurityService
 {
     private static function calculatePasswordStrength(string $password): array
     {

@@ -4,15 +4,16 @@ namespace Controllers\src;
 
 use Controllers\Controller;
 use Models\src\Services\Utils\Encryption\EncryptionService;
+use Models\src\Services\Utils\SessionContextService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 
-class HomeController extends Controller
+final class HomeController extends Controller
 {
     #[Get('/')]
     public function home(): Response
     {
-        if (EncryptionService::isAuthenticated()) {
+        if (SessionContextService::isAuthenticated()) {
             return $this->redirect('/dashboard');
         }
         return $this->redirect('/login');

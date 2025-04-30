@@ -4,7 +4,7 @@ namespace Models\src\Entities;
 
 use Models\Core\Entity;
 
-class PasswordSharing extends Entity
+final class PasswordSharing extends Entity
 {
     public string $id;
     public string $encrypted_info;

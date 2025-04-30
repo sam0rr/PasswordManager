@@ -6,7 +6,7 @@ use Models\src\Brokers\AuthHistoryBroker;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\BaseService;
 
-class AuthHistoryService extends BaseService
+final class AuthHistoryService extends BaseService
 {
     private ?AuthHistoryBroker $authHistoryBroker = null {
         get {

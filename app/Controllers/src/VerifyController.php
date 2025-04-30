@@ -12,7 +12,7 @@ use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
-class VerifyController extends SecureController
+final class VerifyController extends SecureController
 {
     private ?MailMfaService $mailMfaService = null {
         get {

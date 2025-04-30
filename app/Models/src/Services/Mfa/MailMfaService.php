@@ -7,7 +7,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use RuntimeException;
 
-class MailMfaService extends BaseService implements MfaServiceInterface
+final class MailMfaService extends BaseService implements MfaServiceInterface
 {
     private ?string $mailHost = null {
         get {

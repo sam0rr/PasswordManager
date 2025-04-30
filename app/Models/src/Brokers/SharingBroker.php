@@ -5,7 +5,7 @@ namespace Models\src\Brokers;
 use Models\src\Entities\PasswordSharing;
 use Zephyrus\Database\DatabaseBroker;
 
-class SharingBroker extends DatabaseBroker
+final class SharingBroker extends DatabaseBroker
 {
     public function insertSharing(array $data): PasswordSharing
     {

@@ -7,7 +7,7 @@ use Models\src\Services\Utils\BaseService;
 use Models\src\Validators\PasswordValidator;
 use Zephyrus\Application\Form;
 
-class PasswordService extends BaseService
+final class PasswordService extends BaseService
 {
     public function getAllUserPasswords($form): array
     {

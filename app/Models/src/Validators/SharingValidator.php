@@ -8,7 +8,7 @@ use Models\src\Validators\Utils\BaseValidator;
 use Zephyrus\Application\Form;
 use Zephyrus\Application\Rule;
 
-class SharingValidator extends BaseValidator
+final class SharingValidator extends BaseValidator
 {
     public static function assertShare(Form $form, UserBroker $userBroker, string $ownerId, bool $isHtmx): void
     {

@@ -8,7 +8,7 @@ use Models\src\Services\Utils\SecurityService;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Post;
 
-class PasswordController extends SecureController
+final class PasswordController extends SecureController
 {
     #[Post('/addpassword')]
     public function addPassword(): Response

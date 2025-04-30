@@ -4,7 +4,7 @@ namespace Models\src\Entities;
 
 use Models\Core\Entity;
 
-class AuthHistory extends Entity
+final class AuthHistory extends Entity
 {
     public int $id;
     public string $user_id;

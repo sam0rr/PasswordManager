@@ -2,80 +2,21 @@
 
 namespace Models\src\Services\Utils\Encryption;
 
-use Models\src\Services\Utils\BaseService;
-use Zephyrus\Core\Session;
 use Zephyrus\Security\Cryptography;
 
-class EncryptionService extends BaseService
+final class EncryptionService
 {
-    private const string CONTEXT_KEY = 'user_context';
-
     /**
-     * Derives a symmetric key from password & salt via PBKDF2-SHA256.
+     * Derives a symmetric key (in raw binary) from a password and salt using Argon2id.
      */
     public function deriveUserKey(string $password, string $salt): string
     {
-        return Cryptography::deriveEncryptionKey($password, $salt);
+        return CryptoUtils::deriveCryptoKey($password, $salt);
     }
 
     /**
-     * Encrypts and stores [user_id + userKey] in session.
-     */
-    public function storeUserContext(string $userId, string $userKey): void
-    {
-        $payload = json_encode([
-            'user_id' => $userId,
-            'key'     => $userKey,
-        ]);
-
-        Session::set(self::CONTEXT_KEY, Cryptography::encrypt($payload));
-    }
-
-    /**
-     * Checks if we have both user ID and userKey in session.
-     */
-    public static function isAuthenticated(): bool
-    {
-        return self::getUserIdFromContext() !== null
-            && self::getUserKeyFromContext() !== null;
-    }
-
-    /**
-     * Clears the entire session.
-     */
-    public static function destroySession(): void
-    {
-        Session::destroy();
-    }
-
-    /**
-     * Retrieves the user_id from the encrypted session payload.
-     */
-    public static function getUserIdFromContext(): ?string
-    {
-        $enc = Session::get(self::CONTEXT_KEY);
-        if ($enc === null) {
-            return null;
-        }
-        $data = json_decode(Cryptography::decrypt($enc), true);
-        return $data['user_id'] ?? null;
-    }
-
-    /**
-     * Retrieves the userKey (hex) from the encrypted session payload.
-     */
-    public static function getUserKeyFromContext(): ?string
-    {
-        $enc = Session::get(self::CONTEXT_KEY);
-        if ($enc === null) {
-            return null;
-        }
-        $data = json_decode(Cryptography::decrypt($enc), true);
-        return $data['key'] ?? null;
-    }
-
-    /**
-     * Envelope-encrypt with the userKey: random DEK for payload, wrapped under userKey-derived pubkey.
+     * Encrypts a plaintext using an envelope-encryption scheme.
+     * A random symmetric DEK is generated and sealed with the user's keypair.
      */
     public function encryptWithUserKey(string $plaintext, string $userKey): string
     {
@@ -83,7 +24,9 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Envelope-decrypt: unwrap DEK then decrypt payload.
+     * Decrypts envelope-encrypted data:
+     * - Unwraps the DEK sealed to the user's keypair
+     * - Uses the DEK to decrypt the payload
      */
     public function decryptWithUserKey(string $envelopeJson, string $userKey): ?string
     {
@@ -91,7 +34,7 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Hashes a plaintext password.
+     * Hashes a plaintext password using Zephyrus' built-in hashing method (likely bcrypt).
      */
     public function hashPassword(string $password): string
     {
@@ -99,7 +42,7 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Verifies a plaintext password against a stored hash.
+     * Verifies a plaintext password against its previously stored hash.
      */
     public function verifyPassword(string $plainText, string $hashed): bool
     {
@@ -107,7 +50,7 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Computes a SHA-256 hash of the given data (hex-encoded output).
+     * Computes a SHA-256 hash of arbitrary data, hex-encoded.
      */
     public function hash256(string $data): string
     {
@@ -115,7 +58,7 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Generates a cryptographically secure random hex-encoded salt.
+     * Generates a cryptographically secure random salt, hex-encoded.
      */
     public function generateSalt(int $length = 32): string
     {
@@ -123,7 +66,7 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Re-wraps an existing envelope under a new userKey (fast key rotation).
+     * Rewraps an encrypted envelope under a new userKey (e.g. after password change).
      */
     public function rewrapEnvelope(string $envelopeJson, string $oldKey, string $newKey): string
     {
@@ -131,7 +74,7 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Generates public key from a hex userKey.
+     * Generates a Base64-encoded public key from a hex-encoded userKey.
      */
     public function generatePublicKey(string $userKey): string
     {
@@ -139,7 +82,8 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Seals (encrypts) plaintext to a recipient’s Base64 public key.
+     * Seals (encrypts) plaintext to a recipient’s public key.
+     * Only the holder of the private key can decrypt it.
      */
     public function encryptWithPublicKey(string $plaintext, string $base64PublicKey): string
     {
@@ -147,7 +91,7 @@ class EncryptionService extends BaseService
     }
 
     /**
-     * Opens data sealed with encryptWithPublicKey(), using this user’s keypair.
+     * Decrypts sealed data using the user's keypair.
      */
     public function decryptFromPublicKey(string $sealedBase64, string $userKey): string
     {

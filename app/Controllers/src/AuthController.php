@@ -10,7 +10,7 @@ use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
 
-class AuthController extends Controller
+final class AuthController extends Controller
 {
     private ?AuthService $authService = null {
         get {
