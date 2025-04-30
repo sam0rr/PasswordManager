@@ -9,18 +9,26 @@ use Zephyrus\Security\Cryptography;
 class KeyUtils
 {
     /**
-     * From a hex-encoded userKey, build a keypair.
+     * Cache of derived keypairs.
      */
-    private function getKeypairFromUserKey(string $userKey): string
+    private static array $keypairCache = [];
+
+    /**
+     * From a hex-encoded userKey, build (or fetch) an X25519 keypair.
+     */
+    private static function getKeypairFromUserKey(string $userKey): string
     {
-        $raw = hex2bin($userKey);
-        if ($raw === false || strlen($raw) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            throw new InvalidArgumentException(
-                "User key must be hex of " . (SODIUM_CRYPTO_SECRETBOX_KEYBYTES * 2) . " chars."
-            );
+        if (!isset(self::$keypairCache[$userKey])) {
+            $raw = hex2bin($userKey);
+            if ($raw === false || strlen($raw) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+                throw new InvalidArgumentException(
+                    "User key must be hex of " . (SODIUM_CRYPTO_SECRETBOX_KEYBYTES * 2) . " chars."
+                );
+            }
+            $seed = hash('sha256', $raw, true);
+            self::$keypairCache[$userKey] = sodium_crypto_box_seed_keypair($seed);
         }
-        $seed = hash('sha256', $raw, true);
-        return sodium_crypto_box_seed_keypair($seed);
+        return self::$keypairCache[$userKey];
     }
 
     /**
@@ -28,23 +36,23 @@ class KeyUtils
      */
     public static function generatePublicKeyFromUserKey(string $userKey): string
     {
-        $kp  = (new KeyUtils)->getKeypairFromUserKey($userKey);
+        $kp  = self::getKeypairFromUserKey($userKey);
         $pub = sodium_crypto_box_publickey($kp);
         return base64_encode($pub);
     }
 
     /**
      * Envelope-encrypt:
-     * 1) Rncrypt plaintext under a random DEK (via Cryptography::encrypt)
-     * 2) seal that DEK under the user’s public key
-     * 3) return JSON { d: <base64 ciphertext>, k: <base64 wrapped DEK> }
+     * 1) Encrypt plaintext under a random DEK (via Cryptography::encrypt)
+     * 2) Seal that DEK under the user’s public key
+     * 3) Return JSON { d: <base64 ciphertext>, k: <base64 wrapped DEK> }
      */
     public static function encryptEnvelope(string $plaintext, string $userKey): string
     {
         $dek    = random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
         $cipher = Cryptography::encrypt($plaintext, bin2hex($dek));
 
-        $kp      = (new KeyUtils)->getKeypairFromUserKey($userKey);
+        $kp      = self::getKeypairFromUserKey($userKey);
         $wrapped = sodium_crypto_box_seal($dek, sodium_crypto_box_publickey($kp));
 
         return json_encode([
@@ -55,10 +63,10 @@ class KeyUtils
 
     /**
      * Envelope-decrypt:
-     * 1) parse JSON envelope
-     * 2) base64-decode wrapped DEK & seal
-     * 3) open DEK via userKey
-     * 4) decrypt payload via Cryptography::decrypt
+     * 1) Parse JSON envelope
+     * 2) Base64-decode wrapped DEK & ciphertext
+     * 3) Open DEK via userKey
+     * 4) Decrypt payload via Cryptography::decrypt
      */
     public static function decryptEnvelope(string $envelopeJson, string $userKey): ?string
     {
@@ -77,7 +85,7 @@ class KeyUtils
     }
 
     /**
-     * Wraps a raw DEK under a recipient’s Base64 public key.
+     * Wraps a raw plaintext under a recipient’s Base64 public key.
      */
     public static function sealWithPublicKey(string $plaintext, string $base64PublicKey): string
     {
@@ -94,7 +102,7 @@ class KeyUtils
         if ($sealed === false) {
             throw new RuntimeException("Invalid Base64 sealed data");
         }
-        $kp    = (new KeyUtils)->getKeypairFromUserKey($userKey);
+        $kp    = self::getKeypairFromUserKey($userKey);
         $plain = sodium_crypto_box_seal_open($sealed, $kp);
         if ($plain === false) {
             throw new RuntimeException("Failed to open sealed data");
@@ -107,7 +115,7 @@ class KeyUtils
      */
     public static function unwrapDek(string $wrappedDek, string $userKey): string
     {
-        $kp  = (new KeyUtils)->getKeypairFromUserKey($userKey);
+        $kp  = self::getKeypairFromUserKey($userKey);
         $dek = sodium_crypto_box_seal_open($wrappedDek, $kp);
         if ($dek === false) {
             throw new RuntimeException("Failed to unwrap DEK");
@@ -129,8 +137,8 @@ class KeyUtils
             throw new InvalidArgumentException("Invalid wrapped-DEK base64");
         }
 
-        $dek      = self::unwrapDek($wrappedDek, $oldKey);
-        $newPub   = sodium_crypto_box_publickey((new KeyUtils)->getKeypairFromUserKey($newKey));
+        $dek        = self::unwrapDek($wrappedDek, $oldKey);
+        $newPub     = sodium_crypto_box_publickey(self::getKeypairFromUserKey($newKey));
         $newWrapped = sodium_crypto_box_seal($dek, $newPub);
 
         return json_encode([
@@ -152,5 +160,4 @@ class KeyUtils
         }
         return $decoded;
     }
-
 }

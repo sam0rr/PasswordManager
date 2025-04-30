@@ -190,7 +190,6 @@ class UserService extends BaseService
         $updates['password_hash'] = $newHash;
         $updates['salt'] = $newSalt;
         $updates['public_key'] = $newPubKey;
-        $updates['user_key'] = $newKey;
 
         return $updates;
     }

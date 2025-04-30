@@ -332,7 +332,7 @@ class VerifyService extends BaseService
 
     public function updateOtpWithNewKey(string $userId, string $oldKey, string $newKey): void
     {
-        $methods = $this->verifyBroker->findAllByUser($userId, $oldKey);
+        $methods = $this->verifyBroker->findAllRawByUser($userId);
 
         foreach ($methods as $method) {
             if (empty($method->otp_secret)) {
