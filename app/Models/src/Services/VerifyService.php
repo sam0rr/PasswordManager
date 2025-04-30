@@ -316,7 +316,7 @@ class VerifyService extends BaseService
         $otp = $this->getOtpForMethod($method);
 
         $expirationDays = config('security.mfa', 'mfa_grace_period_days', '20') + 1;
-        $expiredDate = date('Y-m-d H:i:s', strtotime("-{$expirationDays} days"));
+        $expiredDate = date('Y-m-d H:i:s', strtotime("-$expirationDays days"));
 
         return [
             'user_id' => $userId,

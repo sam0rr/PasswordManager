@@ -118,9 +118,9 @@ class SharingService extends BaseService
         return $this->encryption->encryptWithPublicKey($value, $recipientPublicKey);
     }
 
-    private function decryptFromPublicKey(string $encrypted, string $publicKey, string $userKey): string
+    private function decryptFromPublicKey(string $encrypted, string $userKey): string
     {
-        return $this->encryption->decryptFromPublicKey($encrypted, $publicKey, $userKey);
+        return $this->encryption->decryptFromPublicKey($encrypted, $userKey);
     }
 
     public function encryptShareInfo(UserPassword $password, User $recipient): void
@@ -164,16 +164,9 @@ class SharingService extends BaseService
         return strtotime($share->expires_at) < time();
     }
 
-    private function getCurrentUserPublicKey(): string
-    {
-        return $this->userBroker->findById($this->auth['user_id'])->public_key;
-    }
-
     private function acceptShare(PasswordSharing $share, string $userKey): void
     {
-        $publicKey = $this->getCurrentUserPublicKey();
-
-        $decryptedJson = $this->decryptFromPublicKey($share->encrypted_info, $publicKey, $userKey);
+        $decryptedJson = $this->decryptFromPublicKey($share->encrypted_info, $userKey);
 
         $info = PasswordSharingUtils::decodeInfo($decryptedJson);
 
