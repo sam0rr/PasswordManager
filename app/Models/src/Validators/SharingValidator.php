@@ -13,8 +13,8 @@ final class SharingValidator extends BaseValidator
     public static function assertShare(Form $form, UserBroker $userBroker, string $ownerId, bool $isHtmx): void
     {
         $emailField = $form->field("email", [
-            Rule::required("L’adresse courriel du destinataire est requise."),
-            Rule::email("L’adresse courriel du destinataire est invalide.")
+            Rule::required("Recipient Email Address Is Required."),
+            Rule::email("Recipient Email Address Is Invalid.")
         ]);
         self::optionalIf($emailField, $isHtmx);
 
@@ -30,9 +30,9 @@ final class SharingValidator extends BaseValidator
             $currentUser = $userBroker->findById($ownerId);
 
             if (!$recipient) {
-                $form->addError("email", "Aucun utilisateur trouvé avec cette adresse courriel.");
+                $form->addError("email", "No User Found With This Email Address.");
             } elseif ($recipient->id === $currentUser->id) {
-                $form->addError("email", "Vous ne pouvez pas partager un mot de passe avec vous-même.");
+                $form->addError("email", "You Cannot Share A Password With Yourself.");
             }
 
             if ($form->hasError()) {

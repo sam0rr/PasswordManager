@@ -15,4 +15,5 @@ final class PasswordSharing extends Entity
     public string $expires_at;
     public string $created_at;
     public string $updated_at;
+
 }

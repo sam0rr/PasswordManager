@@ -2,12 +2,10 @@
 
 namespace Models\src\Services;
 
-use Exception;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\AuthHistoryBroker;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\BaseService;
-use Throwable;
 
 final class AuthHistoryService extends BaseService
 {
@@ -25,7 +23,7 @@ final class AuthHistoryService extends BaseService
             return $this->authHistoryBroker->getHistoryForUser($userId);
 
         } catch (FormException) {
-            $form->addError("global", "Erreur lors du fetch de l'historique.");
+            $form->addError("global", "Failed To Get History From User.");
             throw new FormException($form);
         }
     }
@@ -41,7 +39,7 @@ final class AuthHistoryService extends BaseService
                 "form" => $form
             ];
         } catch (FormException) {
-            $form->addError("global", "Erreur lors de la suppression.");
+            $form->addError("global", "Failed To Delete History.");
             throw new FormException($form);
         }
     }
@@ -56,7 +54,7 @@ final class AuthHistoryService extends BaseService
             ];
 
         } catch (FormException) {
-            $form->addError("global", "Erreur lors de la suppression.");
+            $form->addError("global", "Failed To Delete Single History.");
             throw new FormException($form);
         }
     }

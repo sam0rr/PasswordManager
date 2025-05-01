@@ -15,16 +15,16 @@ final class AvatarService extends BaseService
     private function processUpload(array $file): array
     {
         if (empty($file) || !isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
-            return ['error' => 'Échec de l\'upload.'];
+            return ['error' => 'Upload failed.'];
         }
 
         if (!is_uploaded_file($file['tmp_name'])) {
-            return ['error' => 'Fichier non valide ou non sécurisé.'];
+            return ['error' => 'Invalid or unsafe file.'];
         }
 
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
-            return ['error' => 'Extension de fichier non autorisée.'];
+            return ['error' => 'File extension not allowed.'];
         }
 
         $filename = uniqid('avatar_', true) . '.' . $extension;
@@ -32,14 +32,14 @@ final class AvatarService extends BaseService
 
         if (!is_dir($uploadDir)) {
             if (!mkdir($uploadDir, 0755, true)) {
-                return ['error' => 'Impossible de créer le dossier d\'upload.'];
+                return ['error' => 'Failed to create upload directory.'];
             }
         }
 
         $uploadPath = $uploadDir . '/' . $filename;
 
         if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
-            return ['error' => 'Impossible de sauvegarder le fichier.'];
+            return ['error' => 'Failed to save uploaded file.'];
         }
 
         return ['publicUrl' => self::UPLOAD_FOLDER . '/' . $filename];

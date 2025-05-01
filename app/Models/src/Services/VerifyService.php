@@ -218,15 +218,14 @@ final class VerifyService extends BaseService
 
         $isValid = $service->verifyCode($this->auth['user_id'], $code);
         if (!$isValid) {
-            $form->addError('code', 'Le code est invalide.');
+            $form->addError('code', 'Invalid Code.');
             throw new FormException($form);
         }
 
-        // Skip expiration check for authenticator method (it does it itself)
         if ($method !== 'authenticator') {
             $methodEntity = $this->getMethod($method);
             if ($this->isCodeExpired($methodEntity)) {
-                $form->addError('code', 'Ce code a expiré. Veuillez en demander un nouveau.');
+                $form->addError('code', 'This Code Has Expired. Please Request A New One.');
                 throw new FormException($form);
             }
         }
@@ -351,7 +350,7 @@ final class VerifyService extends BaseService
         return match ($method) {
             'authenticator' => $this->authenticatorMfaService->generateSecret(),
             'mail', 'sms' => '000000',
-            default => throw new RuntimeExceptionAlias("Méthode MFA inconnue: $method")
+            default => throw new RuntimeExceptionAlias("Invalid MFA Method: $method")
         };
     }
 

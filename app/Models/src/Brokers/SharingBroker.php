@@ -89,4 +89,5 @@ final class SharingBroker extends DatabaseBroker
         $this->rawQuery($sql, [$shareId]);
         return $this->getLastAffectedCount() > 0;
     }
+
 }

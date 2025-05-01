@@ -17,7 +17,7 @@ final class PasswordService extends BaseService
                 $this->auth['user_key']
             );
         } catch (FormException) {
-            $form->addError("global", "Erreur lors du fetch des mots de passe.");
+            $form->addError("global", "Failed To Fetch Passwords.");
             throw new FormException($form);
         }
     }
@@ -91,7 +91,7 @@ final class PasswordService extends BaseService
                 "form" => $form
             ];
         } catch (FormException) {
-            $form->addError("global", "Erreur lors de la suppression.");
+            $form->addError("global", "Failed To Delete Password.");
             throw new FormException($form);
         }
     }

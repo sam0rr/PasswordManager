@@ -13,37 +13,37 @@ final class AuthValidator extends BaseValidator
     public static function assertRegister(Form $form, UserBroker $broker, bool $isHtmx): void
     {
         $firstNameField = $form->field("first_name", [
-            Rule::required("Le prénom est requis."),
-            Rule::minLength(2, "Le prénom doit contenir au moins 2 caractères.")
+            Rule::required("First Name Is Required."),
+            Rule::minLength(2, "First Name Must Be At Least 2 Characters.")
         ]);
         self::optionalIf($firstNameField, $isHtmx);
 
         $lastNameField = $form->field("last_name", [
-            Rule::required("Le nom est requis."),
-            Rule::minLength(2, "Le nom doit contenir au moins 2 caractères.")
+            Rule::required("Last Name Is Required."),
+            Rule::minLength(2, "Last Name Must Be At Least 2 Characters.")
         ]);
         self::optionalIf($lastNameField, $isHtmx);
 
         $emailField = $form->field("email", [
-            Rule::required("L'adresse courriel est requise."),
-            Rule::email("L'adresse courriel n'est pas valide.")
+            Rule::required("Email Address Is Required."),
+            Rule::email("Email Address Is Invalid.")
         ]);
         self::optionalIf($emailField, $isHtmx);
 
         $phoneField = $form->field("phone", [
-            Rule::required("Le numéro de téléphone est requis."),
-            Rule::phone("Le numéro de téléphone n'est pas valide.")
+            Rule::required("Phone Number Is Required."),
+            Rule::phone("Phone Number Is Invalid.")
         ]);
         self::optionalIf($phoneField, $isHtmx);
 
         $passwordField = $form->field("password", [
-            Rule::required("Le mot de passe est requis."),
-            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
+            Rule::required("Password Is Required."),
+            Rule::minLength(8, "Password Must Be At Least 8 Characters.")
         ]);
         self::optionalIf($passwordField, $isHtmx);
 
         if ($broker->emailExists($form->getValue("email"))) {
-            $form->addError("email", "Cette adresse courriel est déjà utilisée.");
+            $form->addError("email", "This Email Address Is Already In Use.");
         }
         self::optionalIf($emailField, $isHtmx);
 
@@ -57,14 +57,14 @@ final class AuthValidator extends BaseValidator
     public static function assertLogin(Form $form, bool $isHtmx): void
     {
         $emailField = $form->field("email", [
-            Rule::required("L'adresse courriel est requise."),
-            Rule::email("L'adresse courriel n'est pas valide.")
+            Rule::required("Email Address Is Required."),
+            Rule::email("Email Address Is Invalid.")
         ]);
         self::optionalIf($emailField, $isHtmx);
 
         $passwordField = $form->field("password", [
-            Rule::required("Le mot de passe est requis."),
-            Rule::minLength(8, "Le mot de passe doit contenir au moins 8 caractères.")
+            Rule::required("Password Is Required."),
+            Rule::minLength(8, "Password Must Be At Least 8 Characters.")
         ]);
         self::optionalIf($passwordField, $isHtmx);
 

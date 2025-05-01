@@ -143,4 +143,5 @@ final class VerifyBroker extends DatabaseBroker
         $verify->otp_secret = $this->encryption->decryptWithUserKey($verify->otp_secret, $userKey);
         return $verify;
     }
+
 }

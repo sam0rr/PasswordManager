@@ -14,22 +14,22 @@ final class PasswordValidator extends BaseValidator
     public static function assertAdd(Form $form, PasswordBroker $broker, string $userId, bool $isHtmx): void
     {
         $descField = $form->field("description", [
-            Rule::required("La description est requise."),
-            Rule::minLength(2, "La description doit contenir au moins 2 caractères."),
-            Rule::maxLength(25, "La description doit contenir au maximum 25 caractères.")
+            Rule::required("Description Is Required."),
+            Rule::minLength(2, "Description Must Be At Least 2 Characters."),
+            Rule::maxLength(25, "Description Must Be No More Than 25 Characters.")
         ]);
         self::optionalIf($descField, $isHtmx);
 
         $noteField = $form->field("note", [
-            Rule::required("La note est requise."),
-            Rule::minLength(2, "La note doit contenir au moins 2 caractères."),
-            Rule::maxLength(50, "La description doit contenir au maximum 50 caractères.")
+            Rule::required("Note Is Required."),
+            Rule::minLength(2, "Note Must Be At Least 2 Characters."),
+            Rule::maxLength(50, "Note Must Be No More Than 50 Characters.")
         ]);
         self::optionalIf($noteField, $isHtmx);
 
         $passwordField = $form->field("password", [
-            Rule::required("Le mot de passe est requis."),
-            Rule::minLength(2, "Le mot de passe doit contenir au moins 2 caractères.")
+            Rule::required("Password Is Required."),
+            Rule::minLength(2, "Password Must Be At Least 2 Characters.")
         ]);
         self::optionalIf($passwordField, $isHtmx);
 
@@ -37,7 +37,7 @@ final class PasswordValidator extends BaseValidator
 
         $desc = $form->getValue("description");
         if (!empty($desc) && $broker->descriptionExistsForUser($userId, $desc)) {
-            $form->addError("description", "Une description identique existe déjà.");
+            $form->addError("description", "A Password With This Description Already Exists.");
         }
 
         if ($form->hasError()) {
@@ -48,24 +48,24 @@ final class PasswordValidator extends BaseValidator
     public static function assertUpdate(Form $form, PasswordBroker $broker, string $userId, UserPassword $currentPassword, $userKey): void
     {
         $form->field("password", [
-            Rule::minLength(2, "Le mot de passe doit contenir au moins 2 caractères.")
+            Rule::minLength(2, "Password Must Be At Least 2 Characters.")
         ])->optional();
 
         $form->field("description", [
-            Rule::minLength(2, "La description doit contenir au moins 2 caractères."),
-            Rule::maxLength(25, "La description doit contenir au maximum 25 caractères.")
+            Rule::minLength(2, "Description Must Be At Least 2 Characters."),
+            Rule::maxLength(25, "Description Must Be No More Than 25 Characters.")
         ])->optional();
 
         $form->field("note", [
-            Rule::minLength(2, "La note doit contenir au moins 2 caractères."),
-            Rule::maxLength(50, "La description doit contenir au maximum 50 caractères.")
+            Rule::minLength(2, "Note Must Be At Least 2 Characters."),
+            Rule::maxLength(50, "Note Must Be No More Than 50 Characters.")
         ])->optional();
 
         $newDescription = $form->getValue("description");
         if (!empty($newDescription)) {
             $existing = $broker->findByDescriptionForUser($userId, $newDescription, $userKey);
             if ($existing && $existing->id !== $currentPassword->id) {
-                $form->addError("description", "Cette description est déjà utilisée.");
+                $form->addError("description", "This Description Is Already In Use.");
             }
         }
 

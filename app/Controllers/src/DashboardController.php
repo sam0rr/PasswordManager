@@ -81,7 +81,7 @@ final class DashboardController extends SecureController
     {
         $user = $this->base->userService->getCurrentUserEntity();
         if (!$user) {
-            $this->abortNotFound("Utilisateur introuvable.");
+            $this->abortNotFound("User Not Found.");
         }
         return $user;
     }
@@ -106,8 +106,7 @@ final class DashboardController extends SecureController
     {
         $unverified = $this->base->verify->getFirstUnverifiedAuthenticatorMethod();
         if ($unverified) {
-            $context['authenticator_warning_message'] = "Vous avez activé l’authentificator (TOTP). Veuillez scanner le code QR et saisir un code.";
+            $context['authenticator_warning_message'] = "You Have Enabled The Authenticator (TOTP). Please Scan The QR Code And Enter A Verification Code.";
         }
     }
-
 }

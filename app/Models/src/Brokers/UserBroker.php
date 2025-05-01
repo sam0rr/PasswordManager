@@ -115,4 +115,5 @@ final class UserBroker extends DatabaseBroker
 
         return $user;
     }
+
 }

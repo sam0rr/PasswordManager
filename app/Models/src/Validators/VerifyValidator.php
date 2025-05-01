@@ -12,9 +12,9 @@ final class VerifyValidator extends BaseValidator
     public static function assertConfirm(Form $form, bool $isHtmx): void
     {
         $code = $form->field("code", [
-            Rule::required("Le code MFA est requis."),
-            Rule::decimal("Le code doit être numérique."),
-            Rule::length(6, "Le code doit contenir 6 chiffres."),
+            Rule::required("MFA Code Is Required."),
+            Rule::decimal("Code Must Be Numeric."),
+            Rule::length(6, "Code Must Be 6 Digits."),
         ]);
         self::optionalIf($code, $isHtmx);
 
@@ -24,4 +24,5 @@ final class VerifyValidator extends BaseValidator
             throw new FormException($form);
         }
     }
+
 }

@@ -13,4 +13,5 @@ final class AuthHistory extends Entity
     public string $auth_timestamp;
     public string $result;
     public string $location;
+
 }

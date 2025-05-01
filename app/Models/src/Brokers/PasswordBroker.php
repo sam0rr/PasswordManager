@@ -142,4 +142,5 @@ final class PasswordBroker extends DatabaseBroker
 
         return $password;
     }
+
 }

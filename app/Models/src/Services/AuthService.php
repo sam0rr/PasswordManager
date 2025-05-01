@@ -137,7 +137,7 @@ final class AuthService
         $user = $this->userBroker->findByEmail($email);
 
         if (!$user || !$this->encryption->verifyPassword($password, $user->password_hash)) {
-            $form->addError("login", "Identifiants invalides.");
+            $form->addError("login", "Invalid Credentials.");
             throw new FormException($form);
         }
 

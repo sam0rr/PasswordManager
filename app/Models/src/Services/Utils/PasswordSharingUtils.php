@@ -21,7 +21,7 @@ final class PasswordSharingUtils
         $decoded = json_decode($json, true);
 
         if (!is_array($decoded) || !isset($decoded['email_from'], $decoded['password'], $decoded['description'], $decoded['note'])) {
-            throw new RuntimeException('Invalid encrypted_info format.');
+            throw new RuntimeException('Invalid encrypted_info Format.');
         }
 
         return $decoded;

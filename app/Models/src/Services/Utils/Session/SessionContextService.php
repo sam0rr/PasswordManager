@@ -66,14 +66,14 @@ final class SessionContextService
 
         $enc = Session::get(self::CONTEXT_KEY);
         if ($enc === null) {
-            throw new RuntimeException("No user context in session");
+            throw new RuntimeException("No User Context In Session");
         }
 
         $json = Cryptography::decrypt($enc);
         $data = json_decode($json, true);
 
         if (!is_array($data) || !isset($data['user_id'], $data['key'])) {
-            throw new RuntimeException("Invalid session context");
+            throw new RuntimeException("Invalid Session Context");
         }
 
         return self::$cachedContext = $data;

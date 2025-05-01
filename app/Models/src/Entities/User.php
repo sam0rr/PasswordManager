@@ -18,4 +18,5 @@ final class User extends Entity
     public string $public_key;
     public string $created_at;
     public string $updated_at;
+
 }

@@ -9,13 +9,13 @@
         <div class="d-md-none mb-3">
             <select class="form-select" id="profile-tab-selector" onchange="location.href=this.value;">
                 <option value="?section=profile&tab=info" {$profileTab == 'info' ? 'selected' : ''}>
-                    Change Information
+                    Information
                 </option>
                 <option value="?section=profile&tab=password" {$profileTab == 'password' ? 'selected' : ''}>
-                    Change Master Password
+                    Master Password
                 </option>
                 <option value="?section=profile&tab=mfa" {$profileTab == 'mfa' ? 'selected' : ''}>
-                    Double Authentication
+                    Authentication
                 </option>
             </select>
         </div>
@@ -23,17 +23,17 @@
         <ul class="nav nav-tabs d-none d-md-flex mb-4 flex-wrap">
             <li class="nav-item">
                 <a class="nav-link {$profileTab == 'info' ? 'active' : ''}" href="?section=profile&tab=info">
-                    Change Information
+                    Information
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {$profileTab == 'password' ? 'active' : ''}" href="?section=profile&tab=password">
-                    Change Master Password
+                    Master Password
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {$profileTab == 'mfa' ? 'active' : ''}" href="?section=profile&tab=mfa">
-                    Double Authentication
+                    Authentication
                 </a>
             </li>
         </ul>

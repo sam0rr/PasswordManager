@@ -59,7 +59,7 @@ final class UserService extends BaseService
             $newPassword = $form->getValue('new');
 
             if (!empty($currentPassword) && !$this->encryption->verifyPassword($currentPassword, $currentUser->password_hash)) {
-                $form->addError("old", "Mot de passe actuel invalide.");
+                $form->addError("old", "Invalid Current Password.");
                 throw new FormException($form);
             }
 
@@ -81,7 +81,7 @@ final class UserService extends BaseService
     public function updateAvatar(Form $form, ?array $avatarFile): array
     {
         if (empty($avatarFile) || $avatarFile['error'] !== UPLOAD_ERR_OK) {
-            $form->addError('avatar', "Veuillez sélectionner une image valide à uploader.");
+            $form->addError('avatar', "Please Select A Valid Image To Upload.");
             return $this->buildErrorResponse($form);
         }
 
@@ -94,7 +94,7 @@ final class UserService extends BaseService
         $imageUrl = $form->getValue('image_url');
 
         if (empty($imageUrl)) {
-            $form->addError('avatar', "Une erreur s'est produite lors de l'upload de l'image.");
+            $form->addError('avatar', "An Error Occurred While Uploading The Image.");
             return $this->buildErrorResponse($form);
         }
 

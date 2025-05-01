@@ -23,12 +23,12 @@ final class AuthController extends Controller
     {
         $form = new Form();
         if ($this->request->getParameter('error') === 'too_many_attempts') {
-            $form->addError('global', "Trop de tentatives échouées récemment. Veuillez réessayer plus tard.");
+            $form->addError('global', "Too Many Failed Attempts Recently. Please Try Again Later.");
         }
 
         return $this->render("auth/login", [
             "form" => $form,
-            "title" => "Connexion"
+            "title" => "Login"
         ]);
     }
 
@@ -50,7 +50,7 @@ final class AuthController extends Controller
         if (isset($result["errors"])) {
             return $this->render("auth/login", [
                 "form" => $result["form"],
-                "title" => "Connexion",
+                "title" => "Login",
                 "isHtmx" => false
             ]);
         }
@@ -67,7 +67,7 @@ final class AuthController extends Controller
     {
         return $this->render("auth/register", [
             "form" => new Form(),
-            "title" => "Inscription"
+            "title" => "Register"
         ]);
     }
 
@@ -79,20 +79,19 @@ final class AuthController extends Controller
 
         $result = $this->authService->register($form, $isHtmx);
 
-            if ($isHtmx) {
-                return $this->render("fragments/auth/registerForm", [
-                    "form" => $result["form"],
-                ]);
-            }
+        if ($isHtmx) {
+            return $this->render("fragments/auth/registerForm", [
+                "form" => $result["form"],
+            ]);
+        }
 
-            if (isset($result["errors"])) {
+        if (isset($result["errors"])) {
             return $this->render("auth/register", [
                 "form" => $result["form"],
-                "title" => "Inscription"
+                "title" => "Register"
             ]);
         }
 
         return $this->redirect("/login");
     }
-
 }

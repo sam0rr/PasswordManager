@@ -38,7 +38,7 @@ final class SharingService extends BaseService
                 $this->sharingBroker->markAsSuccess($share->id);
             } catch (ThrowableAlias $e) {
                 $this->sharingBroker->markAsFailed($share->id);
-                error_log("Échec du partage #$share->id : " . $e->getMessage());
+                error_log("Sharing Failed #$share->id : " . $e->getMessage());
             }
         }
     }
@@ -51,7 +51,7 @@ final class SharingService extends BaseService
             return $this->sharingBroker->findAllSharesByOwner($userId);
 
         } catch (FormException) {
-            $form->addError("global", "Erreur lors du fetch des shares.");
+            $form->addError("global", "Failed To Get All Shares.");
             throw new FormException($form);
         }
     }
@@ -67,7 +67,7 @@ final class SharingService extends BaseService
             ];
 
         } catch (FormException) {
-            $form->addError("global", "Erreur lors de la suppression.");
+            $form->addError("global", "Failed To Delete Share.");
             throw new FormException($form);
         }
     }
@@ -185,7 +185,7 @@ final class SharingService extends BaseService
     private function assertRecipientHasNotThisDescription(Form $form, string $recipientId, string $descriptionHash): void
     {
         if ($this->passwordBroker->descriptionHashExistsForUser($recipientId, $descriptionHash)) {
-            $form->addError("email", "L'utilisateur possède déjà ce mot de passe.");
+            $form->addError("email", "The Recipient Already Has This Password.");
             throw new FormException($form);
         }
     }
@@ -193,7 +193,7 @@ final class SharingService extends BaseService
     private function assertNotAlreadyShared(Form $form, string $ownerId, string $recipientId, string $descriptionHash): void
     {
         if ($this->sharingBroker->isAlreadyShared($ownerId, $recipientId, $descriptionHash)) {
-            $form->addError("email", "Ce mot de passe est déjà partagé avec cet utilisateur.");
+            $form->addError("email", "This Password Is Already Shared With This Recipient.");
             throw new FormException($form);
         }
     }
@@ -201,7 +201,7 @@ final class SharingService extends BaseService
     private function assertUniqueDescription(string $descriptionHash): void
     {
         if ($this->passwordBroker->descriptionHashExistsForUser($this->auth['user_id'], $descriptionHash)) {
-            throw new RuntimeException("Conflit : un mot de passe avec cette description existe déjà.");
+            throw new RuntimeException("Conflit : A Password With This Description Already Exists.");
         }
     }
 
