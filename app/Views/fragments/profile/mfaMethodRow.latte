@@ -8,10 +8,10 @@
         <div class="fw-bold text-dark">
             <i class="bi bi-lock-fill me-2"></i>
             {switch $methodType}
-                {case 'mail'}Authentification par courriel
-                {case 'sms'}Authentification par SMS
+                {case 'mail'}Mail Authentication
+                {case 'sms'}SMS Authentication
                 {case 'authenticator'}Application Authenticator (TOTP)
-                {default}Méthode inconnue
+                {default}Method Not Found
             {/switch}
         </div>
     </div>
@@ -29,31 +29,31 @@
                                 }
 
                                 {if !$isExpired}
-                                    Vérifiée : {$method->last_verified|date:'d/m/Y à H:i'}
+                                    Verified: {$method->last_verified|date:'d/m/Y at H:i'}
                                     {if $method->grace_period_enabled}
                                         <span class="badge bg-success ms-2 align-middle">
-                                            Valide pour {ceil((strtotime($method->last_verified) + ($mfa_grace_period_days * 86400) - time()) / 86400)} jours
+                                            Valid For {ceil((strtotime($method->last_verified) + ($mfa_grace_period_days * 86400) - time()) / 86400)} Days
                                         </span>
                                     {else}
                                         <span class="badge bg-success ms-2 align-middle">
-                                            Valide
+                                            Verified
                                         </span>
                                     {/if}
                                 {else}
-                                    <span class="badge bg-danger ms-2 align-middle">Expiré</span>
+                                    <span class="badge bg-danger ms-2 align-middle">Expired</span>
                                 {/if}
                             {else}
-                                <span class="text-muted">Jamais vérifiée</span>
+                                <span class="text-muted">Never Verified</span>
                             {/if}
                         {else}
-                            <span class="text-muted">Méthode désactivée</span>
+                            <span class="text-muted">Method Disabled</span>
                         {/if}
                     </div>
 
                     {if $method && $method->is_active && $method->grace_period_enabled}
                         <div class="text-muted small mt-1">
                             <i class="bi bi-info-circle me-1"></i>
-                            Période de grâce active.
+                            Grace Period Enabled
                         </div>
                     {/if}
                 </div>
@@ -77,7 +77,7 @@
                                 methodType => $methodType,
                                 style => 'primary',
                                 icon => 'calendar-x',
-                                label => 'Désactiver grâce',
+                                label => 'Disable Grace Period',
                                 size => 'sm'
                                 }
                             {else}
@@ -86,7 +86,7 @@
                                 methodType => $methodType,
                                 style => 'primary',
                                 icon => 'calendar-check',
-                                label => 'Activer grâce',
+                                label => 'Enable Grace Period',
                                 size => 'sm'
                                 }
                             {/if}
@@ -96,7 +96,7 @@
                             methodType => $methodType,
                             style => 'outline-danger',
                             icon => 'x-circle',
-                            label => 'Désactiver',
+                            label => 'Disable',
                             size => 'sm'
                             }
                         {else}
@@ -105,7 +105,7 @@
                             methodType => $methodType,
                             style => 'primary',
                             icon => 'shield-plus',
-                            label => 'Activer',
+                            label => 'Enable',
                             size => 'sm'
                             }
                         {/if}

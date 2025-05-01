@@ -5,36 +5,36 @@
                 <i class="bi bi-lock-fill me-2"></i>{$entry['description']}
             </div>
             <div class="text-muted small fst-italic">
-                {$entry['note'] ?? 'Aucune note'}
+                {$entry['note'] ?? 'No Note'}
             </div>
             <div class="text-muted small mt-1">
-                Entropie : <code>{$entry['entropy']}</code>
+                Entropy: <code>{$entry['entropy']}</code>
             </div>
         </div>
         <div class="text-end w-100 w-md-50">
             <div class="mb-1">
                 {if $entry['strength'] === 'Strong'}
                     <span class="badge bg-success">
-                        <i class="bi bi-bar-chart-fill me-1"></i>Fort
+                        <i class="bi bi-bar-chart-fill me-1"></i>Strong
                     </span>
                 {elseif $entry['strength'] === 'Medium'}
                     <span class="badge bg-warning text-dark">
-                        <i class="bi bi-bar-chart-fill me-1"></i>Moyen
+                        <i class="bi bi-bar-chart-fill me-1"></i>Medium
                     </span>
                 {else}
                     <span class="badge bg-danger">
-                        <i class="bi bi-bar-chart-fill me-1"></i>Faible
+                        <i class="bi bi-bar-chart-fill me-1"></i>Weak
                     </span>
                 {/if}
             </div>
             <div>
                 {if $entry['breach_count'] > 0}
                     <span class="text-danger fw-bold">
-                        <i class="bi bi-exclamation-triangle me-1"></i>{$entry['breach_count']} fuite(s)
+                        <i class="bi bi-exclamation-triangle me-1"></i>{$entry['breach_count']} Breach(es)
                     </span>
                 {else}
                     <span class="text-success">
-                        <i class="bi bi-shield-check me-1"></i>Aucune fuite
+                        <i class="bi bi-shield-check me-1"></i>No Breach Detected
                     </span>
                 {/if}
             </div>

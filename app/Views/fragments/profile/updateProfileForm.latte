@@ -13,7 +13,7 @@
 
         {include '../../components/formField.latte',
         name => 'first_name',
-        label => 'Prénom',
+        label => 'Firstname',
         icon => 'person',
         form => $form,
         value => $form->getValue('first_name') ?: $user->first_name
@@ -21,7 +21,7 @@
 
         {include '../../components/formField.latte',
         name => 'last_name',
-        label => 'Nom',
+        label => 'Lastname',
         icon => 'person-badge',
         form => $form,
         value => $form->getValue('last_name') ?: $user->last_name
@@ -29,7 +29,7 @@
 
         {include '../../components/formField.latte',
         name => 'email',
-        label => 'Adresse courriel',
+        label => 'Email',
         icon => 'envelope',
         form => $form,
         value => $form->getValue('email') ?: $user->email
@@ -37,7 +37,7 @@
 
         {include '../../components/formField.latte',
         name => 'phone',
-        label => 'Téléphone',
+        label => 'Phone',
         icon => 'telephone',
         form => $form,
         value => $form->getValue('phone') ?: $user->phone
@@ -45,7 +45,7 @@
 
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-save me-2"></i> Enregistrer
+                <i class="bi bi-save me-2"></i> Save
             </button>
         </div>
     </form>

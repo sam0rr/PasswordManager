@@ -1,4 +1,3 @@
-{* fragments/history/historyCard.latte *}
 {define #historyCard}
     <div class="accordion-item mb-2">
         <h2 class="accordion-header d-flex align-items-center" id="heading-{$history->id}">
@@ -17,11 +16,11 @@
                 </span>
                 {if $history->result === 'success'}
                     <span class="badge bg-success text-nowrap">
-                        <i class="bi bi-check-circle me-1"></i>Succès
+                        <i class="bi bi-check-circle me-1"></i>Success
                     </span>
                 {else}
                     <span class="badge bg-danger text-nowrap">
-                        <i class="bi bi-x-circle me-1"></i>Échec
+                        <i class="bi bi-x-circle me-1"></i>Fail
                     </span>
                 {/if}
             </button>

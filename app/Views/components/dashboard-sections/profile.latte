@@ -2,20 +2,20 @@
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white">
-        <h5 class="mb-0">Paramètres du compte</h5>
+        <h5 class="mb-0">Account Manager</h5>
     </div>
 
     <div class="card-body">
         <div class="d-md-none mb-3">
             <select class="form-select" id="profile-tab-selector" onchange="location.href=this.value;">
                 <option value="?section=profile&tab=info" {$profileTab == 'info' ? 'selected' : ''}>
-                    Modifier mes informations
+                    Change Information
                 </option>
                 <option value="?section=profile&tab=password" {$profileTab == 'password' ? 'selected' : ''}>
-                    Changer mon mot de passe
+                    Change Master Password
                 </option>
                 <option value="?section=profile&tab=mfa" {$profileTab == 'mfa' ? 'selected' : ''}>
-                    Double authentification
+                    Double Authentication
                 </option>
             </select>
         </div>
@@ -23,17 +23,17 @@
         <ul class="nav nav-tabs d-none d-md-flex mb-4 flex-wrap">
             <li class="nav-item">
                 <a class="nav-link {$profileTab == 'info' ? 'active' : ''}" href="?section=profile&tab=info">
-                    Modifier mes informations
+                    Change Information
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {$profileTab == 'password' ? 'active' : ''}" href="?section=profile&tab=password">
-                    Changer mon mot de passe
+                    Change Master Password
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {$profileTab == 'mfa' ? 'active' : ''}" href="?section=profile&tab=mfa">
-                    Double authentification
+                    Double Authentication
                 </a>
             </li>
         </ul>

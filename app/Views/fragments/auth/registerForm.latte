@@ -9,15 +9,15 @@
           novalidate>
         {$csrf_keep_alive|noescape}
 
-        {include '../../components/formField.latte', name => 'first_name', label => 'Prénom', icon => 'person'}
-        {include '../../components/formField.latte', name => 'last_name', label => 'Nom', icon => 'person-badge'}
-        {include '../../components/formField.latte', name => 'email', label => 'Adresse courriel', icon => 'envelope'}
-        {include '../../components/formField.latte', name => 'phone', label => 'Téléphone', icon => 'telephone'}
-        {include '../../components/formField.latte', name => 'password', label => 'Mot de passe', icon => 'lock', type => 'password'}
+        {include '../../components/formField.latte', name => 'first_name', label => 'Firstname', icon => 'person'}
+        {include '../../components/formField.latte', name => 'last_name', label => 'Lastname', icon => 'person-badge'}
+        {include '../../components/formField.latte', name => 'email', label => 'Mail', icon => 'envelope'}
+        {include '../../components/formField.latte', name => 'phone', label => 'Phone', icon => 'telephone'}
+        {include '../../components/formField.latte', name => 'password', label => 'Password', icon => 'lock', type => 'password'}
 
         <div class="d-grid gap-2">
             <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-person-plus me-2"></i>S'inscrire
+                <i class="bi bi-person-plus me-2"></i>Register
             </button>
         </div>
     </form>

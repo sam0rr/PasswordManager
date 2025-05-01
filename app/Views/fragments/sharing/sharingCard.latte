@@ -2,10 +2,9 @@
     <div class="col-md-6">
         <div class="card shadow-sm h-100">
             <div class="card-body">
-                <!-- En-tête -->
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h5 class="card-title mb-1">
-                        <i class="bi bi-lock-fill me-1"></i>Partage
+                        <i class="bi bi-lock-fill me-1"></i>Share
                     </h5>
                     <div class="d-flex gap-2">
                         <form method="post" action="/share/{$share->id}/delete">
@@ -17,39 +16,38 @@
                     </div>
                 </div>
 
-                <!-- Badge de statut -->
                 <div class="mb-3">
                     {if $share->status === 'success'}
                         <span class="badge bg-success">
-                            <i class="bi bi-check-circle me-1"></i>Accepté
+                            <i class="bi bi-check-circle me-1"></i>Accepted
                         </span>
                     {elseif $share->status === 'pending'}
                         <span class="badge bg-warning text-dark">
-                            <i class="bi bi-hourglass-split me-1"></i>En attente
+                            <i class="bi bi-hourglass-split me-1"></i>Pending
                         </span>
                     {elseif $share->status === 'fail'}
                         <span class="badge bg-danger">
-                            <i class="bi bi-x-circle me-1"></i>Échoué
+                            <i class="bi bi-x-circle me-1"></i>Failed
                         </span>
                     {else}
                         <span class="badge bg-secondary">
-                            <i class="bi bi-question-circle me-1"></i>Inconnu
+                            <i class="bi bi-question-circle me-1"></i>Unknown
                         </span>
                     {/if}
                 </div>
 
                 <ul class="list-unstyled small mb-0 px-4">
                     <li class="d-flex justify-content-between mb-1">
-                        <span class="fw-bold">Créé le :</span>
-                        <span class="text-muted">{$share->created_at|date:'d/m/Y à H:i'}</span>
+                        <span class="fw-bold">Created On:</span>
+                        <span class="text-muted">{$share->created_at|date:'d/m/Y at H:i'}</span>
                     </li>
                     <li class="d-flex justify-content-between mb-1">
-                        <span class="fw-bold">Modifié le :</span>
-                        <span class="text-muted">{$share->updated_at|date:'d/m/Y à H:i'}</span>
+                        <span class="fw-bold">Last Modified:</span>
+                        <span class="text-muted">{$share->updated_at|date:'d/m/Y at H:i'}</span>
                     </li>
                     <li class="d-flex justify-content-between">
-                        <span class="fw-bold">Expiration :</span>
-                        <span class="text-muted">{$share->expires_at|date:'d/m/Y à H:i'}</span>
+                        <span class="fw-bold">Expires On:</span>
+                        <span class="text-muted">{$share->expires_at|date:'d/m/Y at H:i'}</span>
                     </li>
                 </ul>
             </div>
