@@ -1,25 +1,22 @@
 {import '../../fragments/history/historyCard.latte'}
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Historique de connexions</h5>
-        {if count($auth_history) > 0}
-            <form method="post" action="/history/deleteAll">
-                <button type="submit" class="btn btn-sm btn-outline-danger">
-                    <i class="bi bi-trash me-1"></i> Tout supprimer
-                </button>
-            </form>
-        {/if}
-    </div>
-    <div class="card-body">
-        {if count($auth_history) > 0}
-            <div class="list-group list-group-flush">
-                {foreach $auth_history as $history}
-                    {include #historyCard, history => $history}
-                {/foreach}
-            </div>
-        {else}
-            <p class="text-muted">Aucun historique disponible.</p>
-        {/if}
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Historique de connexions</h5>
+    {if count($auth_history) > 0}
+        <form method="post" action="/history/deleteAll">
+            <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap">
+                <i class="bi bi-trash me-1"></i>Tout supprimer
+            </button>
+        </form>
+    {/if}
 </div>
+
+{if count($auth_history) > 0}
+    <div id="accordionHistory" class="accordion">
+        {foreach $auth_history as $history}
+            {include #historyCard, history => $history}
+        {/foreach}
+    </div>
+{else}
+    <p class="text-muted">Aucun historique disponible.</p>
+{/if}

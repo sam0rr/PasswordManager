@@ -1,40 +1,52 @@
+{* fragments/history/historyCard.latte *}
 {define #historyCard}
-    <div class="list-group-item d-flex justify-content-between align-items-center flex-column flex-md-row">
-        <div class="mb-2 mb-md-0 w-100 w-md-50">
-            <div class="fw-bold text-dark">
+    <div class="accordion-item mb-2">
+        <h2 class="accordion-header d-flex align-items-center" id="heading-{$history->id}">
+            <button
+                    class="accordion-button collapsed flex-grow-1 bg-transparent border-0 text-dark ps-2"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{$history->id}"
+                    aria-expanded="false"
+                    aria-controls="collapse-{$history->id}"
+                    style="box-shadow: none !important; outline: none !important;"
+            >
                 <i class="bi bi-clock-history me-2"></i>
-                {date('d/m/Y H:i', strtotime($history->auth_timestamp))}
-            </div>
-            <div class="text-muted small mt-1">
-                <i class="bi bi-browser-chrome me-1"></i>
-                {$history->user_agent|truncate:50}
-            </div>
-        </div>
-
-        <div class="text-end w-100 w-md-50">
-            <div>
-                <i class="bi bi-geo-alt-fill me-1"></i><span class="me-2">{$history->location}</span>
-                <i class="bi bi-router-fill me-1"></i>{$history->ip_address}
-            </div>
-            <div class="mt-1">
+                <span class="fw-bold me-3">
+                    {date('d/m/Y H:i', strtotime($history->auth_timestamp))}
+                </span>
                 {if $history->result === 'success'}
-                    <span class="badge bg-success">
+                    <span class="badge bg-success text-nowrap">
                         <i class="bi bi-check-circle me-1"></i>Succès
                     </span>
                 {else}
-                    <span class="badge bg-danger">
+                    <span class="badge bg-danger text-nowrap">
                         <i class="bi bi-x-circle me-1"></i>Échec
                     </span>
                 {/if}
-            </div>
-        </div>
-
-        <div class="ms-3">
-            <form method="post" action="/history/{$history->id}/delete">
-                <button type="submit" class="btn btn-sm btn-outline-danger">
+            </button>
+            <form method="post"
+                  action="/history/{$history->id}/delete"
+                  class="ms-2 flex-shrink-0">
+                <button type="submit" class="btn btn-sm btn-outline-danger m-2">
                     <i class="bi bi-trash"></i>
                 </button>
             </form>
+        </h2>
+        <div id="collapse-{$history->id}"
+             class="accordion-collapse collapse"
+             aria-labelledby="heading-{$history->id}">
+            <div class="accordion-body small text-muted bg-white">
+                <div class="mb-1 text-truncate">
+                    <i class="bi bi-browser-chrome me-1"></i>{$history->user_agent}
+                </div>
+                <div class="mb-1">
+                    <i class="bi bi-geo-alt-fill me-1"></i>{$history->location ?: 'Inconnu'}
+                </div>
+                <div>
+                    <i class="bi bi-router-fill me-1"></i>{$history->ip_address}
+                </div>
+            </div>
         </div>
     </div>
 {/define}
