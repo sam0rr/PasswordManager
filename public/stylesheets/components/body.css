@@ -90,3 +90,10 @@ input, textarea, select, button {
 .nav-tabs .nav-link:hover {
     color: var(--bs-primary);
 }
+
+.dashboard-header .dropdown-toggle::after {
+    transition: transform 0.2s ease-in-out;
+}
+.dashboard-header .dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
