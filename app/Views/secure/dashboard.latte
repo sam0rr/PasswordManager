@@ -6,31 +6,31 @@
             {include '../components/alert/messageAlert.latte', message => $authenticator_warning_message, type => 'warning'}
         {/if}
         <div class="d-md-none mb-3">
-            <select class="form-select" id="section-selector">
-                <option value="?section=profile" {$activeSection == 'profile' ? 'selected' : ''}>Profil</option>
-                <option value="?section=passwords" {$activeSection == 'passwords' ? 'selected' : ''}>Mots de passe</option>
-                <option value="?section=history" {$activeSection == 'history' ? 'selected' : ''}>Historique</option>
-                <option value="?section=shares" {$activeSection == 'shares' ? 'selected' : ''}>Partages</option>
-                <option value="?section=security" {$activeSection == 'security' ? 'selected' : ''}>Sécurité</option>
-            </select>
+                <select class="form-select" id="section-selector">
+                    <option value="?section=profile" {$activeSection == 'profile' ? 'selected' : ''}>Profile</option>
+                    <option value="?section=passwords" {$activeSection == 'passwords' ? 'selected' : ''}>Passwords</option>
+                    <option value="?section=history" {$activeSection == 'history' ? 'selected' : ''}>Login History</option>
+                    <option value="?section=shares" {$activeSection == 'shares' ? 'selected' : ''}>Shared Credentials</option>
+                    <option value="?section=security" {$activeSection == 'security' ? 'selected' : ''}>Security Analysis</option>
+                </select>
         </div>
 
         <ul class="nav nav-tabs d-none d-md-flex mb-4 flex-wrap">
-            <li class="nav-item">
-                <a class="nav-link {$activeSection == 'profile' ? 'active' : ''}" href="?section=profile">Profil</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {$activeSection == 'passwords' ? 'active' : ''}" href="?section=passwords">Mots de passe</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {$activeSection == 'history' ? 'active' : ''}" href="?section=history">Historique</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {$activeSection == 'shares' ? 'active' : ''}" href="?section=shares">Partages</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {$activeSection == 'security' ? 'active' : ''}" href="?section=security">Sécurité</a>
-            </li>
+                <li class="nav-item">
+                    <a class="nav-link {$activeSection == 'profile' ? 'active' : ''}" href="?section=profile">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {$activeSection == 'passwords' ? 'active' : ''}" href="?section=passwords">Passwords</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {$activeSection == 'history' ? 'active' : ''}" href="?section=history">Login History</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {$activeSection == 'shares' ? 'active' : ''}" href="?section=shares">Shared Credentials</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {$activeSection == 'security' ? 'active' : ''}" href="?section=security">Security Analysis</a>
+                </li>
         </ul>
 
         {if $activeSection == 'profile'}
@@ -45,7 +45,4 @@
             {include '../components/dashboard-sections/security.latte', security_analysis => $security_analysis}
         {/if}
     </div>
-
 {/block}
-
-

@@ -12,14 +12,14 @@
 
     <input type="hidden" name="method" value="authenticator">
 
-    {include '../../components/formField.latte', name => 'code', label => 'Entrez le code à 6 chiffres', icon => 'shield-lock', form => $form}
+    {include '../../components/formField.latte', name => 'code', label => 'Enter The 6-Digit Code', icon => 'shield-lock', form => $form}
 
     <div class="d-flex justify-content-end gap-2 mt-4">
         <button type="submit" class="btn btn-primary">
-            <i class="bi bi-shield-check me-2"></i>Vérifier
+            <i class="bi bi-shield-check me-2"></i>Verify
         </button>
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-            Fermer
+            Dismiss
         </button>
     </div>
 </form>
