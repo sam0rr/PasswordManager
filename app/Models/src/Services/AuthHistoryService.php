@@ -2,9 +2,11 @@
 
 namespace Models\src\Services;
 
+use Exception;
 use Models\src\Brokers\AuthHistoryBroker;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\BaseService;
+use Throwable;
 
 final class AuthHistoryService extends BaseService
 {
@@ -14,15 +16,63 @@ final class AuthHistoryService extends BaseService
         }
     }
 
+    /**
+     * @throws Exception
+     */
+    public function deleteAll(): array
+    {
+        try {
+            $userId = $this->auth['user_id'] ?? null;
+
+            if (!$userId) {
+                return [];
+            }
+
+            $this->authHistoryBroker->deleteAll($userId);
+
+            return $this->authHistoryBroker->getHistoryForUser($userId);
+        } catch (Throwable $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function deleteSingle(string $historyId) : array
+    {
+        try {
+            $userId = $this->auth['user_id'] ?? null;
+
+            if (!$userId) {
+                return [];
+            }
+
+            $this->authHistoryBroker->deleteSingle($historyId);
+
+            return $this->authHistoryBroker->getHistoryForUser($userId);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
     public function getHistoryForUser(): array
     {
-        $userId = $this->auth['user_id'] ?? null;
+        try {
+            $userId = $this->auth['user_id'] ?? null;
 
-        if (!$userId) {
-            return [];
+            if (!$userId) {
+                return [];
+            }
+
+            return $this->authHistoryBroker->getHistoryForUser($userId);
+        } catch (Throwable $e) {
+            throw new Exception($e->getMessage());
         }
 
-        return $this->authHistoryBroker->getHistoryForUser($userId);
     }
 
     public function hasTooManyAttempts(string $userId, int $minutes = 10, int $maxAttempts = 5): bool

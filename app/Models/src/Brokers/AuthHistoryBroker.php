@@ -46,4 +46,18 @@ final class AuthHistoryBroker extends DatabaseBroker
         return (int) $this->selectSingle($sql, [$userId])->attempt_count;
     }
 
+    public function deleteSingle(string $historyId): bool
+    {
+        $sql = "DELETE FROM auth_history WHERE id = ?";
+        $this->query($sql, [$historyId]);
+        return $this->getLastAffectedCount() > 0;
+    }
+
+    public function deleteAll(string $userId): bool
+    {
+        $sql = "DELETE FROM auth_history WHERE user_id = ?";
+        $this->query($sql, [$userId]);
+        return $this->getLastAffectedCount() > 0;
+    }
+
 }
