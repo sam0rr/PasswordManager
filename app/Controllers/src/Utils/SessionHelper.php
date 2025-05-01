@@ -61,7 +61,7 @@ final class SessionHelper
 
     public static function setForm(string $key, Form $form): void
     {
-        Session::set("form__{$key}", [
+        Session::set("form__$key", [
             'values' => $form->getFields(),
             'errors' => $form->getErrors()
         ]);
@@ -75,7 +75,7 @@ final class SessionHelper
             return $form;
         }
 
-        $stored = Session::get("form__{$key}");
+        $stored = Session::get("form__$key");
         if (!is_array($stored)) {
             return $form;
         }
@@ -95,7 +95,7 @@ final class SessionHelper
 
     public static function clearForm(string $key): void
     {
-        Session::remove("form__{$key}");
+        Session::remove("form__$key");
     }
 
     public static function consume(string $key, mixed $default = null): mixed
