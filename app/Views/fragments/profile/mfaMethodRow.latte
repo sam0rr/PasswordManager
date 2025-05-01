@@ -29,7 +29,7 @@
                                 }
 
                                 {if !$isExpired}
-                                    Verified: {$method->last_verified|date:'d/m/Y at H:i'}
+                                    Verified: {$method->last_verified|date:'d/m/Y H:i'}
                                     {if $method->grace_period_enabled}
                                         <span class="badge bg-success ms-2 align-middle">
                                             Valid For {ceil((strtotime($method->last_verified) + ($mfa_grace_period_days * 86400) - time()) / 86400)} Days
