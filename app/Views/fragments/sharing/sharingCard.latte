@@ -2,44 +2,55 @@
     <div class="col-md-6">
         <div class="card shadow-sm h-100">
             <div class="card-body">
+                <!-- En-tête -->
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h5 class="card-title mb-1">
-                        <i class="bi bi-lock-fill me-1"></i> Partage
+                        <i class="bi bi-lock-fill me-1"></i>Partage
                     </h5>
                     <div class="d-flex gap-2">
                         <form method="post" action="/share/{$share->id}/delete">
                             <input type="hidden" name="_method" value="DELETE">
                             <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash me-1"></i> Supprimer
+                                <i class="bi bi-trash"></i>
                             </button>
                         </form>
                     </div>
                 </div>
 
+                <!-- Badge de statut -->
                 <div class="mb-3">
-                    {if $share->status == 'success'}
+                    {if $share->status === 'success'}
                         <span class="badge bg-success">
-                            <i class="bi bi-check-circle me-1"></i> Accepté
+                            <i class="bi bi-check-circle me-1"></i>Accepté
                         </span>
-                    {elseif $share->status == 'pending'}
+                    {elseif $share->status === 'pending'}
                         <span class="badge bg-warning text-dark">
-                            <i class="bi bi-hourglass-split me-1"></i> En attente
+                            <i class="bi bi-hourglass-split me-1"></i>En attente
                         </span>
-                    {elseif $share->status == 'fail'}
+                    {elseif $share->status === 'fail'}
                         <span class="badge bg-danger">
-                            <i class="bi bi-x-circle me-1"></i> Échoué
+                            <i class="bi bi-x-circle me-1"></i>Échoué
                         </span>
                     {else}
                         <span class="badge bg-secondary">
-                            <i class="bi bi-question-circle me-1"></i> Inconnu
+                            <i class="bi bi-question-circle me-1"></i>Inconnu
                         </span>
                     {/if}
                 </div>
 
-                <ul class="list-unstyled small mb-0">
-                    <li><strong>Créé le :</strong> {$share->created_at|date:'d/m/Y à H:i'}</li>
-                    <li><strong>Modifié le :</strong> {$share->updated_at|date:'d/m/Y à H:i'}</li>
-                    <li><strong>Expiration :</strong> {$share->expires_at|date:'d/m/Y à H:i'}</li>
+                <ul class="list-unstyled small mb-0 px-4">
+                    <li class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold">Créé le :</span>
+                        <span class="text-muted">{$share->created_at|date:'d/m/Y à H:i'}</span>
+                    </li>
+                    <li class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold">Modifié le :</span>
+                        <span class="text-muted">{$share->updated_at|date:'d/m/Y à H:i'}</span>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span class="fw-bold">Expiration :</span>
+                        <span class="text-muted">{$share->expires_at|date:'d/m/Y à H:i'}</span>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -4,6 +4,7 @@ namespace Controllers\src;
 
 use Controllers\SecureController;
 use Controllers\src\Utils\SessionHelper;
+use Exception;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\SecurityService;
 use Zephyrus\Application\Form;
@@ -47,12 +48,11 @@ final class DashboardController extends SecureController
     private function injectDataIfNeeded(array &$context): void
     {
         if (!SessionHelper::get("user")) {
-            $context["auth_history"] = $this->base->history->getHistoryForUser();
-
+            $context["auth_history"] = $this->base->history->getHistoryForUser(new Form());
             $context['shared_credentials'] = $this->base->sharing->getAllShares(new Form());
             $context['passwords'] = $this->base->passwordService->getAllUserPasswords(new Form());
-
             $context['mfa'] = $this->base->verify->getAllActiveMethods();
+
             SessionHelper::setContext($context);
         } else {
             SessionHelper::append($context);

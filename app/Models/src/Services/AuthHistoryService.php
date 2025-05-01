@@ -3,6 +3,7 @@
 namespace Models\src\Services;
 
 use Exception;
+use Models\Exceptions\FormException;
 use Models\src\Brokers\AuthHistoryBroker;
 use Models\src\Entities\User;
 use Models\src\Services\Utils\BaseService;
@@ -16,63 +17,48 @@ final class AuthHistoryService extends BaseService
         }
     }
 
-    /**
-     * @throws Exception
-     */
-    public function deleteAll(): array
+    public function getHistoryForUser($form): array
     {
         try {
             $userId = $this->auth['user_id'] ?? null;
 
-            if (!$userId) {
-                return [];
-            }
+            return $this->authHistoryBroker->getHistoryForUser($userId);
+
+        } catch (FormException) {
+            $form->addError("global", "Erreur lors du fetch de l'historique.");
+            throw new FormException($form);
+        }
+    }
+
+    public function deleteAll($form): array
+    {
+        try {
+            $userId = $this->auth['user_id'] ?? null;
 
             $this->authHistoryBroker->deleteAll($userId);
 
-            return $this->authHistoryBroker->getHistoryForUser($userId);
-        } catch (Throwable $e) {
-            throw new Exception($e->getMessage());
+            return [
+                "form" => $form
+            ];
+        } catch (FormException) {
+            $form->addError("global", "Erreur lors de la suppression.");
+            throw new FormException($form);
         }
     }
 
-    /**
-     * @throws Exception
-     */
-    public function deleteSingle(string $historyId) : array
+    public function deleteSingle(string $historyId, $form): array
     {
         try {
-            $userId = $this->auth['user_id'] ?? null;
-
-            if (!$userId) {
-                return [];
-            }
-
             $this->authHistoryBroker->deleteSingle($historyId);
 
-            return $this->authHistoryBroker->getHistoryForUser($userId);
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+            return [
+                "form" => $form
+            ];
+
+        } catch (FormException) {
+            $form->addError("global", "Erreur lors de la suppression.");
+            throw new FormException($form);
         }
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function getHistoryForUser(): array
-    {
-        try {
-            $userId = $this->auth['user_id'] ?? null;
-
-            if (!$userId) {
-                return [];
-            }
-
-            return $this->authHistoryBroker->getHistoryForUser($userId);
-        } catch (Throwable $e) {
-            throw new Exception($e->getMessage());
-        }
-
     }
 
     public function hasTooManyAttempts(string $userId, int $minutes = 10, int $maxAttempts = 5): bool

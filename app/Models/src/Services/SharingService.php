@@ -46,7 +46,9 @@ final class SharingService extends BaseService
     public function getAllShares($form): array
     {
         try {
-            return $this->sharingBroker->findAllSharesByOwner($this->auth['user_id']);
+            $userId = $this->auth['user_id'] ?? null;
+
+            return $this->sharingBroker->findAllSharesByOwner($userId);
 
         } catch (FormException) {
             $form->addError("global", "Erreur lors du fetch des shares.");
