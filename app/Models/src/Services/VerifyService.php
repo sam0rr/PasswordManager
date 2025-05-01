@@ -179,7 +179,7 @@ final class VerifyService extends BaseService
     public function areAllMethodsVerified(): bool
     {
         $methods = $this->getAllMethods();
-        return array_all($methods, fn($method) => !$method->is_active || $this->isMethodVerified($method));
+        return array_all($methods, fn(UserVerify $method) => $this->isMethodVerified($method));
     }
 
     public function hasPendingMfa(): bool
@@ -190,24 +190,13 @@ final class VerifyService extends BaseService
     public function getAllActiveMethods(): array
     {
         $methods = $this->getAllMethods();
-        $activeMethods = array_filter($methods, fn($method) => $method->is_active);
-
-        return $this->sortMethodsByPriority($activeMethods);
+        return array_filter($methods, fn(UserVerify $method) => $method->is_active);
     }
 
     public function getPendingMethods(): array
     {
-        return $this->sortMethodsByPriority(array_filter($this->getAllMethods(), function (UserVerify $method) {
-            if (!$method->is_active) {
-                return false;
-            }
-
-            if ($method->method === 'authenticator' && !$method->is_first_verified) {
-                return false;
-            }
-
-            return !$this->isMethodVerified($method);
-        }));
+        $methods = $this->getAllMethods();
+        return array_filter($methods, fn(UserVerify $method) => !$this->isMethodVerified($method));
     }
 
     private function assertCodeValidity(string $code, object $service, string $method, Form $form): void
@@ -245,17 +234,24 @@ final class VerifyService extends BaseService
 
     public function isMethodVerified(UserVerify $method): bool
     {
+        if (!$method->is_active) {
+            return true;
+        }
+
+        if ($method->method === 'authenticator' && !$method->is_first_verified) {
+            return true;
+        }
+
         if (empty($method->last_verified)) {
             return false;
         }
 
         $lastVerified = strtotime($method->last_verified);
-
-        if ($method->grace_period_enabled) {
-            $expiresAt = $lastVerified + $this->MFA_GRACE_PERIOD_SECONDS;
-        } else {
-            $expiresAt = $lastVerified + $this->MFA_EXPIRATION_SECONDS;
-        }
+        $expiresAt = $lastVerified + (
+            $method->grace_period_enabled
+                ? $this->MFA_GRACE_PERIOD_SECONDS
+                : $this->MFA_EXPIRATION_SECONDS
+            );
 
         return time() <= $expiresAt;
     }
