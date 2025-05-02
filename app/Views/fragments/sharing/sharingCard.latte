@@ -39,15 +39,15 @@
                 <ul class="list-unstyled small mb-0 px-4">
                     <li class="d-flex justify-content-between mb-1">
                         <span class="fw-bold">Created On:</span>
-                        <span class="text-muted">{$share->created_at|date:'d/m/Y at H:i'}</span>
+                        <span class="text-muted">{$share->created_at|date:'d/m/Y H:i'}</span>
                     </li>
                     <li class="d-flex justify-content-between mb-1">
                         <span class="fw-bold">Last Modified:</span>
-                        <span class="text-muted">{$share->updated_at|date:'d/m/Y at H:i'}</span>
+                        <span class="text-muted">{$share->updated_at|date:'d/m/Y H:i'}</span>
                     </li>
                     <li class="d-flex justify-content-between">
                         <span class="fw-bold">Expires On:</span>
-                        <span class="text-muted">{$share->expires_at|date:'d/m/Y at H:i'}</span>
+                        <span class="text-muted">{$share->expires_at|date:'d/m/Y H:i'}</span>
                     </li>
                 </ul>
             </div>
