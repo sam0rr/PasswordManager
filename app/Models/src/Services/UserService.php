@@ -106,8 +106,7 @@ final class UserService extends BaseService
         $this->userBroker->updateUser($this->auth['user_id'], ['image_url' => $encryptedImageUrl]);
 
         return [
-            'form' => $form,
-            'user' => $this->getCurrentUserEntity()
+            'form' => $form
         ];
     }
 

@@ -73,7 +73,8 @@ final class PasswordService extends BaseService
             ];
 
         } catch (FormException) {
-            return $this->buildErrorResponse($form);
+            $password = $this->passwordBroker->findById($id, $this->auth['user_key']);
+            return $this->buildErrorResponse($form, ['password' => $password]);
         }
     }
 
