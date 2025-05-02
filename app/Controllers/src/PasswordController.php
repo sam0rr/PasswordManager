@@ -54,9 +54,6 @@ final class PasswordController extends SecureController
         }
 
         if (isset($result['errors'])) {
-            SessionHelper::append([
-                'password' => $result['password'] ?? null,
-            ]);
             return $this->redirect("/dashboard?section=passwords&tab=list");
         }
 

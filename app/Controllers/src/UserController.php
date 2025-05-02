@@ -29,9 +29,6 @@ final class UserController extends SecureController
         }
 
         if (isset($result["errors"])) {
-            SessionHelper::append([
-                'user' => $result["user"] ?? null,
-            ]);
             return $this->redirect("/dashboard?section=profile&tab=info");
         }
 
@@ -51,9 +48,6 @@ final class UserController extends SecureController
         SessionHelper::setForm('user_avatar', $result['form']);
 
         if (isset($result["errors"])) {
-            SessionHelper::append([
-                'user' => $this->base->userService->getCurrentUserEntity(),
-            ]);
             return $this->redirect("/dashboard?section=profile&tab=info");
         }
 
@@ -78,9 +72,6 @@ final class UserController extends SecureController
         }
 
         if (isset($result["errors"])) {
-            SessionHelper::append([
-                'user' => $result["user"] ?? null,
-            ]);
             return $this->redirect("/dashboard?section=profile&tab=password");
         }
 

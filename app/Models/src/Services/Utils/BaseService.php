@@ -71,12 +71,12 @@ class BaseService
 
     //Helpers
 
-    public static function buildErrorResponse(Form $form): array
+    public static function buildErrorResponse(Form $form, array $extra = []): array
     {
-        return [
-            "errors" => true,
-            "form" => $form
-        ];
+        return array_merge([
+            'errors' => true,
+            'form' => $form
+        ], $extra);
     }
 
     protected function getPassword(string $passwordId, Form $form): UserPassword

@@ -21,7 +21,8 @@ final class AuthController extends Controller
     #[Get('/login')]
     public function showLoginForm(): Response
     {
-        $form = new Form();
+        $form = SessionHelper::getForm('auth_login') ?? new Form();
+
         if ($this->request->getParameter('error') === 'too_many_attempts') {
             $form->addError('global', "Too Many Failed Attempts Recently. Please Try Again Later.");
         }
@@ -29,6 +30,17 @@ final class AuthController extends Controller
         return $this->render("auth/login", [
             "form" => $form,
             "title" => "Login"
+        ]);
+    }
+
+    #[Get('/register')]
+    public function showRegisterForm(): Response
+    {
+        $form = SessionHelper::getForm('auth_register') ?? new Form();
+
+        return $this->render("auth/register", [
+            "form" => $form,
+            "title" => "Register"
         ]);
     }
 
@@ -40,6 +52,8 @@ final class AuthController extends Controller
 
         $result = $this->authService->login($form, $isHtmx);
 
+        SessionHelper::setForm('auth_login', $result['form']);
+
         if ($isHtmx) {
             return $this->render("fragments/auth/loginForm", [
                 "form" => $result["form"],
@@ -48,27 +62,16 @@ final class AuthController extends Controller
         }
 
         if (isset($result["errors"])) {
-            return $this->render("auth/login", [
-                "form" => $result["form"],
-                "title" => "Login",
-                "isHtmx" => false
-            ]);
+            return $this->redirect("/login");
         }
+
+        SessionHelper::clearForm('auth_login');
 
         if (!SessionHelper::get('mfa_validated')) {
             return $this->redirect("/verify-mfa");
         }
 
         return $this->redirect("/dashboard");
-    }
-
-    #[Get('/register')]
-    public function showRegisterForm(): Response
-    {
-        return $this->render("auth/register", [
-            "form" => new Form(),
-            "title" => "Register"
-        ]);
     }
 
     #[Post("/register")]
@@ -79,6 +82,8 @@ final class AuthController extends Controller
 
         $result = $this->authService->register($form, $isHtmx);
 
+        SessionHelper::setForm('auth_register', $result['form']);
+
         if ($isHtmx) {
             return $this->render("fragments/auth/registerForm", [
                 "form" => $result["form"],
@@ -86,12 +91,11 @@ final class AuthController extends Controller
         }
 
         if (isset($result["errors"])) {
-            return $this->render("auth/register", [
-                "form" => $result["form"],
-                "title" => "Register"
-            ]);
+            return $this->redirect("/register");
         }
 
+        SessionHelper::clearForm('auth_register');
         return $this->redirect("/login");
     }
+
 }

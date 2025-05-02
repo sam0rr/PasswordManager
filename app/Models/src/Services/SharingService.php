@@ -100,11 +100,7 @@ final class SharingService extends BaseService
             ];
 
         } catch (FormException) {
-            $password = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
-            return array_merge(
-                $this->buildErrorResponse($form),
-                ['password' => $password]
-            );
+            return $this->buildErrorResponse($form);
         }
     }
 
