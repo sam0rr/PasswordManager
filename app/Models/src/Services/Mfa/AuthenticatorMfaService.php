@@ -2,9 +2,9 @@
 
 namespace Models\src\Services\Mfa;
 
+use Models\src\Services\Mfa\QrCodeProvider\ChillerlanQrCodeProvider;
 use Models\src\Services\Utils\BaseService;
 use RobThree\Auth\Algorithm;
-use RobThree\Auth\Providers\Qr\EndroidQrCodeProvider;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\TwoFactorAuthException;
 
@@ -19,12 +19,7 @@ final class AuthenticatorMfaService extends BaseService implements MfaServiceInt
     private function createTfa(): TwoFactorAuth
     {
         try {
-            $qrProvider = new EndroidQrCodeProvider(
-                'ffffff',
-                '4a90e2',
-                0,
-                'H',
-            );
+            $qrProvider = new ChillerlanQrCodeProvider();
 
             return new TwoFactorAuth(
                 $qrProvider,
@@ -54,6 +49,9 @@ final class AuthenticatorMfaService extends BaseService implements MfaServiceInt
         return $this->tfa->verifyCode($method->otp_secret, $code);
     }
 
+    /**
+     * @throws TwoFactorAuthException
+     */
     public function sendCode(string $userId): ?string
     {
         $method = $this->verify->getMethod('authenticator');
