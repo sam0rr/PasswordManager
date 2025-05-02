@@ -71,10 +71,10 @@ class BaseService
 
     //Helpers
 
-    protected function buildErrorResponse(Form $form): array
+    public static function buildErrorResponse(Form $form): array
     {
         return [
-            "errors" => $form->getErrorMessages(),
+            "errors" => true,
             "form" => $form
         ];
     }

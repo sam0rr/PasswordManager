@@ -6,6 +6,7 @@ use Controllers\src\Utils\SessionHelper;
 use Models\Exceptions\FormException;
 use Models\src\Brokers\UserBroker;
 use Models\src\Entities\User;
+use Models\src\Services\Utils\BaseService;
 use Models\src\Services\Utils\Encryption\EncryptionService;
 use Models\src\Services\Utils\Session\SessionContextService;
 use Models\src\Validators\AuthValidator;
@@ -62,8 +63,8 @@ final class AuthService
             $this->storeAuthContext($user->id, $userKey);
 
             return ["form" => $form];
-        } catch (FormException $e) {
-            return ["form" => $e->getForm(), "errors" => true];
+        } catch (FormException) {
+            return BaseService::buildErrorResponse($form);
         }
     }
 
@@ -94,11 +95,11 @@ final class AuthService
             SessionHelper::append(['mfa_validated' => true]);
 
             return ["form" => $form];
-        } catch (FormException $e) {
+        } catch (FormException) {
             if (!$isHtmx && $form->getValue("email")) {
                 $this->history->logFailure($form->getValue("email"));
             }
-            return ["form" => $e->getForm(), "errors" => true];
+            return BaseService::buildErrorResponse($form);
         }
     }
 
