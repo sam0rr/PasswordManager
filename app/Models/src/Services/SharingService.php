@@ -82,9 +82,11 @@ final class SharingService extends BaseService
 
             $recipient = $this->fetchRecipient($form);
 
-            $this->assertRecipientHasNotThisDescription($form, $recipient->id, $password->description_hash);
+            if ($recipient !== null) {
+                $this->assertRecipientHasNotThisDescription($form, $recipient->id, $password->description_hash);
 
-            $this->assertNotAlreadyShared($form, $ownerId, $recipient->id, $password->description_hash);
+                $this->assertNotAlreadyShared($form, $ownerId, $recipient->id, $password->description_hash);
+            }
 
             if ($isHtmx) {
                 return [
@@ -107,7 +109,7 @@ final class SharingService extends BaseService
 
     // Helpers
 
-    private function fetchRecipient(Form $form): User
+    private function fetchRecipient(Form $form): ?User
     {
         return $this->userBroker->findByEmail($form->getValue("email"));
     }
