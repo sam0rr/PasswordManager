@@ -27,10 +27,6 @@ final class ChillerlanQrCodeProvider implements IQRCodeProvider
             'drawCircularModules' => true,
             'circleRadius' => 0.45,
 
-            'logoSpace' => true,
-            'logoSpaceWidth' => 15,
-            'logoSpaceHeight' => 15,
-
             'addQuietzone' => true,
             'quietzoneSize' => 2,
 
@@ -41,7 +37,6 @@ final class ChillerlanQrCodeProvider implements IQRCodeProvider
                 QRMatrix::M_FINDER_DOT => [28, 56, 148],
 
                 QRMatrix::M_ALIGNMENT_DARK => [54, 124, 206],
-
                 QRMatrix::M_TIMING_DARK => [84, 154, 236],
 
                 QRMatrix::M_FORMAT_DARK => [74, 144, 226],
@@ -50,6 +45,7 @@ final class ChillerlanQrCodeProvider implements IQRCodeProvider
             ],
 
             'drawLightModules' => false,
+
             'connectPaths' => true,
             'excludeFromConnect' => [
                 QRMatrix::M_FINDER_DARK,
@@ -69,4 +65,5 @@ final class ChillerlanQrCodeProvider implements IQRCodeProvider
     {
         return $this->getQRCodeImageMimeType();
     }
+
 }
