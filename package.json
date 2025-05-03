@@ -1,0 +1,24 @@
+{
+  "scripts": {
+    "generate-sw": "workbox generateSW workbox-config.js"
+  },
+  "name": "password-manager",
+  "version": "1.0.0",
+  "description": "This guide explains how to set up SSL certificates for local development and how the Workbox service worker is automatically generated and used for offline support.",
+  "main": "workbox-config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sam0rr/Password-Manager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sam0rr/Password-Manager/issues"
+  },
+  "homepage": "https://github.com/sam0rr/Password-Manager#readme",
+  "devDependencies": {
+    "workbox-cli": "^7.3.0"
+  }
+}

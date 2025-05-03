@@ -1,118 +1,107 @@
 # Local Development Setup Guide
 
-This guide explains how to set up SSL certificates for local development and configure the Workbox service worker for offline capabilities.
+This guide explains how to set up SSL certificates for local development and how the Workbox service worker is automatically generated and used for offline support.
 
 ## SSL Certificate Setup
 
 ### Prerequisites
+- macOS with Homebrew installed
+- Docker and Docker Compose
 
-* macOS with Homebrew installed
-* Docker and Docker Compose
+### Steps
 
-### Setting Up SSL Certificates
+1. **Install mkcert**
+   ```bash
+   brew install mkcert
+   brew install nss   # Optional, for Firefox support
+   mkcert -install
+   ```
+   This installs a local Certificate Authority (CA) and trusts it in your system and browser stores.
 
-#### 1. Install mkcert
+2. **Generate SSL certificates for localhost**
+   From the root of your project, run:
+   ```bash
+   mkcert \
+     -cert-file docker/services/php/localhost.pem \
+     -key-file  docker/services/php/localhost-key.pem \
+     localhost 127.0.0.1 ::1
+   ```
+   This creates:
+    - `docker/services/php/localhost.pem` — SSL certificate
+    - `docker/services/php/localhost-key.pem` — SSL private key
 
-```bash
-brew install mkcert
-brew install nss  # For Firefox support (optional)
-mkcert -install
-```
-
-This creates a local Certificate Authority (CA) and installs it in your system (and Firefox) trust stores.
-
-#### 2. Generate certificates for localhost
-
-Run this from your project root to place the certificate and key directly into docker/services/php:
-
-```bash
-mkcert \
-  -cert-file docker/services/php/localhost.pem \
-  -key-file docker/services/php/localhost-key.pem \
-  localhost 127.0.0.1 ::1
-```
-
-This produces:
-- `docker/services/php/localhost.pem` – the certificate
-- `docker/services/php/localhost-key.pem` – the private key
-
-These files are mounted by Docker Compose:
-
-```yaml
-volumes:
-  - ./docker/services/php/localhost.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem:ro
-  - ./docker/services/php/localhost-key.pem:/etc/ssl/private/ssl-cert-snakeoil.key:ro
-```
+   These files are mounted in Docker via docker-compose.yml:
+   ```yaml
+   volumes:
+     - ./docker/services/php/localhost.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem:ro
+     - ./docker/services/php/localhost-key.pem:/etc/ssl/private/ssl-cert-snakeoil.key:ro
+   ```
 
 ## Workbox Service Worker Setup
 
 ### Prerequisites
+- Node.js (>=14) and npm
 
-* Node.js and npm installed
+### Steps
 
-### Setting Up Workbox
+1. **Install JavaScript dependencies**
+   ```bash
+   npm install
+   ```
+   This installs your devDependencies (including workbox-cli).
 
-#### 1. Install dependencies
+   If you ever want to check for vulnerabilities or upgrade, you can run:
+   ```bash
+   npm audit
+   ```
 
-```bash
-npm install
-```
+2. **There is an helper script in package.json**
+   In your "scripts" section:
+   ```json
+   {
+     "scripts": {
+       "generate-sw": "workbox generateSW workbox-config.js"
+     }
+   }
+   ```
+   This lets you regenerate your service worker on demand.
 
-Installs the required dependencies including workbox-cli from package.json
+3. **Automatic generation (in Docker)**
+   Our entrypoint.sh checks for asset changes and runs:
+   ```bash
+   workbox generateSW workbox-config.js
+   ```
+   whenever your JS/CSS/font assets have been updated.
 
-#### 2. Generate the service worker
+4. **Manual regeneration**
+   If you've added or removed assets and don't want to rebuild your Docker image, you can manually re-run:
+   ```bash
+   npm run generate-sw
+   ```
 
-Run this from your project root to generate the service worker based on the configuration:
+   This will write:
+    - `public/serviceWorker.js`
+    - `public/workbox-*.js`
+    - Their source-maps
 
-```bash
-npx workbox generateSW workbox-config.js
-```
+## Starting the Project
 
-This creates:
-- `public/serviceWorker.js` – the generated service worker file
-
-The configuration specifies:
-
-```js
-module.exports = {
-  globDirectory: 'public',
-  globPatterns: [
-    '**/*.{html,js,css,woff2,ttf,eot}'
-  ],
-  swDest: 'public/serviceWorker.js',
-  runtimeCaching: [
-    {
-      urlPattern: /\/.*/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'runtime-cache',
-      },
-    }
-  ]
-};
-```
-
-## Launch the Project
-
-After setting up both SSL certificates and the Workbox service worker, you can now launch the project:
-
-#### 1. Build and start the containers
-
+Build and start the containers:
 ```bash
 docker-compose up -d --build
 ```
 
-#### 2. Access the project
-
-Visit `https://localhost`.
+Open your browser at:
+```
+https://localhost
+```
 
 ## Troubleshooting
 
-- **Name mismatch**: Ensure you requested localhost, 127.0.0.1, and ::1 exactly when running mkcert.
-- **Browser cache**: Hard-refresh or clear your cache if you still see warnings.
-- **CA issues**: Rerun `mkcert -install` and regenerate the certs.
-- **Manual Apache reload** (if necessary):
+- **Certificate not trusted**: re-run `mkcert -install` and regenerate certs.
+- **Browser cache issues**: perform a hard refresh or clear cache.
+- **Service worker errors**: inspect the browser console and Application → Service Workers pane.
+- **Force Apache reload** (if needed):
   ```bash
   docker exec zephyrus_webserver service apache2 reload
   ```
-- **Service worker not working**: Check browser console for errors and verify the service worker is registered correctly.
