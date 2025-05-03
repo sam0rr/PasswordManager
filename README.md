@@ -27,8 +27,8 @@ This guide explains how to set up SSL certificates for local development and how
      localhost 127.0.0.1 ::1
    ```
    This creates:
-    - `docker/services/php/localhost.pem` — SSL certificate
-    - `docker/services/php/localhost-key.pem` — SSL private key
+   - `docker/services/php/localhost.pem` — SSL certificate
+   - `docker/services/php/localhost-key.pem` — SSL private key
 
    These files are mounted in Docker via docker-compose.yml:
    ```yaml
@@ -66,29 +66,58 @@ This guide explains how to set up SSL certificates for local development and how
    ```
    This lets you regenerate your service worker on demand.
 
-3. **Automatic generation (in Docker)**
-   Our entrypoint.sh checks for asset changes and runs:
+3. **Generate service worker before first run**
    ```bash
-   workbox generateSW workbox-config.js
+   npm run generate-sw
    ```
-   whenever your JS/CSS/font assets have been updated.
+   This will write:
+   - `public/serviceWorker.js`
+   - `public/workbox-*.js`
+   - Their source-maps
 
 4. **Manual regeneration**
-   If you've added or removed assets and don't want to rebuild your Docker image, you can manually re-run:
+   If you've added or removed assets, you need to manually re-run:
    ```bash
    npm run generate-sw
    ```
 
-   This will write:
-    - `public/serviceWorker.js`
-    - `public/workbox-*.js`
-    - Their source-maps
-
 ## Starting the Project
 
-Build and start the containers:
+### Option 1: Automated Setup (Recommended)
+
+We've included a setup script that automates all the installation steps:
+
 ```bash
+# Make the script executable
+chmod +x setup.sh
+
+# Run the setup script
+./setup.sh
+```
+
+The script will:
+1. Check for required dependencies
+2. Install and configure mkcert
+3. Generate SSL certificates
+4. Install npm dependencies
+5. Generate the service worker
+6. Build and start the Docker containers
+
+### Option 2: Manual Setup
+
+If you prefer to run the commands manually, follow this sequence:
+
+```bash
+npm install
+npm run generate-sw
 docker-compose up -d --build
+```
+
+### After Setup
+
+When your assets change:
+```bash
+npm run generate-sw
 ```
 
 Open your browser at:
