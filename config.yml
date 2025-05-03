@@ -1,6 +1,6 @@
 application:
   project: "KryptLok"
-  env: "dev"
+  env: "prod"
   contact_email: "support@kryptlok.com"
   locales:
     - fr_CA
@@ -22,7 +22,7 @@ mailer:
     enabled: true
     host: !php/const MAIL_HOST
     port: !php/const MAIL_PORT
-    encryption: "none"
+    encryption: "tls"
     username: ""
     password: ""
 

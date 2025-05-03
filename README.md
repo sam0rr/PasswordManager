@@ -1,11 +1,11 @@
 # SSL Certificate Setup for Local Development
 
-This guide explains how to set up SSL certificates for local development with this project.
+This guide explains how to set up SSL certificates for local development with this project using **mkcert** to generate a trusted certificate for `localhost`, `127.0.0.1`, and `::1`.
 
 ## Prerequisites
 
-- macOS with Homebrew installed
-- Docker and Docker Compose
+* macOS with Homebrew installed
+* Docker and Docker Compose
 
 ## Setting Up SSL Certificates
 
@@ -14,50 +14,55 @@ This guide explains how to set up SSL certificates for local development with th
 ```bash
 brew install mkcert
 brew install nss  # For Firefox support (optional)
-```
-
-### 2. Create a trusted local certificate authority
-
-```bash
 mkcert -install
 ```
 
-### 3. Generate certificates for localhost
+> Creates a local Certificate Authority (CA) and installs it in your system (and Firefox) trust stores.
+
+### 2. Generate certificates for localhost
+
+Run this from your project root to place the certificate and key directly into `docker/services/php`:
 
 ```bash
-mkcert localhost
+mkcert \
+  -cert-file docker/services/php/localhost.pem \
+  -key-file  docker/services/php/localhost-key.pem \
+  localhost 127.0.0.1 ::1
 ```
 
-This will create two files:
-- `localhost.pem` (the certificate)
-- `localhost-key.pem` (the private key)
+This produces:
 
-### 4. Place these files in the project root directory
+* `docker/services/php/localhost.pem`       – the certificate
+* `docker/services/php/localhost-key.pem`   – the private key
 
-Make sure both certificate files are placed in the root directory of the project, alongside the `compose.yaml` file.
+These files are mounted by Docker Compose:
 
-## Running the Project
+```yaml
+volumes:
+  - ./docker/services/php/localhost.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem:ro
+  - ./docker/services/php/localhost-key.pem:/etc/ssl/private/ssl-cert-snakeoil.key:ro
+```
 
-After setting up the certificates, you can start the project with:
+### 3. Launch the project
+
+Rebuild and start the containers so Apache picks up the new certificate:
 
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
-The application should now be accessible at `https://localhost` with a valid SSL certificate.
-
-**Note:** If you have issues with the SSL certificate not being recognized, you can manually reload Apache after the containers are running:
-
-```bash
-docker exec zephyrus_webserver service apache2 reload
-```
-
-However, this should not be necessary in most cases.
+Visit **[https://localhost](https://localhost)**.
 
 ## Troubleshooting
 
-If you encounter certificate errors:
-- Make sure the certificate files are named exactly `localhost.pem` and `localhost-key.pem`
-- Ensure the files are in the project root directory
-- Try restarting your browser
-- Run `mkcert -install` again if necessary
+* **Name mismatch**: Ensure you requested `localhost`, `127.0.0.1`, and `::1` exactly when running mkcert.
+* **Browser cache**: Hard-refresh or clear your cache if you still see warnings.
+* **CA issues**: Rerun `mkcert -install` and regenerate the certs.
+* **Manual Apache reload** (if necessary):
+
+  ```bash
+  docker exec zephyrus_webserver service apache2 reload
+  ```
+
+---
+

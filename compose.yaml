@@ -1,40 +1,55 @@
+networks:
+  appnet:
+    driver: bridge
+
 services:
   webserver:
     build:
-      context: "./docker/services/php"
-    container_name: "zephyrus_webserver"
-    restart: 'always'
+      context: ./docker/services/php
+    container_name: zephyrus_webserver
+    restart: always
+    depends_on:
+      - database
+    networks:
+      - appnet
     ports:
       - "80:80"
       - "443:443"
       - "1080:1080"
-    links:
-      - database
     volumes:
-      - ./:/var/www/html
-      - ./xdebug:/xdebug.d
-      - ./custom-ssl.conf:/etc/apache2/sites-available/custom-ssl.conf:ro
-      - ./localhost.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem:ro
-      - ./localhost-key.pem:/etc/ssl/private/ssl-cert-snakeoil.key:ro
-    command: >
-      bash -lc "
-        a2enmod ssl headers &&
-        a2dissite default-ssl 2>/dev/null || true &&
-        a2ensite custom-ssl &&
-        apache2-foreground
-      "
+      - ./:/var/www/html:cached
+      - ./docker/services/php/xdebug:/xdebug.d:ro
+      - ./docker/services/php/custom-ssl.conf:/etc/apache2/sites-available/custom-ssl.conf:ro
+      - ./docker/services/php/localhost.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem:ro
+      - ./docker/services/php/localhost-key.pem:/etc/ssl/private/ssl-cert-snakeoil.key:ro
+      - ./docker/services/php/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+    entrypoint: [ "/bin/bash", "/usr/local/bin/entrypoint.sh" ]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost/"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   database:
     build:
-      context: "./docker/services/postgres"
-    container_name: ${DB_HOSTNAME}
-    restart: 'always'
+      context: ./docker/services/postgres
+    container_name: "${DB_HOSTNAME}"
+    restart: always
+    networks:
+      - appnet
     ports:
       - "5432:5432"
     volumes:
-      - ./sql:/docker-entrypoint-initdb.d/sql
-      - ./sql/init-database.sql:/docker-entrypoint-initdb.d/1-database.sql
-      - ./sql/init-mocks.sql:/docker-entrypoint-initdb.d/2-data-mocks.sql
+      - ./sql:/docker-entrypoint-initdb.d/sql:ro
+      - ./sql/init-database.sql:/docker-entrypoint-initdb.d/1-database.sql:ro
+      - ./sql/init-mocks.sql:/docker-entrypoint-initdb.d/2-data-mocks.sql:ro
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB:       "${DB_NAME}"
+      POSTGRES_USER:     "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"

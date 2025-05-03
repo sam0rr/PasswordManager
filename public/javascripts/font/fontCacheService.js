@@ -1,22 +1,44 @@
-// fontCacheService.js
-export const fontCacheService = {
-    CACHE_NAME: 'font-cache-v1',
-    // ... rest of your code
-};
+const CACHE_NAME = 'font-cache-v1';
+const FONT_ASSETS = [
+    '/fonts/PTSerif/PTSerifCaption-Regular.woff2'
+];
 
-export const serviceWorker = {
-    async register() {
-        if ('serviceWorker' in navigator) {
-            try {
-                const registration = await navigator.serviceWorker.register('/serviceWorker.js');
-                console.log('Service Worker Successfully Registered:', registration.scope);
-                return registration;
-            } catch (error) {
-                console.error('Service Worker Registration Failed:', error);
-                throw error;
+export const fontCacheService = {
+    async init() {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.addAll(FONT_ASSETS);
+        console.log(`${CACHE_NAME} Initialized`);
+    },
+
+    async cleanup() {
+        const keys = await caches.keys();
+        await Promise.all(
+            keys
+                .filter(key => key !== CACHE_NAME)
+                .map(key => caches.delete(key))
+        );
+        console.log(`Old Caches Cleared`);
+    },
+
+    isFontRequest(request) {
+        return /\.(woff2?|ttf|eot)$/i.test(new URL(request.url).pathname);
+    },
+
+    async fetchAndCache(request) {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(request);
+        if (cached) {
+            return cached;
+        }
+
+        try {
+            const response = await fetch(request);
+            if (response.ok && response.type === 'basic') {
+                await cache.put(request, response.clone());
             }
-        } else {
-            console.warn('Service Workers Not Supported By This Browser');
+            return response;
+        } catch {
+            return (await cache.match(request)) || Response.error();
         }
     }
 };

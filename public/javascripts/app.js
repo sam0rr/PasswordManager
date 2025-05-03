@@ -1,6 +1,6 @@
 import { bindFormFieldEvents } from './formField.js';
 import { bindSelectNavigation, bindAvatarPreview } from './utils.js';
-import { serviceWorker } from './font/fontCacheService.js';
+import { registerServiceWorker } from './serviceWorkerRegistration.js';
 
 export default class Application {
     #configurations;
@@ -28,9 +28,13 @@ export default class Application {
 
     #registerServiceWorker() {
         window.addEventListener('load', () => {
-            serviceWorker.register()
-                .then(() => console.log('Service Worker Ready To Cache Fonts'))
-                .catch(error => console.error('Service Worker Issue:', error));
+            registerServiceWorker()
+                .then(reg => {
+                    console.log('Service Worker Ready To Cache Fonts:', reg.scope);
+                })
+                .catch(err => {
+                    console.error('Service Worker Issue:', err);
+                });
         });
     }
 }
