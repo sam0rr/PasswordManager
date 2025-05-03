@@ -76,7 +76,7 @@ final class AuthService
             $email = $form->getValue("email");
             $password = $form->getValue("password");
 
-            $user = $this->validateUserCredentials($email, $password, $form);
+            $user = $this->validateUserCredentials($email, $password, $form, $isHtmx);
             $userKey = $this->encryption->deriveUserKey($password, $user->salt);
 
             if ($isHtmx) {
@@ -133,12 +133,14 @@ final class AuthService
         SessionContextService::store($userId, $userKey);
     }
 
-    private function validateUserCredentials(string $email, string $password, Form $form): User
+    private function validateUserCredentials(string $email, string $password, Form $form, bool $isHtmx): User
     {
         $user = $this->userBroker->findByEmail($email);
 
         if (!$user || !$this->encryption->verifyPassword($password, $user->password_hash)) {
-            $form->addError("login", "Invalid Credentials.");
+            if (!$isHtmx) {
+                SessionHelper::flash('login_error', 'Invalid Credentials.', 'danger');
+            }
             throw new FormException($form);
         }
 

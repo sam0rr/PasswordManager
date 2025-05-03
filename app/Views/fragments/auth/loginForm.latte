@@ -9,11 +9,8 @@
           novalidate>
         {$csrf_keep_alive|noescape}
 
-        {if $form->hasError('login') && $form->getValue('submit') == 'true' && !$isHtmx}
-            {include '../../components/alert/messageAlert.latte',
-            message => getErrorMessage('login', $form),
-            type => 'error'
-            }
+        {if ($flash = \Controllers\src\Utils\SessionHelper::getFlash('login_error'))}
+            {include '../../components/alert/messageAlert.latte', message => $flash['message'], type => $flash['type']}
         {/if}
 
         {include '../../components/formField.latte', name => 'email', label => 'Email', icon => 'envelope'}

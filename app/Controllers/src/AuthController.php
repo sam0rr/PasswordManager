@@ -21,14 +21,12 @@ final class AuthController extends Controller
     #[Get('/login')]
     public function showLoginForm(): Response
     {
-        $form = SessionHelper::getForm('auth_login') ?? new Form();
-
         if ($this->request->getParameter('error') === 'too_many_attempts') {
-            $form->addError('global', "Too Many Failed Attempts Recently. Please Try Again Later.");
+            SessionHelper::flash('login_error', "Too Many Failed Attempts Recently. Please Try Again Later.", 'danger');
         }
 
         return $this->render("auth/login", [
-            "form" => $form,
+            "form" => SessionHelper::getForm('auth_login') ?? new Form(),
             "title" => "Login"
         ]);
     }
