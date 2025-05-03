@@ -7,11 +7,13 @@ use Models\src\Services\Utils\BaseService;
 use RobThree\Auth\Algorithm;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\TwoFactorAuthException;
+use Controllers\src\Utils\SessionHelper;
+use RuntimeException;
 
 final class AuthenticatorMfaService extends BaseService implements MfaServiceInterface
 {
     private ?TwoFactorAuth $tfa = null {
-        get{
+        get {
             return $this->tfa ??= $this->createTfa();
         }
     }
@@ -29,7 +31,7 @@ final class AuthenticatorMfaService extends BaseService implements MfaServiceInt
                 Algorithm::Sha1
             );
         } catch (TwoFactorAuthException $e) {
-            throw new \RuntimeException("Error initializing 2FA: " . $e->getMessage());
+            throw new RuntimeException("Error Initializing Two Factor Authentication: " . $e->getMessage());
         }
     }
 
@@ -49,9 +51,6 @@ final class AuthenticatorMfaService extends BaseService implements MfaServiceInt
         return $this->tfa->verifyCode($method->otp_secret, $code);
     }
 
-    /**
-     * @throws TwoFactorAuthException
-     */
     public function sendCode(string $userId): ?string
     {
         $method = $this->verify->getMethod('authenticator');
@@ -60,7 +59,12 @@ final class AuthenticatorMfaService extends BaseService implements MfaServiceInt
             return null;
         }
 
-        return $this->tfa->getQRCodeImageAsDataUri("KryptLok", $method->otp_secret);
+        try {
+            return $this->tfa->getQRCodeImageAsDataUri("KryptLok", $method->otp_secret);
+        } catch (TwoFactorAuthException) {
+            SessionHelper::flash('code_send_failure', 'Failed To Generate QR Code. Please Try Again Later.', 'danger');
+            return null;
+        }
     }
 
 }

@@ -4,8 +4,10 @@ namespace Models\src\Services\Mfa;
 
 use Exception;
 use Models\src\Services\Utils\BaseService;
+use Random\RandomException;
 use RuntimeException as RuntimeExceptionAlias;
 use Twilio\Rest\Client;
+use Controllers\src\Utils\SessionHelper;
 
 final class SmsMfaService extends BaseService implements MfaServiceInterface
 {
@@ -28,16 +30,18 @@ final class SmsMfaService extends BaseService implements MfaServiceInterface
             $authToken = config('twilio', 'auth_token');
 
             if (!$accountSid || !$authToken) {
-                throw new RuntimeExceptionAlias("Twilio credentials are missing.");
+                throw new RuntimeExceptionAlias("Twilio Credentials Are Missing.");
             }
 
             return new Client($accountSid, $authToken);
-        }
-        catch (Exception $e) {
-            throw new RuntimeExceptionAlias("Error initializing 2FA: " . $e->getMessage());
+        } catch (Exception $e) {
+            throw new RuntimeExceptionAlias("Error Initializing Two Factor Authentication: " . $e->getMessage());
         }
     }
 
+    /**
+     * @throws RandomException
+     */
     public function generateSecret(): string
     {
         return (string) random_int(100000, 999999);
@@ -54,6 +58,9 @@ final class SmsMfaService extends BaseService implements MfaServiceInterface
         return $method->otp_secret === $code;
     }
 
+    /**
+     * @throws RandomException
+     */
     public function sendCode(string $userId): ?string
     {
         $method = $this->verify->getMethod('sms');
@@ -70,14 +77,15 @@ final class SmsMfaService extends BaseService implements MfaServiceInterface
                 $phone,
                 [
                     'from' => $this->fromPhone,
-                    'body' => "Votre code de sécurité KryptLok est : $otp"
+                    'body' => "Your KryptLok Security Code Is: $otp"
                 ]
             );
 
             $this->verify->updateSecret($userId, 'sms', $otp);
             return $otp;
-        } catch (Exception $e) {
-            throw new RuntimeExceptionAlias("Erreur lors de l'envoi du code par SMS : " . $e->getMessage());
+        } catch (Exception) {
+            SessionHelper::flash('code_send_failure', 'Unable To Send SMS. Please Verify The Number Or Try Again Later.', 'danger');
+            return null;
         }
     }
 

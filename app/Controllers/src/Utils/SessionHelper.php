@@ -105,5 +105,18 @@ final class SessionHelper
         return $value;
     }
 
+    public static function flash(string $name, string $message, string $type = 'info'): void
+    {
+        Session::set("flash__$name", [
+            'message' => $message,
+            'type' => $type
+        ]);
+    }
+
+    public static function getFlash(string $name): ?array
+    {
+        return self::consume("flash__$name");
+    }
+
 }
 

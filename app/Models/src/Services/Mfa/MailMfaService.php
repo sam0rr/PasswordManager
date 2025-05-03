@@ -6,6 +6,7 @@ use Models\src\Services\Utils\BaseService;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use RuntimeException;
+use Controllers\src\Utils\SessionHelper;
 
 final class MailMfaService extends BaseService implements MfaServiceInterface
 {
@@ -14,16 +15,19 @@ final class MailMfaService extends BaseService implements MfaServiceInterface
             return $this->mailHost ??= config('mailer.smtp', 'host', 'localhost');
         }
     }
+
     private ?int $mailPort = null {
         get {
-            return $this->mailPort ??= (int)config('mailer.smtp', 'port', 1025);
+            return $this->mailPort ??= (int) config('mailer.smtp', 'port', 1025);
         }
     }
+
     private ?string $mailFrom = null {
         get {
             return $this->mailFrom ??= config('mailer', 'from_address', 'noreply@kryptlok.dev');
         }
     }
+
     private ?string $mailFromName = null {
         get {
             return $this->mailFromName ??= config('mailer', 'from_name', 'KryptLok');
@@ -67,16 +71,16 @@ final class MailMfaService extends BaseService implements MfaServiceInterface
 
             $mailer->setFrom($this->mailFrom, $this->mailFromName);
             $mailer->addAddress($email);
-            $mailer->Subject = 'Votre code de vérification KryptLok';
-            $mailer->Body = "Voici votre code de connexion : $otp";
+            $mailer->Subject = 'Your KryptLok Verification Code';
+            $mailer->Body = "Here Is Your Login Code: $otp";
 
             $mailer->send();
 
             $this->verify->updateSecret($userId, 'mail', $otp);
-
             return $otp;
-        } catch (Exception $e) {
-            throw new RuntimeException("Erreur lors de l’envoi du code par email : " . $e->getMessage());
+        } catch (Exception) {
+            SessionHelper::flash('code_send_failure', 'Unable To Send Verification Email. Please Try Again Later.', 'danger');
+            return null;
         }
     }
 

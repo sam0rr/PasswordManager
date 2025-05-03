@@ -8,6 +8,7 @@ use Models\Exceptions\FormException;
 use Models\src\Services\Mfa\AuthenticatorMfaService;
 use Models\src\Services\Mfa\MailMfaService;
 use Models\src\Services\Mfa\SmsMfaService;
+use Random\RandomException;
 use Zephyrus\Network\Response;
 use Zephyrus\Network\Router\Get;
 use Zephyrus\Network\Router\Post;
@@ -90,6 +91,9 @@ final class VerifyController extends SecureController
         return $response;
     }
 
+    /**
+     * @throws RandomException
+     */
     #[Get('/verify-mfa')]
     public function showMfaForm(): Response
     {
@@ -125,6 +129,9 @@ final class VerifyController extends SecureController
         return $this->handleConfirmation('mfa_confirm_modal', '/dashboard?section=profile&tab=mfa', 'fragments/verify/qrCodeModalForm');
     }
 
+    /**
+     * @throws RandomException
+     */
     #[Post('/verify/send')]
     public function send(): Response
     {
@@ -132,7 +139,7 @@ final class VerifyController extends SecureController
         $service = $this->resolveMfaService($form);
         $service->sendCode($this->getAuth()['user_id']);
 
-        $this->flashMessage("Code Resent Successfully.");
+        SessionHelper::flash('mfa_code_resent', "Code Resent Successfully!", 'success');
         SessionHelper::append(['code_sent' => true]);
         $this->setMfaContext();
 
@@ -200,6 +207,9 @@ final class VerifyController extends SecureController
         ]);
     }
 
+    /**
+     * @throws RandomException
+     */
     private function sendMfaCodeIfNeeded($method): void
     {
         if (SessionHelper::get('code_sent') || !$method) {

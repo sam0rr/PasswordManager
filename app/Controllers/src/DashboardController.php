@@ -30,7 +30,7 @@ final class DashboardController extends SecureController
         $this->injectDataIfNeeded($context);
         $this->appendSecurityAnalysisIfNeeded($context, $section);
         $this->injectMfaConfig($context);
-        $this->appendAuthenticatorWarningIfNeeded($context);
+        $this->appendAuthenticatorWarningIfNeeded();
 
         return SessionHelper::getContext() + $context;
     }
@@ -102,11 +102,11 @@ final class DashboardController extends SecureController
         $context['mfa_grace_period_days'] = config('security.mfa', 'mfa_grace_period_days', 20);
     }
 
-    private function appendAuthenticatorWarningIfNeeded(array &$context): void
+    private function appendAuthenticatorWarningIfNeeded(): void
     {
         $unverified = $this->base->verify->getFirstUnverifiedAuthenticatorMethod();
         if ($unverified) {
-            $context['authenticator_warning_message'] = "You Have Enabled The Authenticator (TOTP). Please Scan The QR Code And Enter A Verification Code.";
+            SessionHelper::flash('authenticator_warning', "Authenticator Is Active But Unverified.", 'warning');
         }
     }
 }
