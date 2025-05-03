@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Color Codes
 TextGreen='\033[0;32m'
 TextBlue='\033[0;34m'
 TextYellow='\033[1;33m'
@@ -43,6 +44,7 @@ fi
 if ! command -v mkcert &> /dev/null; then
     echo -e "${TextYellow}Mkcert Is Not Installed. Installing...${TextReset}"
     if [[ "$OSTYPE" == "darwin"* ]]; then
+        # MacOS
         if command -v brew &> /dev/null; then
             brew install mkcert
             brew install nss  # For Firefox Support
@@ -65,12 +67,10 @@ mkcert -install
 # Step 2: Generate SSL Certificates
 echo -e "\n${TextGreen}Step 2: Generating SSL Certificates For Localhost...${TextReset}"
 mkdir -p docker/services/php
-mkcert \
+if ! mkcert \
   -cert-file docker/services/php/localhost.pem \
   -key-file  docker/services/php/localhost-key.pem \
-  localhost 127.0.0.1 ::1
-
-if [ $? -ne 0 ]; then
+  localhost 127.0.0.1 ::1; then
     echo -e "${TextRed}Error: Failed To Generate SSL Certificates${TextReset}"
     exit 1
 fi
@@ -81,27 +81,21 @@ echo -e "  - docker/services/php/localhost-key.pem"
 
 # Step 3: Install Npm Dependencies
 echo -e "\n${TextGreen}Step 3: Installing Npm Dependencies...${TextReset}"
-npm install
-
-if [ $? -ne 0 ]; then
+if ! npm install; then
     echo -e "${TextRed}Error: Failed To Install Npm Dependencies${TextReset}"
     exit 1
 fi
 
 # Step 4: Generate Service Worker
 echo -e "\n${TextGreen}Step 4: Generating Service Worker...${TextReset}"
-npm run generate-sw
-
-if [ $? -ne 0 ]; then
+if ! npm run generate-sw; then
     echo -e "${TextRed}Error: Failed To Generate Service Worker${TextReset}"
     exit 1
 fi
 
 # Step 5: Build And Start Docker Containers
 echo -e "\n${TextGreen}Step 5: Building And Starting Docker Containers...${TextReset}"
-docker-compose up -d --build
-
-if [ $? -ne 0 ]; then
+if ! docker-compose up -d --build; then
     echo -e "${TextRed}Error: Failed To Start Docker Containers${TextReset}"
     exit 1
 fi
