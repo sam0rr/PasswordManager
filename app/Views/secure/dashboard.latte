@@ -2,8 +2,8 @@
 
 {block pageContent}
     <div class="container py-4">
-        {if ($flash = \Controllers\src\Utils\SessionHelper::getFlash('authenticator_warning'))}
-            {include '../components/alert/messageAlert.latte', message => $flash['message'], type => $flash['type']}
+        {if ($flashError = \Controllers\src\Utils\SessionHelper::getFlash('authenticator_warning'))}
+            {include '../components/alert/messageAlert.latte', message => $flashError['message'], type => $flashError['type']}
         {/if}
         <div class="d-md-none mb-3">
                 <select class="form-select" id="section-selector">

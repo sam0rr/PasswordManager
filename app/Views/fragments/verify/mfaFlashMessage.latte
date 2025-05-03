@@ -1,0 +1,5 @@
+{if ($flashError = \Controllers\src\Utils\SessionHelper::getFlash('code_send_failure'))}
+    {include '../../components/alert/messageAlert.latte', message => $flashError['message'], type => $flashError['type']}
+{elseif ($flashSuccess = \Controllers\src\Utils\SessionHelper::getFlash('mfa_code_resent'))}
+    {include '../../components/alert/messageAlert.latte', message => $flashSuccess['message'], type => $flashSuccess['type']}
+{/if}
