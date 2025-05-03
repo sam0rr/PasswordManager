@@ -51,7 +51,6 @@ final class SharingService extends BaseService
             return $this->sharingBroker->findAllSharesByOwner($userId);
 
         } catch (FormException) {
-            $form->addError("global", "Failed To Get All Shares.");
             throw new FormException($form);
         }
     }
@@ -67,7 +66,6 @@ final class SharingService extends BaseService
             ];
 
         } catch (FormException) {
-            $form->addError("global", "Failed To Delete Share.");
             throw new FormException($form);
         }
     }

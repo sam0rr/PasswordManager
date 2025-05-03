@@ -23,7 +23,6 @@ final class AuthHistoryService extends BaseService
             return $this->authHistoryBroker->getHistoryForUser($userId);
 
         } catch (FormException) {
-            $form->addError("global", "Failed To Get History From User.");
             throw new FormException($form);
         }
     }
@@ -39,7 +38,6 @@ final class AuthHistoryService extends BaseService
                 "form" => $form
             ];
         } catch (FormException) {
-            $form->addError("global", "Failed To Delete History.");
             throw new FormException($form);
         }
     }
@@ -54,7 +52,6 @@ final class AuthHistoryService extends BaseService
             ];
 
         } catch (FormException) {
-            $form->addError("global", "Failed To Delete Single History.");
             throw new FormException($form);
         }
     }

@@ -84,7 +84,6 @@ class BaseService
         $password = $this->passwordBroker->findById($passwordId, $this->auth['user_key']);
 
         if (!$password || $password->user_id !== $this->auth['user_id']) {
-            $form->addError('global', "Password Not Found Or Unauthorized Access.");
             throw new FormException($form);
         }
 
