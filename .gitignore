@@ -12,3 +12,5 @@ composer.lock
 
 .env
 /xdebug
+
+/public/serviceWorker.js

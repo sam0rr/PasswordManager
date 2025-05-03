@@ -30,7 +30,7 @@ export default class Application {
         window.addEventListener('load', () => {
             registerServiceWorker()
                 .then(reg => {
-                    console.log('Service Worker Ready To Cache Fonts:', reg.scope);
+                    console.log('Service Worker Ready:', reg.scope);
                 })
                 .catch(err => {
                     console.error('Service Worker Issue:', err);
