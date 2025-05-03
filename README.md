@@ -1,74 +1,63 @@
-# Projet gabarit ZEPHYRUS
+# SSL Certificate Setup for Local Development
 
-Projet destiné à être utilisé comme base de gabarit pour les projets ZEPHYRUS.
+This guide explains how to set up SSL certificates for local development with this project.
 
-## Environnement de développement (Docker)
+## Prerequisites
 
-### Prérequis
-Assurez-vous d'avoir le [Moteur Docker](https://www.docker.com/products/docker-desktop/) installé et à jour.
+- macOS with Homebrew installed
+- Docker and Docker Compose
 
-### Premier démarrage
-Copiez le fichier `.env.example` vers un fichier nommé `.env`. Lancez finalement la construction de l'environnement de développement.
+## Setting Up SSL Certificates
 
-```shell
-docker compose up
-docker exec -it zephyrus_webserver composer install
+### 1. Install mkcert
+
+```bash
+brew install mkcert
+brew install nss  # For Firefox support (optional)
 ```
 
-### Mise à jour des dépendances (Composer)
-```shell
-docker exec -it zephyrus_webserver composer update
+### 2. Create a trusted local certificate authority
+
+```bash
+mkcert -install
 ```
 
-### Redémarrer la base de données (au besoin)
-```shell
-docker compose down
-docker compose up
+### 3. Generate certificates for localhost
+
+```bash
+mkcert localhost
 ```
 
-### Activer / Désactiver Xdebug
-Par défaut, xdebug est installé, mais pas actif pour augmenter les performances en développement. Par contre, il est
-possible de l'activer et de le désactiver avec une commande. Doit être exécuté sur l'ordinateur hôte et non depuis le
-conteneur Docker (puisque le script interagit avec l'exécutable de Docker sur l'hôte).
+This will create two files:
+- `localhost.pem` (the certificate)
+- `localhost-key.pem` (the private key)
 
-#### Activer
-```shell
-composer xdebug-enable
+### 4. Place these files in the project root directory
+
+Make sure both certificate files are placed in the root directory of the project, alongside the `compose.yaml` file.
+
+## Running the Project
+
+After setting up the certificates, you can start the project with:
+
+```bash
+docker-compose up -d
 ```
 
-#### Désactiver
-```shell
-composer xdebug-disable
+The application should now be accessible at `https://localhost` with a valid SSL certificate.
+
+**Note:** If you have issues with the SSL certificate not being recognized, you can manually reload Apache after the containers are running:
+
+```bash
+docker exec zephyrus_webserver service apache2 reload
 ```
 
-### Génération de la cache Latte
-```shell
-docker exec -it zephyrus_webserver composer latte-cache
-```
+However, this should not be necessary in most cases.
 
-### Supprimer les images Docker
-```shell
-docker rmi $(docker images -q)
-```
+## Troubleshooting
 
-
-## MailCatcher
-
-Par défaut, l'image Docker fourni avec Zephyrus inclus [MailCatcher](https://www.google.com/search?client=safari&rls=en&q=mailcatcher&ie=UTF-8&oe=UTF-8). Ceci
-permet de tester des courriels simplement. 
-
-Pour accéder à MailCatcher : http://localhost:1080/  
-
-```yml
-mailer:
-  transport: "smtp"
-  from_address: "info@ophelios.com"
-  from_name: "Zephyrus"
-  smtp:
-    enabled: true
-    host: "localhost"
-    port: 1025
-    encryption: "none"
-    username: ""
-    password: ""
-```
+If you encounter certificate errors:
+- Make sure the certificate files are named exactly `localhost.pem` and `localhost-key.pem`
+- Ensure the files are in the project root directory
+- Try restarting your browser
+- Run `mkcert -install` again if necessary

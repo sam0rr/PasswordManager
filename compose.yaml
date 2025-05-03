@@ -13,6 +13,16 @@ services:
     volumes:
       - ./:/var/www/html
       - ./xdebug:/xdebug.d
+      - ./custom-ssl.conf:/etc/apache2/sites-available/custom-ssl.conf:ro
+      - ./localhost.pem:/etc/ssl/certs/ssl-cert-snakeoil.pem:ro
+      - ./localhost-key.pem:/etc/ssl/private/ssl-cert-snakeoil.key:ro
+    command: >
+      bash -lc "
+        a2enmod ssl headers &&
+        a2dissite default-ssl 2>/dev/null || true &&
+        a2ensite custom-ssl &&
+        apache2-foreground
+      "
   database:
     build:
       context: "./docker/services/postgres"

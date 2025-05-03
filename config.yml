@@ -1,7 +1,7 @@
 application:
   project: "KryptLok"
-  env: "production"
-  contact_email: "info@ophelios.com"
+  env: "dev"
+  contact_email: "support@kryptlok.com"
   locales:
     - fr_CA
 

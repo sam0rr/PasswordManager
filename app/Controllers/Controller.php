@@ -70,7 +70,7 @@ abstract class Controller extends BaseController
         $csp->setScriptSources(["'self'", 'https://ajax.googleapis.com', 'https://maps.googleapis.com',
             'https://www.google-analytics.com', 'https://cdn.jsdelivr.net']);
         $csp->setChildSources(["'self'"]);
-        $csp->setWorkerSources(["blob:"]);
+        $csp->setWorkerSources(["'self'", "blob:"]);
         $csp->setConnectSources(["'self'", 'https://api.mapbox.com', 'https://events.mapbox.com']);
         $csp->addImageSource("https://yourdomain.com/uploads/");
 
