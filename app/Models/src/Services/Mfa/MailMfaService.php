@@ -35,7 +35,7 @@ final class MailMfaService extends BaseService implements MfaServiceInterface
 
     private ?string $mailFrom = null {
         get {
-            return $this->mailFrom ??= config('mailer', 'from_address', 'KryptLok@hotmail.com');
+            return $this->mailFrom ??= config('mailer', 'from_address', 'noreply@kryptlok.store');
         }
     }
 
