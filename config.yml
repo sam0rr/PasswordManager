@@ -1,6 +1,6 @@
 application:
   project: "KryptLok"
-  env: "dev"
+  env: "prod"
   contact_email: "Kryptlok@hotmail.com"
   locales:
     - fr_CA
