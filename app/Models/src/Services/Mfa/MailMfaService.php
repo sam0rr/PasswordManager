@@ -79,7 +79,7 @@ final class MailMfaService extends BaseService implements MfaServiceInterface
             $mailer->setFrom($this->mailFrom, $this->mailFromName);
             $mailer->addAddress($email);
             $mailer->Subject = 'Your KryptLok Verification Code';
-            $mailer->Body    = "Here Is Your Login Code: $otp";
+            $mailer->Body    = "Your KryptLok Security Code Is: $otp";
 
             $mailer->send();
             $this->verify->updateSecret($userId, 'mail', $otp);
