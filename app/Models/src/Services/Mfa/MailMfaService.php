@@ -5,26 +5,37 @@ namespace Models\src\Services\Mfa;
 use Models\src\Services\Utils\BaseService;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-use RuntimeException;
 use Controllers\src\Utils\SessionHelper;
 
 final class MailMfaService extends BaseService implements MfaServiceInterface
 {
     private ?string $mailHost = null {
         get {
-            return $this->mailHost ??= config('mailer.smtp', 'host', 'localhost');
+            return $this->mailHost ??= config('mailer', 'host', 'smtp.sendgrid.net');
         }
     }
 
     private ?int $mailPort = null {
         get {
-            return $this->mailPort ??= (int) config('mailer.smtp', 'port', 1025);
+            return $this->mailPort ??= (int) config('mailer', 'port', 587);
+        }
+    }
+
+    private ?string $mailUsername = null {
+        get {
+            return $this->mailUsername ??= config('mailer', 'username', 'apikey');
+        }
+    }
+
+    private ?string $mailPassword = null {
+        get {
+            return $this->mailPassword ??= config('mailer', 'password', '');
         }
     }
 
     private ?string $mailFrom = null {
         get {
-            return $this->mailFrom ??= config('mailer', 'from_address', 'noreply@kryptlok.dev');
+            return $this->mailFrom ??= config('mailer', 'from_address', 'noreply@kryptlok.store');
         }
     }
 
@@ -42,46 +53,42 @@ final class MailMfaService extends BaseService implements MfaServiceInterface
     public function verifyCode(string $userId, string $code): bool
     {
         $method = $this->verify->getMethod('mail');
-
-        if (!$method || !$method->is_active) {
-            return false;
-        }
-
-        return $method->otp_secret === $code;
+        return $method && $method->is_active && $method->otp_secret === $code;
     }
 
     public function sendCode(string $userId): ?string
     {
         $method = $this->verify->getMethod('mail');
-
         if (!$method || !$method->is_active) {
             return null;
         }
 
-        $otp = $this->generateSecret();
+        $otp   = $this->generateSecret();
         $email = $this->verify->getUserEmail();
 
         try {
             $mailer = new PHPMailer(true);
             $mailer->isSMTP();
-            $mailer->Host = $this->mailHost;
-            $mailer->Port = $this->mailPort;
-            $mailer->SMTPAuth = false;
-            $mailer->SMTPAutoTLS = false;
+            $mailer->Host       = $this->mailHost;
+            $mailer->Port       = $this->mailPort;
+            $mailer->SMTPAuth   = true;
+            $mailer->Username   = $this->mailUsername;
+            $mailer->Password   = $this->mailPassword;
+            $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 
             $mailer->setFrom($this->mailFrom, $this->mailFromName);
             $mailer->addAddress($email);
             $mailer->Subject = 'Your KryptLok Verification Code';
-            $mailer->Body = "Here Is Your Login Code: $otp";
+            $mailer->Body    = "Your KryptLok Security Code Is: $otp";
 
             $mailer->send();
-
             $this->verify->updateSecret($userId, 'mail', $otp);
+
             return $otp;
         } catch (Exception) {
-            SessionHelper::flash('code_send_failure', 'Unable To Send Verification Email. Please Try Again Later.', 'danger');
+            SessionHelper::flash('code_send_failure', 'Unable To Send Verification Email. Please Try Again Later.', 'danger'
+            );
             return null;
         }
     }
-
 }

@@ -1,7 +1,7 @@
 application:
   project: "KryptLok"
   env: "prod"
-  contact_email: "support@kryptlok.com"
+  contact_email: "Kryptlok@hotmail.com"
   locales:
     - fr_CA
 
@@ -15,16 +15,12 @@ locale:
   format_datetime: "d LLLL yyyy, HH:mm"
 
 mailer:
-  transport: "smtp"
+  host: !php/const MAIL_HOST
+  port: !php/const MAIL_PORT
+  username: !php/const MAIL_USERNAME
+  password: !php/const MAIL_PASSWORD
   from_address: !php/const MAIL_FROM
   from_name: !php/const MAIL_FROM_NAME
-  smtp:
-    enabled: true
-    host: !php/const MAIL_HOST
-    port: !php/const MAIL_PORT
-    encryption: "tls"
-    username: ""
-    password: ""
 
 database:
   hostname: !php/const DB_HOSTNAME
