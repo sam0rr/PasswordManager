@@ -23,8 +23,8 @@ mailer:
     host: !php/const MAIL_HOST
     port: !php/const MAIL_PORT
     encryption: "tls"
-    username: ""
-    password: ""
+    username: !php/const MAIL_USERNAME
+    password: !php/const MAIL_PASSWORD
 
 database:
   hostname: !php/const DB_HOSTNAME

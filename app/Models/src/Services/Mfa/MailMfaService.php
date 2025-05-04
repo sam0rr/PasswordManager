@@ -12,19 +12,31 @@ final class MailMfaService extends BaseService implements MfaServiceInterface
 {
     private ?string $mailHost = null {
         get {
-            return $this->mailHost ??= config('mailer.smtp', 'host', 'localhost');
+            return $this->mailHost ??= config('mailer.smtp', 'host', 'smtp.sendgrid.net');
         }
     }
 
     private ?int $mailPort = null {
         get {
-            return $this->mailPort ??= (int) config('mailer.smtp', 'port', 1025);
+            return $this->mailPort ??= (int) config('mailer.smtp', 'port', 587);
+        }
+    }
+
+    private ?string $mailUsername = null {
+        get {
+            return $this->mailUsername ??= config('mailer.smtp', 'username', 'apikey');
+        }
+    }
+
+    private ?string $mailPassword = null {
+        get {
+            return $this->mailPassword ??= config('mailer.smtp', 'password', '');
         }
     }
 
     private ?string $mailFrom = null {
         get {
-            return $this->mailFrom ??= config('mailer', 'from_address', 'noreply@kryptlok.dev');
+            return $this->mailFrom ??= config('mailer', 'from_address', 'KryptLok@hotmail.com');
         }
     }
 
@@ -66,8 +78,10 @@ final class MailMfaService extends BaseService implements MfaServiceInterface
             $mailer->isSMTP();
             $mailer->Host = $this->mailHost;
             $mailer->Port = $this->mailPort;
-            $mailer->SMTPAuth = false;
-            $mailer->SMTPAutoTLS = false;
+            $mailer->SMTPAuth = true;
+            $mailer->Username = $this->mailUsername;
+            $mailer->Password = $this->mailPassword;
+            $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 
             $mailer->setFrom($this->mailFrom, $this->mailFromName);
             $mailer->addAddress($email);
@@ -85,3 +99,5 @@ final class MailMfaService extends BaseService implements MfaServiceInterface
     }
 
 }
+
+
