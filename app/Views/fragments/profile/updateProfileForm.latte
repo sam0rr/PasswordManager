@@ -16,7 +16,9 @@
         label => 'Firstname',
         icon  => 'person',
         form  => $form,
-        value => $form->getValue('first_name', $user ? $user->first_name : '')
+        value => $form->getValue('first_name') === null
+        ? ($user ? $user->first_name : '')
+        : $form->getValue('first_name')
         }
 
         {include '../../components/formField.latte',
@@ -24,7 +26,9 @@
         label => 'Lastname',
         icon  => 'person-badge',
         form  => $form,
-        value => $form->getValue('last_name', $user ? $user->last_name : '')
+        value => $form->getValue('last_name') === null
+        ? ($user ? $user->last_name : '')
+        : $form->getValue('last_name')
         }
 
         {include '../../components/formField.latte',
@@ -32,7 +36,9 @@
         label => 'Email',
         icon  => 'envelope',
         form  => $form,
-        value => $form->getValue('email', $user ? $user->email : '')
+        value => $form->getValue('email') === null
+        ? ($user ? $user->email : '')
+        : $form->getValue('email')
         }
 
         {include '../../components/formField.latte',
@@ -40,7 +46,9 @@
         label => 'Phone',
         icon  => 'telephone',
         form  => $form,
-        value => $form->getValue('phone', $user ? $user->phone : '')
+        value => $form->getValue('phone') === null
+        ? ($user ? $user->phone : '')
+        : $form->getValue('phone')
         }
 
         <div class="d-grid gap-2 mt-4">
