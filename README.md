@@ -93,10 +93,15 @@ docker-compose up -d --build
 
 ## Day-to-Day Development
 
-When your assets change, you need to regenerate the service worker:
+When your public assets change, you need to regenerate the service worker:
 
 ```bash
 npm run generate-sw
+```
+
+When your html (latte) assets change, you need to regenerate the service worker:
+```bash
+docker exec -it zephyrus_webserver composer latte-cache
 ```
 
 Access your local environment at:
