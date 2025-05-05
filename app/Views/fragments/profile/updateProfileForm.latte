@@ -11,36 +11,36 @@
           novalidate>
         {$csrf_keep_alive|noescape}
 
-        {include '../../components/formField.latte',
-        name => 'first_name',
+       {include '../../components/formField.latte',
+        name  => 'first_name',
         label => 'Firstname',
-        icon => 'person',
-        form => $form,
-        value => $form->getValue('first_name') ?: $user->first_name
+        icon  => 'person',
+        form  => $form,
+        value => $form->getValue('first_name') ?? (isset($user) ? $user->first_name : '')
         }
 
         {include '../../components/formField.latte',
-        name => 'last_name',
+        name  => 'last_name',
         label => 'Lastname',
-        icon => 'person-badge',
-        form => $form,
-        value => $form->getValue('last_name') ?: $user->last_name
+        icon  => 'person-badge',
+        form  => $form,
+        value => $form->getValue('last_name') ?? (isset($user) ? $user->last_name : '')
         }
 
         {include '../../components/formField.latte',
-        name => 'email',
+        name  => 'email',
         label => 'Email',
-        icon => 'envelope',
-        form => $form,
-        value => $form->getValue('email') ?: $user->email
+        icon  => 'envelope',
+        form  => $form,
+        value => $form->getValue('email') ?? (isset($user) ? $user->email : '')
         }
 
         {include '../../components/formField.latte',
-        name => 'phone',
+        name  => 'phone',
         label => 'Phone',
-        icon => 'telephone',
-        form => $form,
-        value => $form->getValue('phone') ?: $user->phone
+        icon  => 'telephone',
+        form  => $form,
+        value => $form->getValue('phone') ?? (isset($user) ? $user->phone : '')
         }
 
         <div class="d-grid gap-2 mt-4">

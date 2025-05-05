@@ -30,7 +30,7 @@ final class UserService extends BaseService
 
             if ($isHtmx) {
                 return [
-                    "form" => $form
+                    'form' => $form
                 ];
             }
 
@@ -40,8 +40,7 @@ final class UserService extends BaseService
             $this->userBroker->updateUser($this->auth['user_id'], $updates);
 
             return [
-                'form' => $form,
-                'user' => $this->getCurrentUserEntity()
+                'form' => $form
             ];
 
         } catch (FormException) {
@@ -70,9 +69,11 @@ final class UserService extends BaseService
             }
 
             $this->sharing->acceptPendingShares();
-            $user = $this->rotateUserKey($currentUser, $newPassword);
+            $this->rotateUserKey($currentUser, $newPassword);
 
-            return ["form" => $form, "user" => $user];
+            return [
+                'form' => $form
+            ];
         } catch (FormException) {
             return $this->buildErrorResponse($form);
         }
