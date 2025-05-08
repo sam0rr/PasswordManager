@@ -113,7 +113,7 @@ final class VerifyController extends SecureController
             'form' => $form,
             'method' => $method,
             'pendingMethods' => $pendingMethods,
-            'title' => 'Vérification MFA'
+            'title' => 'MFA Confirmation'
         ]);
     }
 
@@ -146,7 +146,6 @@ final class VerifyController extends SecureController
         return $this->render("fragments/verify/{$form->getValue('method')}Mfa", [
             'form' => $form,
             'method' => $form->getValue('method'),
-            'isHtmx' => true,
             'successMessage' => SessionHelper::consume('flash_message')
         ]);
     }
@@ -167,8 +166,7 @@ final class VerifyController extends SecureController
             $template = str_replace('{method}', $form->getValue('method'), $fragmentTemplate);
             return $this->render($template, [
                 'form' => $result['form'],
-                'method' => $form->getValue('method'),
-                'isHtmx' => true
+                'method' => $form->getValue('method')
             ]);
         }
 

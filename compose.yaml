@@ -43,7 +43,7 @@ services:
     volumes:
       - ./sql:/docker-entrypoint-initdb.d/sql:ro
       - ./sql/init-database.sql:/docker-entrypoint-initdb.d/1-database.sql:ro
-      - ./sql/init-mocks.sql:/docker-entrypoint-initdb.d/2-data-mocks.sql:ro
+      # - ./sql/init-mocks.sql:/docker-entrypoint-initdb.d/2-data-mocks.sql:ro
     environment:
       POSTGRES_DB:       "${DB_NAME}"
       POSTGRES_USER:     "${DB_USERNAME}"
