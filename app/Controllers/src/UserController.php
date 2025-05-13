@@ -22,8 +22,7 @@ final class UserController extends SecureController
 
         if ($isHtmx) {
             return $this->render("fragments/profile/updateProfileForm", [
-                'form' => $result['form'],
-                'isHtmx' => true
+                'form' => $result['form']
             ]);
         }
 
@@ -65,8 +64,7 @@ final class UserController extends SecureController
 
         if ($isHtmx) {
             return $this->render("fragments/profile/updatePasswordForm", [
-                'form' => $result["form"],
-                'isHtmx' => true
+                'form' => $result["form"]
             ]);
         }
 

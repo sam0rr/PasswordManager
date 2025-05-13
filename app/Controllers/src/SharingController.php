@@ -21,8 +21,7 @@ final class SharingController extends SecureController
         if ($isHtmx) {
             return $this->render("fragments/passwords/passwordShareForm", [
                 'form' => $result['form'],
-                'password' => $result['password'],
-                'isHtmx' => true
+                'password' => $result['password']
             ]);
         }
 

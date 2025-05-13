@@ -1,0 +1,35 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Latte\Engine;
+use Latte\Loaders\FileLoader;
+use Latte\CompileException;
+use Latte\SecurityViolationException;
+
+$root = realpath(__DIR__ . '/../');
+$viewsPath = $root . '/app/Views';
+$cachePath = $root . '/storage/cache/latte';
+
+$latte = new Engine();
+$latte->setLoader(new FileLoader($viewsPath));
+$latte->setTempDirectory($cachePath);
+$latte->setAutoRefresh(false);
+
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($viewsPath)
+);
+
+foreach ($iterator as $file) {
+    if ($file->getExtension() === 'latte') {
+        $relativePath = str_replace($viewsPath . '/', '', $file->getRealPath());
+        echo "Compiling: $relativePath" . PHP_EOL;
+
+        try {
+            $latte->compile($relativePath);
+        } catch (CompileException | SecurityViolationException $e) {
+            fwrite(STDERR, "Error Compiling $relativePath: " . $e->getMessage() . PHP_EOL);
+        }
+    }
+}

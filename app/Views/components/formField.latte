@@ -1,8 +1,8 @@
-{var $type = $type ?? 'text'}
-{var $uniqueId = $name . '-' . uniqid()}
-{var $context = $context ?? 'default'}
-{var $hasError = isset($form) && $form->hasError($name)}
-{var $isValid = isset($form) && !$form->hasError($name) && $form->getValue($name)}
+{var $type       = $type ?? 'text'}
+{var $context    = $context ?? 'default'}
+{var $uniqueId   = $name . '-' . $context}
+{var $hasError   = isset($form) && $form->hasError($name)}
+{var $isValid    = isset($form) && !$form->hasError($name) && $form->getValue($name)}
 {var $fieldValue = (isset($form) ? $form->getValue($name) : null) ?? $value ?? ''}
 {var $isPassword = $type === 'password'}
 {var $inputClasses = 'form-control' . ($hasError ? ' is-invalid' : '') . ($isValid ? ' is-valid' : '')}
@@ -20,13 +20,14 @@
                     id="{$uniqueId}"
                     class="{$inputClasses}"
                     value="{$fieldValue}"
-                    required>
+                    required
+                    >
 
             <button
                     type="button"
                     class="btn btn-outline-secondary"
                     data-password-toggle="{$uniqueId}"
-                    data-toggle-key="{$name}-{$context}"
+                    data-toggle-key="{$uniqueId}"
                     aria-label="Toggle Password">
                 <i class="fa fa-eye"></i>
             </button>
@@ -38,7 +39,8 @@
                 id="{$uniqueId}"
                 class="{$inputClasses}"
                 value="{$fieldValue}"
-                required>
+                required
+                >
     {/if}
 
     {if $hasError}

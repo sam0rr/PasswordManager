@@ -1,26 +1,42 @@
-<div id="login-form-wrapper">
-    <form method="post"
-          action="/login"
-          hx-post="/login"
-          hx-trigger="change"
-          hx-target="#login-form-wrapper"
-          hx-swap="morphdom"
-          hx-preserve="true"
-          novalidate>
-        {$csrf_keep_alive|noescape}
+{var $form = Controllers\src\Utils\SessionHelper::getForm('auth_login')}
+{var $context = 'auth_login'}
 
-        {if ($flash = \Controllers\src\Utils\SessionHelper::getFlash('login_error'))}
-            {include '../../components/alert/messageAlert.latte', message => $flash['message'], type => $flash['type']}
-        {/if}
+<form method="post"
+      action="/login"
+      hx-post="/login"
+      hx-trigger="change"
+      hx-target="#login-form-wrapper"
+      hx-swap="morphdom"
+      hx-preserve="true"
+      novalidate>
 
-        {include '../../components/formField.latte', name => 'email', label => 'Email', icon => 'envelope'}
-        {include '../../components/formField.latte', name => 'password', label => 'Password', icon => 'lock', type => 'password'}
+    {$csrf_keep_alive|noescape}
 
-        <div class="d-grid gap-2 mt-4">
-            <input type="hidden" name="submit" value="true" />
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Login
-            </button>
-        </div>
-    </form>
-</div>
+    {if ($flash = \Controllers\src\Utils\SessionHelper::getFlash('login_error'))}
+        {include '../../components/alert/messageAlert.latte', message => $flash['message'], type => $flash['type']}
+    {/if}
+
+    {include '../../components/formField.latte',
+    name => 'email',
+    label => 'Email',
+    icon => 'envelope',
+    form => $form,
+    context => $context
+    }
+
+    {include '../../components/formField.latte',
+    name => 'password',
+    label => 'Password',
+    icon => 'lock',
+    type => 'password',
+    form => $form,
+    context => $context
+    }
+
+    <div class="d-grid gap-2 mt-4">
+        <input type="hidden" name="submit" value="true" />
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+        </button>
+    </div>
+</form>

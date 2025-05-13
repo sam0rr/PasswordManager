@@ -54,8 +54,7 @@ final class AuthController extends Controller
 
         if ($isHtmx) {
             return $this->render("fragments/auth/loginForm", [
-                "form" => $result["form"],
-                "isHtmx" => true
+                "form" => $result["form"]
             ]);
         }
 

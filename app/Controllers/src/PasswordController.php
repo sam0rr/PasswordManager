@@ -21,8 +21,7 @@ final class PasswordController extends SecureController
 
         if ($isHtmx) {
             return $this->render("fragments/passwords/passwordAddForm", [
-                'form' => $result['form'],
-                'isHtmx' => true
+                'form' => $result['form']
             ]);
         }
 
@@ -48,8 +47,7 @@ final class PasswordController extends SecureController
         if ($isHtmx) {
             return $this->render("fragments/passwords/passwordUpdateForm", [
                 'form' => $result['form'],
-                'password' => $result['password'],
-                'isHtmx' => true
+                'password' => $result['password']
             ]);
         }
 
