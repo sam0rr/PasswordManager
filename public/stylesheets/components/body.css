@@ -92,6 +92,20 @@ input, textarea, select, button {
 .dashboard-header .dropdown-toggle::after {
     transition: transform 0.2s ease-in-out;
 }
+
 .dashboard-header .dropdown-toggle[aria-expanded="true"]::after {
     transform: rotate(180deg);
+}
+
+.htmx-swapping {
+    contain: layout;
+}
+
+.htmx-request {
+    content-visibility: auto;
+}
+
+.htmx-added {
+    animation: fadeIn 0.3s ease forwards;
+    will-change: opacity;
 }
