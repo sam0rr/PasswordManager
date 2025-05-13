@@ -16,7 +16,13 @@
 
         <input type="hidden" name="method" value="{$method}">
 
-        {include '../../components/formField.latte', name => 'code', label => $label, icon => 'chat-dots', form => $form}
+        {include '../../components/formField.latte',
+        name => 'code',
+        label => $label,
+        icon => 'chat-dots',
+        form => $form,
+        context => $method
+        }
 
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">

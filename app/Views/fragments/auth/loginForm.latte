@@ -1,4 +1,5 @@
 {var $form = Controllers\src\Utils\SessionHelper::getForm('auth_login')}
+{var $context = 'auth_login'}
 
 <form method="post"
       action="/login"
@@ -15,8 +16,22 @@
         {include '../../components/alert/messageAlert.latte', message => $flash['message'], type => $flash['type']}
     {/if}
 
-    {include '../../components/formField.latte', name => 'email', label => 'Email', icon => 'envelope' , form => $form}
-    {include '../../components/formField.latte', name => 'password', label => 'Password', icon => 'lock', type => 'password', form => $form}
+    {include '../../components/formField.latte',
+    name => 'email',
+    label => 'Email',
+    icon => 'envelope',
+    form => $form,
+    context => $context
+    }
+
+    {include '../../components/formField.latte',
+    name => 'password',
+    label => 'Password',
+    icon => 'lock',
+    type => 'password',
+    form => $form,
+    context => $context
+    }
 
     <div class="d-grid gap-2 mt-4">
         <input type="hidden" name="submit" value="true" />

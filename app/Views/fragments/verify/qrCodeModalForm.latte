@@ -1,4 +1,5 @@
 {var $form = Controllers\src\Utils\SessionHelper::getForm('mfa_confirm_modal')}
+{var $context = 'mfa_confirm_modal'}
 
 <form method="post"
       action="/verify/confirmModal"
@@ -12,7 +13,13 @@
 
     <input type="hidden" name="method" value="authenticator">
 
-    {include '../../components/formField.latte', name => 'code', label => 'Enter The 6-Digit Code', icon => 'shield-lock', form => $form}
+    {include '../../components/formField.latte',
+    name => 'code',
+    label => 'Enter The 6-Digit Code',
+    icon => 'shield-lock',
+    form => $form,
+    context => $context
+    }
 
     <div class="d-flex justify-content-end gap-2 mt-4">
         <button type="submit" class="btn btn-primary">
