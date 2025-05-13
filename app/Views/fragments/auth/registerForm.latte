@@ -1,25 +1,29 @@
-<div id="register-form-wrapper">
-    <form method="post"
-          action="/register"
-          hx-post="/register"
-          hx-trigger="change"
-          hx-target="#register-form-wrapper"
-          hx-swap="morphdom"
-          hx-preserve="true"
-          novalidate>
-        {$csrf_keep_alive|noescape}
+{var $form = Controllers\src\Utils\SessionHelper::getForm('auth_register')}
 
-        {include '../../components/formField.latte', name => 'first_name', label => 'Firstname', icon => 'person'}
-        {include '../../components/formField.latte', name => 'last_name', label => 'Lastname', icon => 'person-badge'}
-        {include '../../components/formField.latte', name => 'email', label => 'Mail', icon => 'envelope'}
-        {include '../../components/formField.latte', name => 'phone', label => 'Phone', icon => 'telephone'}
-        {include '../../components/formField.latte', name => 'password', label => 'Password', icon => 'lock', type => 'password'}
+<form method="post"
+      action="/register"
+      hx-post="/register"
+      hx-trigger="change"
+      hx-target="#register-form-wrapper"
+      hx-swap="morphdom"
+      hx-preserve="true"
+      novalidate>
 
-        <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-person-plus me-2"></i>Register
-            </button>
-        </div>
-    </form>
+    {$csrf_keep_alive|noescape}
 
-</div>
+    {if ($flash = \Controllers\src\Utils\SessionHelper::getFlash('register_error'))}
+        {include '../../components/alert/messageAlert.latte', message => $flash['message'], type => $flash['type']}
+    {/if}
+
+    {include '../../components/formField.latte', name => 'first_name', label => 'Firstname', icon => 'person', form => $form}
+    {include '../../components/formField.latte', name => 'last_name', label => 'Lastname', icon => 'person-badge', form => $form}
+    {include '../../components/formField.latte', name => 'email', label => 'Mail', icon => 'envelope', form => $form}
+    {include '../../components/formField.latte', name => 'phone', label => 'Phone', icon => 'telephone', form => $form}
+    {include '../../components/formField.latte', name => 'password', label => 'Password', icon => 'lock', type => 'password', form => $form}
+
+    <div class="d-grid gap-2 mt-3">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-person-plus me-2"></i>Register
+        </button>
+    </div>
+</form>
