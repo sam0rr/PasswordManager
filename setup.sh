@@ -24,7 +24,7 @@ echo -e "${TextBlue}=== Local Development Environment Setup ===${TextReset}"
 echo -e "\n${TextYellow}1/– Checking prerequisites…${TextReset}"
 
 # 1. Ensure core tools are installed
-for cmd in docker php node npm wget; do
+for cmd in docker php node npm; do
   command -v "$cmd" &> /dev/null || error "$cmd is not installed"
 done
 
@@ -53,9 +53,18 @@ echo -e "\n${TextYellow}2/– Composer setup…${TextReset}"
 if ! command -v composer &> /dev/null; then
   echo -e "${TextYellow}Installing composer…${TextReset}"
   run php -r "copy('https://getcomposer.org/installer','composer-setup.php')"
-  EXPECTED_SIG="$(wget -q -O - https://composer.github.io/installer.sig)"
+
+  # fetch expected signature via wget or curl
+  if command -v wget &> /dev/null; then
+    EXPECTED_SIG="$(wget -q -O - https://composer.github.io/installer.sig)"
+  elif command -v curl &> /dev/null; then
+    EXPECTED_SIG="$(curl -s https://composer.github.io/installer.sig)"
+  else
+    error "Neither wget nor curl is installed; one is required to verify Composer signature"
+  fi
   ACTUAL_SIG="$(php -r "echo hash_file('sha384','composer-setup.php');")"
   [ "$EXPECTED_SIG" == "$ACTUAL_SIG" ] || error "Invalid composer installer signature"
+
   run php composer-setup.php --quiet
   rm composer-setup.php
   if command -v sudo &> /dev/null; then
@@ -92,10 +101,12 @@ echo -e "${TextGreen}Certificates created:${TextReset}"
 echo -e "  • docker/services/php/localhost.pem"
 echo -e "  • docker/services/php/localhost-key.pem"
 
-# 8. PHP dependencies
+# 8. PHP dependencies (ignore missing ssh2/apcu)
 echo -e "\n${TextGreen}Step 3: Installing PHP dependencies…${TextReset}"
 if [ -f composer.json ]; then
-  run "${COMPOSER_CMD[@]}" install
+  run "${COMPOSER_CMD[@]}" install \
+    --ignore-platform-req=ext-ssh2 \
+    --ignore-platform-req=ext-apcu
 else
   echo -e "${TextYellow}composer.json not found, skipping PHP install${TextReset}"
 fi
@@ -110,17 +121,23 @@ run npm run generate-sw
 
 # 11. Docker containers
 echo -e "\n${TextGreen}Step 6: Starting Docker containers…${TextReset}"
-run "${COMPOSE_CMD[@]}" up -d --build
+# force recreate et remove orphans
+run "${COMPOSE_CMD[@]}" up -d --build --force-recreate --remove-orphans
 
-# 12. Composer in container
+# 12. Composer in container (ignore missing extensions)
 echo -e "\n${TextGreen}Step 7: Installing composer in container…${TextReset}"
 if [ ! -d vendor ]; then
-  if docker exec "$WEBSERVER_NAME" composer install --no-interaction; then
+  if docker exec "$WEBSERVER_NAME" composer install --no-interaction \
+      --ignore-platform-req=ext-ssh2 \
+      --ignore-platform-req=ext-apcu; then
     echo -e "${TextGreen}Composer installed in container${TextReset}"
   else
     echo -e "${TextYellow}Fallback: creating vendor dir and retrying…${TextReset}"
     run docker exec "$WEBSERVER_NAME" bash -c '[ -d /var/www/html/vendor ] || mkdir -p /var/www/html/vendor'
-    run docker exec "$WEBSERVER_NAME" bash -c 'cd /var/www/html && composer install --no-interaction'
+    run docker exec "$WEBSERVER_NAME" bash -c \
+      'cd /var/www/html && composer install --no-interaction \
+        --ignore-platform-req=ext-ssh2 \
+        --ignore-platform-req=ext-apcu'
   fi
 else
   echo -e "${TextYellow}vendor/ exists, skipping container install${TextReset}"
