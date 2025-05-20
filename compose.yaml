@@ -6,7 +6,7 @@ services:
   webserver:
     build:
       context: ./docker/services/php
-    container_name: zephyrus_webserver
+    container_name:   "${WEBSERVER_NAME}"
     restart: always
     depends_on:
       - database

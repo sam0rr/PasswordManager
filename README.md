@@ -101,7 +101,7 @@ npm run generate-sw
 
 When your html (latte) assets change, you need to regenerate the service worker:
 ```bash
-docker exec -it zephyrus_webserver composer latte-cache
+docker exec -it kryptlok_webserver composer latte-cache
 ```
 
 Access your local environment at:
