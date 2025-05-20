@@ -1,16 +1,37 @@
-composer.phar
-.idea/
+# Node.js dependencies
+/node_modules/
+/package-lock.json
+
+# Composer artifacts
+/composer.phar
+/composer.lock
 /vendor/
-composer.lock
 
-/locale/cache
-/backups
-/storage
-/temp
-/cache
-/logs
+# IDE files
+/.idea/
 
-.env
-/xdebug
+# Docker-generated SSL certs
+/docker/services/php/localhost.pem
+/docker/services/php/localhost-key.pem
 
+# Locale and backup caches
+/locale/cache/
+/backups/
+
+# Application storage & runtime files
+/storage/
+/temp/
+/cache/
+/logs/
+
+# Environment settings
+/.env
+
+# Xdebug configs
+/xdebug/
+
+# Service worker & Workbox builds
 /public/serviceWorker.js
+/public/serviceWorker.js.map
+/public/workbox-*.js
+/public/workbox-*.js.map
