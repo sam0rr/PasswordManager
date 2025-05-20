@@ -126,4 +126,4 @@ Workbox CLI reads your `workbox-config.js` configuration and automatically gener
 - **Certificate not trusted**: Run `mkcert -install` again and regenerate certificates
 - **Browser cache issues**: Perform a hard refresh (Ctrl+F5 or Cmd+Shift+R)
 - **Service worker errors**: Check the browser console (F12 → Application → Service Workers)
-- **Apache issues**: Force reload with `docker exec zephyrus_webserver service apache2 reload`
+- **Apache issues**: Force reload with `docker exec kryptlok_webserver service apache2 reload`
