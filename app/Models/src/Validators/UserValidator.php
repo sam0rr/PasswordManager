@@ -47,13 +47,15 @@ final class UserValidator extends BaseValidator
     {
         $oldPasswordField = $form->field("old", [
             Rule::required("Current Password Is Required."),
-            Rule::minLength(8, "Current Password Is Too Short.")
+            Rule::minLength(8, "Current Password Is Too Short."),
+            Rule::passwordCompliant("The Current Password Is Not Password Compliant.")
         ]);
         self::optionalIf($oldPasswordField, $isHtmx);
 
         $newPasswordField = $form->field("new", [
             Rule::required("New Password Is Required."),
-            Rule::minLength(8, "New Password Must Be At Least 8 Characters.")
+            Rule::minLength(8, "New Password Must Be At Least 8 Characters."),
+            Rule::passwordCompliant("The New Password Is Not Password Compliant.")
         ]);
         self::optionalIf($newPasswordField, $isHtmx);
 

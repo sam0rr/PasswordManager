@@ -38,7 +38,8 @@ final class AuthValidator extends BaseValidator
 
         $passwordField = $form->field("password", [
             Rule::required("Password Is Required."),
-            Rule::minLength(8, "Password Must Be At Least 8 Characters.")
+            Rule::minLength(8, "Password Must Be At Least 8 Characters."),
+            Rule::passwordCompliant("The Password Must Be Password Compliant.")
         ]);
         self::optionalIf($passwordField, $isHtmx);
 
@@ -64,7 +65,8 @@ final class AuthValidator extends BaseValidator
 
         $passwordField = $form->field("password", [
             Rule::required("Password Is Required."),
-            Rule::minLength(8, "Password Must Be At Least 8 Characters.")
+            Rule::minLength(8, "Password Must Be At Least 8 Characters."),
+            Rule::passwordCompliant("The Password Must Be Password Compliant.")
         ]);
         self::optionalIf($passwordField, $isHtmx);
 
