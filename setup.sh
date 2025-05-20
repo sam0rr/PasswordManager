@@ -149,6 +149,9 @@ run docker exec "$WEBSERVER_NAME" composer latte-cache
 
 echo -e "\n${TextGreen}=== Setup completed successfully ===${TextReset}"
 
+echo -e "\n${TextYellow}🔗  Your app is now available at:${TextReset} https://localhost/login\n"
+
 echo -e "\n${TextYellow}Tips:${TextReset}"
 echo -e "- Clear cache or hard refresh if changes don't show"
 echo -e "- Run: npm run generate-sw after asset changes"
+
