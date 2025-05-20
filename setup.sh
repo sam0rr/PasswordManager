@@ -1,113 +1,133 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Color Codes
+# Color codes
 TextGreen='\033[0;32m'
 TextBlue='\033[0;34m'
 TextYellow='\033[1;33m'
 TextRed='\033[0;31m'
 TextReset='\033[0m'
 
+# Print an error and exit
+error() {
+  echo -e "${TextRed}Error:${TextReset} $1" >&2
+  exit 1
+}
+
+# Run a command, echo it first, abort on failure
+run() {
+  echo "+ $*"
+  "$@" || error "'$*' failed"
+}
+
 echo -e "${TextBlue}=== Local Development Environment Setup ===${TextReset}"
+echo -e "\n${TextYellow}1/– Checking prerequisites…${TextReset}"
 
-# Check If Prerequisites Are Installed
-echo -e "\n${TextYellow}Checking Prerequisites...${TextReset}"
+# 1. Ensure core tools are installed
+for cmd in docker php node npm wget; do
+  command -v "$cmd" &> /dev/null || error "$cmd is not installed"
+done
 
-# Check If Docker Is Installed
-if ! command -v docker &> /dev/null; then
-    echo -e "${TextRed}Error: Docker Is Not Installed${TextReset}"
-    echo -e "Please Install Docker From https://docs.docker.com/get-docker/"
-    exit 1
+# 2. Detect Docker Compose (v1 or v2)
+if command -v docker-compose &> /dev/null; then
+  COMPOSE_CMD=(docker-compose)
+elif docker compose version &> /dev/null; then
+  COMPOSE_CMD=(docker compose)
+else
+  error "Docker Compose is not available"
 fi
 
-# Check If Docker Compose Is Installed
-if ! command -v docker-compose &> /dev/null; then
-    echo -e "${TextRed}Error: Docker Compose Is Not Installed${TextReset}"
-    echo -e "Please Install Docker Compose From https://docs.docker.com/compose/install/"
-    exit 1
-fi
+# 3. Default environment variables
+: "${WEBSERVER_NAME:=kryptlok_webserver}"
+: "${DB_HOSTNAME:=kryptlok_database}"
+: "${DB_NAME:=kryptlok}"
+: "${DB_USERNAME:=postgres}"
+: "${DB_PASSWORD:=postgres}"
 
-# Check If Node.js Is Installed
-if ! command -v node &> /dev/null; then
-    echo -e "${TextRed}Error: Node.js Is Not Installed${TextReset}"
-    echo -e "Please Install Node.js (>=14) From https://nodejs.org/"
-    exit 1
-fi
+echo -e "${TextYellow}Using configuration:${TextReset}"
+echo -e "  • Webserver: $WEBSERVER_NAME"
+echo -e "  • Database : $DB_HOSTNAME"
 
-# Check If Npm Is Installed
-if ! command -v npm &> /dev/null; then
-    echo -e "${TextRed}Error: Npm Is Not Installed${TextReset}"
-    echo -e "Please Install Npm From https://www.npmjs.com/get-npm"
-    exit 1
+# 4. Install Composer if missing
+echo -e "\n${TextYellow}2/– Composer setup…${TextReset}"
+if ! command -v composer &> /dev/null; then
+  echo -e "${TextYellow}Installing composer…${TextReset}"
+  run php -r "copy('https://getcomposer.org/installer','composer-setup.php')"
+  EXPECTED_SIG="$(wget -q -O - https://composer.github.io/installer.sig)"
+  ACTUAL_SIG="$(php -r "echo hash_file('sha384','composer-setup.php');")"
+  [ "$EXPECTED_SIG" == "$ACTUAL_SIG" ] || error "Invalid composer installer signature"
+  run php composer-setup.php --quiet
+  rm composer-setup.php
+  if command -v sudo &> /dev/null; then
+    run sudo mv composer.phar /usr/local/bin/composer
+  else
+    echo -e "${TextYellow}Composer installed locally. Move composer.phar into PATH if needed.${TextReset}"
+  fi
 fi
+COMPOSER_CMD=( "$(command -v composer || echo "./composer.phar")" )
 
-# Check If Mkcert Is Installed
+# 5. Install mkcert on macOS if missing
+echo -e "\n${TextYellow}3/– mkcert setup…${TextReset}"
 if ! command -v mkcert &> /dev/null; then
-    echo -e "${TextYellow}Mkcert Is Not Installed. Installing...${TextReset}"
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # MacOS
-        if command -v brew &> /dev/null; then
-            brew install mkcert
-            brew install nss  # For Firefox Support
-        else
-            echo -e "${TextRed}Error: Homebrew Is Not Installed${TextReset}"
-            echo -e "Please Install Homebrew From https://brew.sh/"
-            exit 1
-        fi
-    else
-        echo -e "${TextRed}Error: Automatic Installation Of Mkcert Is Only Supported On MacOS With Homebrew${TextReset}"
-        echo -e "Please Install Mkcert Manually: https://github.com/FiloSottile/mkcert#installation"
-        exit 1
-    fi
+  echo -e "${TextYellow}Installing mkcert (macOS)…${TextReset}"
+  [[ "$OSTYPE" == darwin* ]] || error "mkcert must be installed manually on non-macOS"
+  command -v brew &> /dev/null || error "Homebrew required for mkcert"
+  run brew install mkcert nss
 fi
 
-# Step 1: Install Mkcert CA
-echo -e "\n${TextGreen}Step 1: Installing Mkcert Certificate Authority...${TextReset}"
-mkcert -install
+# 6. Generate and install local CA
+echo -e "\n${TextGreen}Step 1: Installing mkcert CA…${TextReset}"
+run mkcert -install
 
-# Step 2: Generate SSL Certificates
-echo -e "\n${TextGreen}Step 2: Generating SSL Certificates For Localhost...${TextReset}"
-mkdir -p docker/services/php
-if ! mkcert \
+# 7. Create SSL certificates
+echo -e "\n${TextGreen}Step 2: Generating SSL certificates…${TextReset}"
+run mkdir -p docker/services/php
+run mkcert \
   -cert-file docker/services/php/localhost.pem \
   -key-file  docker/services/php/localhost-key.pem \
-  localhost 127.0.0.1 ::1; then
-    echo -e "${TextRed}Error: Failed To Generate SSL Certificates${TextReset}"
-    exit 1
+  localhost 127.0.0.1 ::1
+run chmod 600 docker/services/php/localhost-key.pem
+
+echo -e "${TextGreen}Certificates created:${TextReset}"
+echo -e "  • docker/services/php/localhost.pem"
+echo -e "  • docker/services/php/localhost-key.pem"
+
+# 8. PHP dependencies
+echo -e "\n${TextGreen}Step 3: Installing PHP dependencies…${TextReset}"
+if [ -f composer.json ]; then
+  run "${COMPOSER_CMD[@]}" install
+else
+  echo -e "${TextYellow}composer.json not found, skipping PHP install${TextReset}"
 fi
 
-echo -e "${TextGreen}SSL Certificates Generated Successfully At:${TextReset}"
-echo -e "  - docker/services/php/localhost.pem"
-echo -e "  - docker/services/php/localhost-key.pem"
+# 9. NPM dependencies
+echo -e "\n${TextGreen}Step 4: Installing NPM dependencies…${TextReset}"
+run npm install
 
-# Step 3: Install Npm Dependencies
-echo -e "\n${TextGreen}Step 3: Installing Npm Dependencies...${TextReset}"
-if ! npm install; then
-    echo -e "${TextRed}Error: Failed To Install Npm Dependencies${TextReset}"
-    exit 1
+# 10. Service worker
+echo -e "\n${TextGreen}Step 5: Generating service worker…${TextReset}"
+run npm run generate-sw
+
+# 11. Docker containers
+echo -e "\n${TextGreen}Step 6: Starting Docker containers…${TextReset}"
+run "${COMPOSE_CMD[@]}" up -d --build
+
+# 12. Composer in container
+echo -e "\n${TextGreen}Step 7: Installing composer in container…${TextReset}"
+if [ ! -d vendor ]; then
+  if docker exec "$WEBSERVER_NAME" composer install --no-interaction; then
+    echo -e "${TextGreen}Composer installed in container${TextReset}"
+  else
+    echo -e "${TextYellow}Fallback: creating vendor dir and retrying…${TextReset}"
+    run docker exec "$WEBSERVER_NAME" bash -c '[ -d /var/www/html/vendor ] || mkdir -p /var/www/html/vendor'
+    run docker exec "$WEBSERVER_NAME" bash -c 'cd /var/www/html && composer install --no-interaction'
+  fi
+else
+  echo -e "${TextYellow}vendor/ exists, skipping container install${TextReset}"
 fi
 
-# Step 4: Generate Service Worker
-echo -e "\n${TextGreen}Step 4: Generating Service Worker...${TextReset}"
-if ! npm run generate-sw; then
-    echo -e "${TextRed}Error: Failed To Generate Service Worker${TextReset}"
-    exit 1
-fi
+echo -e "\n${TextGreen}=== Setup completed successfully ===${TextReset}"
 
-# Step 5: Build And Start Docker Containers
-echo -e "\n${TextGreen}Step 5: Building And Starting Docker Containers...${TextReset}"
-if ! docker-compose up -d --build; then
-    echo -e "${TextRed}Error: Failed To Start Docker Containers${TextReset}"
-    exit 1
-fi
-
-# Step 6: Display Success Message
-echo -e "\n${TextGreen}=== Setup Completed Successfully! ===${TextReset}"
-echo -e "Your Local Development Environment Is Now Ready."
-echo -e "You Can Access The Application At: ${TextBlue}https://localhost${TextReset}"
-echo -e "\n${TextYellow}Troubleshooting Tips:${TextReset}"
-echo -e "- Certificate Issues: Run 'mkcert -install' And Regenerate Certificates"
-echo -e "- Browser Cache Issues: Perform A Hard Refresh Or Clear Cache"
-echo -e "- Service Worker Errors: Check The Browser Console"
-echo -e "- Apache Reload: Run 'docker exec zephyrus_webserver service apache2 reload'"
-echo -e "\n${TextYellow}When Your Assets Change, Run:${TextReset}"
-echo -e "npm run generate-sw"
+echo -e "\n${TextYellow}Tips:${TextReset}"
+echo -e "- Clear cache or hard refresh if changes don't show"
+echo -e "- Run: npm run generate-sw after asset changes"
