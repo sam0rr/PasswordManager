@@ -143,6 +143,10 @@ else
   echo -e "${TextYellow}vendor/ exists, skipping container install${TextReset}"
 fi
 
+# 13. Clear Latte cache
+echo -e "\n${TextGreen}Step 8: Clearing Latte cache…${TextReset}"
+run docker exec "$WEBSERVER_NAME" composer latte-cache
+
 echo -e "\n${TextGreen}=== Setup completed successfully ===${TextReset}"
 
 echo -e "\n${TextYellow}Tips:${TextReset}"
